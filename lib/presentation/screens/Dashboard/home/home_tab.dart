@@ -20,7 +20,6 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   HomeController get controller => Get.find<HomeController>();
   late AnimationController _controller;
-  late Animation<double> _floatAnimation;
 
   @override
   void initState() {
@@ -29,7 +28,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    _floatAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
     _controller.repeat(reverse: true);
   }
 
