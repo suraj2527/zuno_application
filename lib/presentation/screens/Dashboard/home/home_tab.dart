@@ -304,26 +304,31 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
-        child: Column(
-          children: [
-            Expanded(
-              flex: 7,
-              child: Obx(
-                () => controller.isLoading.value
+        child: Obx(() {
+          /// 🔥 EMPTY STATE (FULL CARD)
+          if (!controller.isLoading.value &&
+              controller.currentProfile == null) {
+            return _buildFullEmptyState(isDark);
+          }
+
+          /// 🔥 NORMAL CARD
+          return Column(
+            children: [
+              Expanded(
+                flex: 7,
+                child: controller.isLoading.value
                     ? _buildImageSkeleton(isDark)
                     : _buildImageSection(),
               ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Obx(
-                () => controller.isLoading.value
+              Expanded(
+                flex: 4,
+                child: controller.isLoading.value
                     ? _buildSkeletonInfo()
                     : _buildDynamicInfo(isDark),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -605,11 +610,6 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   Widget _buildDynamicInfo(bool isDark) {
     final profile = controller.currentProfile;
-
-    if (profile == null) {
-      return _buildEmptyState(isDark);
-    }
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
@@ -618,19 +618,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           Row(
             children: [
               Text(
-                profile.userName,
+                profile?.userName ?? '',
                 style: AppTextStyles.headingLarge(isDark: isDark),
               ),
               const SizedBox(width: 6),
               Text(
-                profile.age,
+                profile?.age ?? '',
                 style: AppTextStyles.headingMedium(isDark: isDark),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            profile.bio,
+            profile?.bio ?? '',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyMedium(isDark: isDark),
@@ -646,7 +646,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  profile.location,
+                  profile?.location ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodySmall(isDark: isDark),
@@ -658,7 +658,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: profile.interests.map((interest) {
+            children: profile!.interests.map((interest) {
               return Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -685,82 +685,58 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// 🔹 CENTER EMOJI (hero element)
-          Expanded(
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _floatAnimation.value),
-                    child: Transform.scale(
-                      scale: 1 + (_floatAnimation.value / 18),
-                      child: const Text('😅', style: TextStyle(fontSize: 54)),
-                    ),
-                  );
-                },
-              ),
+Widget _buildFullEmptyState(bool isDark) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark
+                ? Colors.white.withOpacity(0.04)
+                : AppColors.white.withOpacity(0.06),
+          ),
+          child: SizedBox(
+            height: 150,
+            child: Image.asset(
+              'assets/images/dog.jpg',
+              fit: BoxFit.cover,
             ),
           ),
+        ),
 
-          /// 🔹 TEXT CONTENT (LEFT aligned)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "No more profiles nearby",
-                style: AppTextStyles.headingLarge(
-                  isDark: isDark,
-                ).copyWith(fontSize: 18),
-              ),
-              const SizedBox(height: 6),
+        const SizedBox(height: 26),
 
-              Text(
-                "You’re all caught up ✨",
-                style: AppTextStyles.bodyMedium(isDark: isDark),
-              ),
-              const SizedBox(height: 4),
-
-              Text(
-                "Check back later for new people",
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodySmall(isDark: isDark),
-              ),
-            ],
+        /// 🔥 TITLE
+        Text(
+          "You’re all caught up! 🥳",
+          textAlign: TextAlign.center,
+          style: AppTextStyles.headingLarge(isDark: isDark).copyWith(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
           ),
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 10),
 
-          /// 🔹 RIGHT-ALIGNED CHIP (important UX touch)
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                'New profiles coming soon',
-                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-                ),
-              ),
-            ),
+        /// 💬 SUBTITLE
+        Text(
+          "We’re finding more amazing people for you.\nCheck back in a bit.",
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
+            height: 1.4,
+            color: isDark
+                ? AppColors.textHintDark
+                : AppColors.textHint,
           ),
-        ],
-      ),
-    );
-  }
-
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildSwipeDynamicInfo(bool isDark, DatingProfile profile) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
