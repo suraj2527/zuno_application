@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'core/routes/app_routes.dart';
 import 'core/routes/app_pages.dart';
 import 'core/bindings/initial_binding.dart';
+import 'core/services/permission_service.dart';
 import 'firebase_options.dart';
 import 'utils/theme/app_theme.dart';
 
@@ -27,8 +27,9 @@ class ZunoApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: Routes.DASHBOARD,
+      initialRoute: '/', // Start with permission screen
       getPages: AppPages.routes,
+      home: const PermissionServiceScreen(),
     );
   }
 }
