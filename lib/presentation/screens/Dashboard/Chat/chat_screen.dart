@@ -17,8 +17,9 @@ class ChatScreen extends GetView<ChatController> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldDark
+          : AppColors.scaffoldLight,
       body: SafeArea(
         child: Obx(() {
           return AppRefreshWrapper(
@@ -27,7 +28,7 @@ class ChatScreen extends GetView<ChatController> {
                 ? const ChatSkeleton()
                 : SingleChildScrollView(
                     physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
+                      // parent: AlwaysScrollableScrollPhysics(),
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
                     child: Column(
@@ -56,9 +57,9 @@ class ChatScreen extends GetView<ChatController> {
             children: [
               Text(
                 'Messages',
-                style: AppTextStyles.headingLarge(isDark: isDark).copyWith(
-                  fontSize: 28,
-                ),
+                style: AppTextStyles.headingLarge(
+                  isDark: isDark,
+                ).copyWith(fontSize: 28),
               ),
               const SizedBox(height: 4),
               Text(
@@ -98,8 +99,7 @@ class ChatScreen extends GetView<ChatController> {
             child: Icon(
               Icons.search_rounded,
               size: 22,
-              color:
-                  isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
         ),
@@ -131,10 +131,7 @@ class ChatScreen extends GetView<ChatController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'ACTIVE NOW',
-            style: AppTextStyles.label(isDark: isDark),
-          ),
+          Text('ACTIVE NOW', style: AppTextStyles.label(isDark: isDark)),
           const SizedBox(height: 14),
           SizedBox(
             height: 92,
@@ -162,10 +159,7 @@ class ChatScreen extends GetView<ChatController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'MESSAGES',
-          style: AppTextStyles.label(isDark: isDark),
-        ),
+        Text('MESSAGES', style: AppTextStyles.label(isDark: isDark)),
         const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(

@@ -7,6 +7,7 @@ import 'package:zuno_application/presentation/screens/Dashboard/dashboard_bindin
 import 'package:zuno_application/presentation/screens/Dashboard/dashboard_screen.dart';
 import 'package:zuno_application/presentation/screens/Splash/splash_binding.dart';
 import 'package:zuno_application/presentation/screens/Splash/splash_screen.dart';
+import '../../presentation/screens/Dashboard/Chat/chat_detail_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -30,6 +31,12 @@ class AppPages {
       name: Routes.DASHBOARD,
       page: () => const DashboardScreen(),
       binding: DashboardBinding(),
+    ),
+      GetPage(
+      name: Routes.CHAT_DETAIL,                  
+      page: () => ChatDetailScreen(),            
+      transition: Transition.rightToLeft,      
+      transitionDuration: const Duration(milliseconds: 300), 
     ),
   ];
 }

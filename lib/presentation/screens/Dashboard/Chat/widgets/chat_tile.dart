@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zuno_application/utils/constants/app_colors.dart';
 import 'package:zuno_application/utils/constants/app_text_styles.dart';
+import '../../../../../core/routes/app_routes.dart';
 import '../models/chat_preview_model.dart';
 
 class ChatTile extends StatelessWidget {
- final ChatPreviewModel chat; // <- now uses ChatPreviewModel
+  final ChatPreviewModel chat; // <- now uses ChatPreviewModel
 
   const ChatTile({super.key, required this.chat});
-
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +17,7 @@ class ChatTile extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: () {
-        Get.toNamed('/chat-detail', arguments: chat);
-
-        // OR if you're using screen directly:
-        // Get.to(() => ChatDetailScreen(chat: chat));
+        Get.toNamed(Routes.CHAT_DETAIL, arguments: chat);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -31,8 +28,9 @@ class ChatTile extends StatelessWidget {
               backgroundColor: isDark
                   ? AppColors.chatHeaderSurfaceDark
                   : AppColors.profileAvatarBackground,
-              backgroundImage:
-                  chat.imageUrl.isNotEmpty ? NetworkImage(chat.imageUrl) : null,
+              backgroundImage: chat.imageUrl.isNotEmpty
+                  ? NetworkImage(chat.imageUrl)
+                  : null,
               child: chat.imageUrl.isEmpty
                   ? Icon(
                       Icons.person_rounded,
@@ -54,17 +52,15 @@ class ChatTile extends StatelessWidget {
                           chat.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              AppTextStyles.body(isDark: isDark).copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: AppTextStyles.body(
+                            isDark: isDark,
+                          ).copyWith(fontWeight: FontWeight.w700),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Text(
                         chat.time,
-                        style:
-                            AppTextStyles.bodySmall(isDark: isDark).copyWith(
+                        style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
                           color: isDark
                               ? AppColors.textSecondaryDark
                               : AppColors.textSecondary,
@@ -80,15 +76,15 @@ class ChatTile extends StatelessWidget {
                           chat.lastMessage,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondary,
-                            fontWeight: chat.unreadCount > 0
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                          ),
+                          style: AppTextStyles.bodyMedium(isDark: isDark)
+                              .copyWith(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
+                                fontWeight: chat.unreadCount > 0
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
                         ),
                       ),
                       if (chat.unreadCount > 0) ...[
@@ -105,10 +101,10 @@ class ChatTile extends StatelessWidget {
                             chat.unreadCount.toString(),
                             style: AppTextStyles.bodySmall(isDark: false)
                                 .copyWith(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
                           ),
                         ),
                       ],

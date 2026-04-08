@@ -22,17 +22,17 @@ class ChatController extends GetxController {
     await Future.delayed(const Duration(milliseconds: 1400));
 
     activeUsers.assignAll([
-      ChatUserModel(id: '1', name: 'Maya', imageUrl: '', isOnline: true),
-      ChatUserModel(id: '2', name: 'Priya', imageUrl: '', isOnline: true),
-      ChatUserModel(id: '3', name: 'Ananya', imageUrl: '', isOnline: true),
-      ChatUserModel(id: '4', name: 'Neha', imageUrl: '', isOnline: false),
+      ChatUserModel(id: '1', name: 'Maya', imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80', isOnline: true),
+      ChatUserModel(id: '2', name: 'Priya', imageUrl: 'https://images.unsplash.com/photo-1597739239353-50270a473397?q=80&w=327&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', isOnline: true),
+      ChatUserModel(id: '3', name: 'Ananya', imageUrl: 'https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=436&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', isOnline: true),
+      ChatUserModel(id: '4', name: 'Neha', imageUrl: 'https://plus.unsplash.com/premium_photo-1668319914124-57301e0a1850?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', isOnline: false),
     ]);
 
     chatList.assignAll([
       ChatPreviewModel(
         id: '1',
         name: 'Maya',
-        imageUrl: '',
+        imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
         lastMessage: 'Just grabbing a coffee. You?',
         time: '2m',
         isOnline: true,
@@ -44,7 +44,7 @@ class ChatController extends GetxController {
       ChatPreviewModel(
         id: '2',
         name: 'Priya',
-        imageUrl: '',
+        imageUrl: 'https://images.unsplash.com/photo-1597739239353-50270a473397?q=80&w=327&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         lastMessage: 'That movie was so good!',
         time: '1h',
         isOnline: false,
@@ -55,8 +55,8 @@ class ChatController extends GetxController {
       ),
       ChatPreviewModel(
         id: '3',
-        name: 'Neha',
-        imageUrl: '',
+        name: 'Ananya',
+        imageUrl: 'https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=436&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         lastMessage: 'Hey! Saw you nearby 👋',
         time: '3h',
         isOnline: false,
@@ -67,8 +67,8 @@ class ChatController extends GetxController {
       ),
       ChatPreviewModel(
         id: '4',
-        name: 'Ananya',
-        imageUrl: '',
+        name: 'Neha',
+        imageUrl: 'https://plus.unsplash.com/premium_photo-1668319914124-57301e0a1850?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         lastMessage: 'Maybe I’ll join you 😊',
         time: '1d',
         isOnline: false,
@@ -86,7 +86,7 @@ class ChatController extends GetxController {
     isRefreshing.value = true;
     await Future.delayed(const Duration(milliseconds: 1000));
     await loadChatData();
-    isRefreshing.value = false;
+    // isRefreshing.value = false;
   }
 
   void openChat(ChatPreviewModel chat) {
@@ -98,14 +98,14 @@ class ChatController extends GetxController {
     );
   }
 
-  // void openSearch() {
-  //   Get.snackbar(
-  //     'Search',
-  //     'Search chats clicked',
-  //     snackPosition: SnackPosition.BOTTOM,
-  //     duration: const Duration(seconds: 2),
-  //   );
-  // }
+  void openSearch() {
+    Get.snackbar(
+      'Search',
+      'Search chats clicked',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+  }
 
   String getInitials(String name) {
     if (name.trim().isEmpty) return '?';

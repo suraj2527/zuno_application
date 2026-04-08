@@ -27,7 +27,7 @@ class ZunoApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: Routes.SPLASH,
+      initialRoute: Routes.DASHBOARD,
       getPages: AppPages.routes,
     );
   }

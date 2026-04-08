@@ -8,11 +8,30 @@ import 'package:zuno_application/utils/constants/app_text_styles.dart';
 import 'package:zuno_application/widgets/common/shimmer_box.dart';
 
 import '../../../../widgets/common/app_refresh_wrapper.dart';
+import '../Chat/widgets/profile_detail_screen.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   HomeController get controller => Get.find<HomeController>();
+  late AnimationController _controller;
+  late Animation<double> _floatAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    _floatAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
+    _controller.repeat(reverse: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -314,26 +333,36 @@ class HomeTab extends StatelessWidget {
     double cardHeight,
     DatingProfile profile,
   ) {
-    return Container(
-      height: cardHeight,
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.14),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
+    return GestureDetector(
+      onTap: () {
+        Get.to(
+          () => ProfileDetailsScreen(
+            profile: profile,
+            heroTag: "profile_${profile.id}",
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Column(
-          children: [
-            Expanded(flex: 7, child: _buildSwipeImageSection(profile)),
-            Expanded(flex: 4, child: _buildSwipeDynamicInfo(isDark, profile)),
+        );
+      },
+      child: Container(
+        height: cardHeight,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.14),
+              blurRadius: 24,
+              offset: const Offset(0, 6),
+            ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Column(
+            children: [
+              Expanded(flex: 7, child: _buildSwipeImageSection(profile)),
+              Expanded(flex: 4, child: _buildSwipeDynamicInfo(isDark, profile)),
+            ],
+          ),
         ),
       ),
     );
@@ -446,23 +475,30 @@ class HomeTab extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: profile.profileImageUrl.isNotEmpty
-              ? Image.network(profile.profileImageUrl, fit: BoxFit.cover)
-              : Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.profilePlaceholderStart,
-                        AppColors.profilePlaceholderEnd,
-                      ],
+          child: Hero(
+            tag: "profile_${profile.id}",
+            child: profile.profileImageUrl.isNotEmpty
+                ? Image.network(profile.profileImageUrl, fit: BoxFit.cover)
+                : Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.profilePlaceholderStart,
+                          AppColors.profilePlaceholderEnd,
+                        ],
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.person,
+                        size: 90,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
-                  child: const Center(
-                    child: Icon(Icons.person, size: 90, color: AppColors.white),
-                  ),
-                ),
+          ),
         ),
         Positioned(
           left: 0,
@@ -651,32 +687,72 @@ class HomeTab extends StatelessWidget {
 
   Widget _buildEmptyState(bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'You’re all caught up ✨',
-            style: AppTextStyles.headingLarge(isDark: isDark),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Looking for more amazing people near you...',
-            style: AppTextStyles.bodyMedium(isDark: isDark),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-              borderRadius: BorderRadius.circular(50),
+          /// 🔹 CENTER EMOJI (hero element)
+          Expanded(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _floatAnimation.value),
+                    child: Transform.scale(
+                      scale: 1 + (_floatAnimation.value / 18),
+                      child: const Text('😅', style: TextStyle(fontSize: 54)),
+                    ),
+                  );
+                },
+              ),
             ),
-            child: Text(
-              'New profiles coming soon',
-              style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+          ),
+
+          /// 🔹 TEXT CONTENT (LEFT aligned)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "No more profiles nearby",
+                style: AppTextStyles.headingLarge(
+                  isDark: isDark,
+                ).copyWith(fontSize: 18),
+              ),
+              const SizedBox(height: 6),
+
+              Text(
+                "You’re all caught up ✨",
+                style: AppTextStyles.bodyMedium(isDark: isDark),
+              ),
+              const SizedBox(height: 4),
+
+              Text(
+                "Check back later for new people",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodySmall(isDark: isDark),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// 🔹 RIGHT-ALIGNED CHIP (important UX touch)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.inputFillDark : AppColors.primary5,
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Text(
+                'New profiles coming soon',
+                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+                ),
               ),
             ),
           ),
