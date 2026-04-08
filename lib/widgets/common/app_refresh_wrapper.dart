@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class AppRefreshWrapper extends StatelessWidget {
   final Future<void> Function() onRefresh;

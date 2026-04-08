@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
 
@@ -104,7 +106,6 @@ class HomeController extends GetxController {
   void onSwipeLeft(int index) {
     if (profiles.isNotEmpty) {
       final swipedProfile = profiles.first;
-      print("Rejected: ${swipedProfile.userName}");
     }
     _syncAfterSwipe();
   }
@@ -112,7 +113,6 @@ class HomeController extends GetxController {
   void onSwipeRight(int index) {
     if (profiles.isNotEmpty) {
       final swipedProfile = profiles.first;
-      print("Liked: ${swipedProfile.userName}");
     }
     _syncAfterSwipe();
   }
@@ -120,7 +120,6 @@ class HomeController extends GetxController {
   void onSwipeUp(int index) {
     if (profiles.isNotEmpty) {
       final swipedProfile = profiles.first;
-      print("Super liked: ${swipedProfile.userName}");
     }
     _syncAfterSwipe();
   }

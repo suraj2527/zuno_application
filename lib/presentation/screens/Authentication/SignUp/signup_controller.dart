@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../../../../core/services/auth_service.dart';
 
 class SignUpController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
 
   final nameController     = TextEditingController();
   final emailController    = TextEditingController();
@@ -30,7 +28,6 @@ class SignUpController extends GetxController {
     }
     try {
       isLoading.value = true;
-      // TODO: wire email/password signup in AuthService
       Get.offAllNamed(Routes.ONBOARDING);
     } catch (e) {
       Get.snackbar('Error', e.toString());

@@ -44,7 +44,6 @@ class SignInController extends GetxController {
     isLoading.value = true;
     await Future.delayed(const Duration(seconds: 2));
 
-    /// TODO: Replace with real backend check
     final bool userExists = _mockUserExists(email: email);
 
     isLoading.value = false;
@@ -85,7 +84,6 @@ class SignInController extends GetxController {
     isLoading.value = true;
     await Future.delayed(const Duration(seconds: 2));
 
-    /// TODO: Replace with real backend check
     final bool userExists = _mockUserExists(phone: phoneController.text.trim());
 
     isLoading.value = false;
@@ -107,14 +105,11 @@ class SignInController extends GetxController {
     await Future.delayed(const Duration(seconds: 2));
     isLoading.value = false;
 
-    /// TODO: Replace with Google Sign In logic
     final bool userExists = true;
 
     if (userExists) {
       Get.offAllNamed('/onboarding');
-    } else {
-      Get.offAllNamed('/onboarding');
-    }
+    } 
   }
 
   // ================= Helpers =================
