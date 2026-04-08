@@ -1,64 +1,125 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../core/services/auth_service.dart';
 
 class SignInController extends GetxController {
-  final AuthService _authService = Get.find<AuthService>();
+  // ================= Controllers =================
 
-  final phoneController = TextEditingController();
-  final otpController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
+
+  // ================= State =================
 
   final isLoading = false.obs;
   final isOtpSent = false.obs;
-  final secondsRemaining = 30.obs;
+  final secondsRemaining = 0.obs;
+  final isPasswordVisible = false.obs;
+  final selectedLoginTab = 0.obs; // 0 = Email, 1 = Phone
 
   Timer? _timer;
 
-  /* ================= SEND OTP ================= */
+  // ================= UI Actions =================
+
+  void switchTab(int index) {
+    selectedLoginTab.value = index;
+  }
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
+
+  // ================= Auth Logic =================
+
+  Future<void> loginWithEmail() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      Get.snackbar('Missing Fields', 'Please enter email and password');
+      return;
+    }
+
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 2));
+
+    /// TODO: Replace with real backend check
+    final bool userExists = _mockUserExists(email: email);
+
+    isLoading.value = false;
+
+    if (userExists) {
+      Get.offAllNamed('/home');
+    } else {
+      Get.offAllNamed('/onboarding');
+    }
+  }
 
   Future<void> sendOtp() async {
-    try {
-      isLoading.value = true;
+    final phone = phoneController.text.trim();
 
-      await _authService.sendOtp(
-        phoneNumber: "+91${phoneController.text.trim()}",
-        codeSent: (_) {
-          isOtpSent.value = true;
-          startTimer();
-        },
-      );
-    } catch (e) {
-      Get.snackbar("Error", e.toString());
-    } finally {
-      isLoading.value = false;
+    if (phone.length != 10) {
+      Get.snackbar('Invalid Number', 'Please enter a valid 10-digit number');
+      return;
     }
-  }
 
-  /* ================= VERIFY OTP ================= */
-
- Future<void> verifyOtp() async {
-  try {
     isLoading.value = true;
-    await _authService.verifyOtp(otpController.text.trim());
-
-    final user = _authService.currentUser;
-
-    final isNewUser = user?.displayName == null;
-
-    if (isNewUser) {
-      Get.offAllNamed('/dashboard');
-    } else {
-      Get.offAllNamed('/dashboard');
-    }
-  } finally {
+    await Future.delayed(const Duration(seconds: 2));
     isLoading.value = false;
+
+    isOtpSent.value = true;
+    startResendTimer();
+
+    Get.snackbar('OTP Sent', 'A 6-digit OTP has been sent to +91 $phone');
   }
-}
 
-  /* ================= TIMER ================= */
+  Future<void> verifyOtp() async {
+    final otp = otpController.text.trim();
 
-  void startTimer() {
+    if (otp.length != 6) {
+      Get.snackbar('Invalid OTP', 'Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 2));
+
+    /// TODO: Replace with real backend check
+    final bool userExists = _mockUserExists(phone: phoneController.text.trim());
+
+    isLoading.value = false;
+
+    if (userExists) {
+      Get.offAllNamed('/home');
+    } else {
+      Get.offAllNamed('/onboarding');
+    }
+  }
+
+  Future<void> resendOtp() async {
+    otpController.clear();
+    await sendOtp();
+  }
+
+  Future<void> googleLogin() async {
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 2));
+    isLoading.value = false;
+
+    /// TODO: Replace with Google Sign In logic
+    final bool userExists = true;
+
+    if (userExists) {
+      Get.offAllNamed('/onboarding');
+    } else {
+      Get.offAllNamed('/onboarding');
+    }
+  }
+
+  // ================= Helpers =================
+
+  void startResendTimer() {
     secondsRemaining.value = 30;
     _timer?.cancel();
 
@@ -71,36 +132,21 @@ class SignInController extends GetxController {
     });
   }
 
-  void resendOtp() {
-    if (secondsRemaining.value == 0) {
-      sendOtp();
-    }
+  bool _mockUserExists({String? email, String? phone}) {
+    // Dummy test users:
+    // Existing email: demo@zuno.com
+    // Existing phone: 9999999999
+
+    if (email != null && email == 'demo@zuno.com') return true;
+    if (phone != null && phone == '9999999999') return true;
+
+    return false;
   }
-
-  /* ================= GOOGLE ================= */
-
-  Future<void> googleLogin() async {
-    try {
-    isLoading.value = true;
-    await _authService.verifyOtp(otpController.text.trim());
-
-    final user = _authService.currentUser;
-
-    final isNewUser = user?.displayName == null;
-
-    if (isNewUser) {
-      Get.offAllNamed('/dashboard');
-    } else {
-      Get.offAllNamed('/dashboard');
-    }
-  } finally {
-    isLoading.value = false;
-  }
-  }
-
 
   @override
   void onClose() {
+    emailController.dispose();
+    passwordController.dispose();
     phoneController.dispose();
     otpController.dispose();
     _timer?.cancel();

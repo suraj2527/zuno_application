@@ -1,65 +1,67 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/utils/constants/app_colors.dart';
+import 'package:zuno_application/presentation/screens/Dashboard/Chat/chat_screen.dart';
+import '../../../utils/constants/app_colors.dart';
 import 'dashboard_controller.dart';
+import 'home/home_tab.dart';
 
 class DashboardScreen extends GetView<DashboardController> {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final pages = [
-      const Center(child: Text("Home")),
-      const Center(child: Text("Activity")),
-      const Center(child: Text("Wallet")),
-      const Center(child: Text("Profile")),
+      const HomeTab(),                                        // 0 – Home
+      const ChatScreen(),                                    // 1 – Chats
+      const Center(child: Text('Likes')),                    // 2 – Likes
+      const Center(child: Text('Profile')),                  // 3 – Profile
     ];
 
     return Scaffold(
       extendBody: true,
-
       body: Obx(
         () => IndexedStack(
           index: controller.currentIndex.value,
           children: pages,
         ),
       ),
-
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 20,
-              sigmaY: 20,
-            ),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               height: 70,
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withOpacity(0.08)
-                    : Colors.white.withOpacity(0.7),
+                    : Colors.white.withOpacity(0.85),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: isDark
-                      ? Colors.white12
-                      : Colors.black12,
+                  color: isDark ? Colors.white12 : AppColors.primary4,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, -6),
+                  ),
+                ],
               ),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(
                   4,
-                  (index) => _navItem(
-                    index: index,
-                    icon: _icons[index],
+                  (i) => _NavItem(
+                    index: i,
+                    icon: _icons[i],
+                    label: _labels[i],
                     isDark: isDark,
+                    controller: controller,
                   ),
                 ),
               ),
@@ -72,49 +74,99 @@ class DashboardScreen extends GetView<DashboardController> {
 
   static const List<IconData> _icons = [
     Icons.home_rounded,
-    Icons.bar_chart_rounded,
-    Icons.account_balance_wallet_rounded,
+    Icons.chat_bubble_rounded,
+    Icons.favorite_rounded,
     Icons.person_rounded,
   ];
 
-  Widget _navItem({
-    required int index,
-    required IconData icon,
-    required bool isDark,
-  }) {
+  static const List<String> _labels = [
+    'Home',
+    'Chats',
+    'Likes',
+    'Profile',
+  ];
+}
+
+// ─────────────────────────────────────────────────
+//  NAV ITEM
+// ─────────────────────────────────────────────────
+
+class _NavItem extends StatelessWidget {
+  final int index;
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final DashboardController controller;
+
+  const _NavItem({
+    required this.index,
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
-      final isSelected =
-          controller.currentIndex.value == index;
+      final isSelected = controller.currentIndex.value == index;
+      final activeColor = isDark ? AppColors.primaryDark : AppColors.primary;
 
       return GestureDetector(
         onTap: () => controller.changeTab(index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isSelected
-                ? (isDark
-                    ? AppColors.primaryDark.withOpacity(0.2)
-                    : AppColors.primaryLight.withOpacity(0.15))
-                : Colors.transparent,
-          ),
-          child: AnimatedScale(
-            scale: isSelected ? 1.25 : 1,
-            duration:
-                const Duration(milliseconds: 300),
-            child: Icon(
-              icon,
-              size: 26,
-              color: isSelected
-                  ? (isDark
-                      ? AppColors.primaryDark
-                      : AppColors.primaryLight)
-                  : (isDark
-                      ? Colors.white38
-                      : Colors.black38),
-            ),
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: 72,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? activeColor.withOpacity(0.15)
+                      : Colors.transparent,
+                ),
+                child: AnimatedScale(
+                  scale: isSelected ? 1.2 : 1.0,
+                  duration: const Duration(milliseconds: 280),
+                  child: Icon(
+                    icon,
+                    size: 24,
+                    color: isSelected
+                        ? activeColor
+                        : (isDark ? Colors.white38 : Colors.black38),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 280),
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 10,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? activeColor
+                      : (isDark ? Colors.white38 : Colors.black38),
+                ),
+                child: Text(label),
+              ),
+              if (isSelected)
+                Container(
+                  margin: const EdgeInsets.only(top: 3),
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
           ),
         ),
       );

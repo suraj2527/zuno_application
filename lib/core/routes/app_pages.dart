@@ -5,10 +5,17 @@ import 'package:zuno_application/presentation/screens/Authentication/SignIn/sign
 import 'package:zuno_application/presentation/screens/Authentication/SignIn/signin_screen.dart';
 import 'package:zuno_application/presentation/screens/Dashboard/dashboard_binding.dart';
 import 'package:zuno_application/presentation/screens/Dashboard/dashboard_screen.dart';
+import 'package:zuno_application/presentation/screens/Splash/splash_binding.dart';
+import 'package:zuno_application/presentation/screens/Splash/splash_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
   static final routes = [
+    GetPage(
+      name: Routes.SPLASH,
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: Routes.SIGNIN,
       page: () => const SignInScreen(),
@@ -26,4 +33,3 @@ class AppPages {
     ),
   ];
 }
-
