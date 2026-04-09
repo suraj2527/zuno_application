@@ -12,7 +12,20 @@
           "package_name": "com.example.zuno_application"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "672092699296-ssajjclkgq75tco2h9lbo3brl9tm6udc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.zuno_application",
+            "certificate_hash": "e1397261a72d1db2498092b988cb6cb1e576d300"
+          }
+        },
+        {
+          "client_id": "672092699296-90e2c2bcvmrgongatqstu2h81hddegt2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAupd8plziRPE0TxTziJA1pATmTdxPjkz4"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672092699296-90e2c2bcvmrgongatqstu2h81hddegt2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "672092699296-ni022bmkc755ddp6olfme1ne19rggck7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.zunoApplication"
+              }
+            }
+          ]
         }
       }
     }

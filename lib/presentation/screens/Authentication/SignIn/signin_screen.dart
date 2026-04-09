@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:pinput/pinput.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_gradients.dart';
 import '../../../../utils/constants/app_text_styles.dart';
@@ -25,14 +24,7 @@ class SignInScreen extends GetView<SignInController> {
                 const _Header(),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
-                  child: Obx(
-                    () => AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 280),
-                      child: controller.isOtpSent.value
-                          ? _OtpStep(controller: controller)
-                          : _LoginSelection(controller: controller),
-                    ),
-                  ),
+                  child: _LoginSelection(controller: controller),
                 ),
               ],
             ),
@@ -112,7 +104,7 @@ class _Header extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────
-// LOGIN SELECTION
+// LOGIN SELECTION (Updated - Removed Phone & OTP)
 // ─────────────────────────────────────────────────
 
 class _LoginSelection extends StatelessWidget {
@@ -122,7 +114,6 @@ class _LoginSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: const ValueKey('login-selection'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SocialButton(
@@ -153,45 +144,10 @@ class _LoginSelection extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 20),
-
-        // Tabs
-        Obx(
-          () => Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.inputFillLight,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.inputBorderLight),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _TabButton(
-                    title: 'Email',
-                    selected: controller.selectedLoginTab.value == 0,
-                    onTap: () => controller.switchTab(0),
-                  ),
-                ),
-                Expanded(
-                  child: _TabButton(
-                    title: 'Phone',
-                    selected: controller.selectedLoginTab.value == 1,
-                    onTap: () => controller.switchTab(1),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
         const SizedBox(height: 24),
 
-        Obx(
-          () => controller.selectedLoginTab.value == 0
-              ? _EmailStep(controller: controller)
-              : _PhoneStep(controller: controller),
-        ),
+        // Only Email Step (No tabs, no phone)
+        _EmailStep(controller: controller),
       ],
     );
   }
@@ -208,7 +164,6 @@ class _EmailStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: const ValueKey('email-step'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('EMAIL', style: AppTextStyles.label()),
@@ -250,98 +205,29 @@ class _EmailStep extends StatelessWidget {
             onTap: controller.loginWithEmail,
           ),
         ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────
-// PHONE STEP
-// ─────────────────────────────────────────────────
-
-class _PhoneStep extends StatelessWidget {
-  final SignInController controller;
-  const _PhoneStep({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      key: const ValueKey('phone-step'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('MOBILE NUMBER', style: AppTextStyles.label()),
-        const SizedBox(height: 8),
-
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.inputFillLight,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppColors.inputBorderLight,
-              width: 1.5,
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Don't have an account? ",
+              style: AppTextStyles.bodySmall().copyWith(
+                color: AppColors.textHint,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 16,
-                ),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    right: BorderSide(
-                      color: AppColors.inputBorderLight,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  '+91',
-                  style: AppTextStyles.bodyMedium().copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
+            GestureDetector(
+              onTap: () {
+                Get.toNamed(Routes.SIGNUP); // Navigate to SignUpScreen
+              },
+              child: Text(
+                'Sign Up',
+                style: AppTextStyles.bodySmall().copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Expanded(
-                child: TextField(
-                  controller: controller.phoneController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  style: AppTextStyles.bodyMedium().copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Enter mobile number',
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 16,
-                    ),
-                    hintStyle: AppTextStyles.bodyMedium().copyWith(
-                      color: AppColors.textHint,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 28),
-
-        Obx(
-          () => GradientButton(
-            label: 'Send OTP →',
-            isLoading: controller.isLoading.value,
-            onTap: controller.sendOtp,
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -349,177 +235,8 @@ class _PhoneStep extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────
-// OTP STEP
+// REUSABLES (Unchanged)
 // ─────────────────────────────────────────────────
-
-class _OtpStep extends StatelessWidget {
-  final SignInController controller;
-  const _OtpStep({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final defaultPinTheme = PinTheme(
-      width: 52,
-      height: 58,
-      textStyle: AppTextStyles.headingMedium().copyWith(
-        color: AppColors.textPrimary,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.inputFillLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.inputBorderLight,
-          width: 1.5,
-        ),
-      ),
-    );
-
-    final focusedPinTheme = defaultPinTheme.copyWith(
-      decoration: BoxDecoration(
-        color: AppColors.primary4,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary, width: 2),
-      ),
-    );
-
-    final submittedPinTheme = defaultPinTheme.copyWith(
-      decoration: BoxDecoration(
-        color: AppColors.primary4,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary3, width: 1.5),
-      ),
-    );
-
-    return Column(
-      key: const ValueKey('otp'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: () => controller.isOtpSent.value = false,
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.cardLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.inputBorderLight),
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 16,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        Text('Enter OTP 🔐', style: AppTextStyles.headingLarge()),
-        const SizedBox(height: 8),
-
-        Obx(
-          () => Text(
-            'We sent a 6-digit code to +91 ${controller.phoneController.text}',
-            style: AppTextStyles.body().copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        Center(
-          child: Pinput(
-            length: 6,
-            controller: controller.otpController,
-            defaultPinTheme: defaultPinTheme,
-            focusedPinTheme: focusedPinTheme,
-            submittedPinTheme: submittedPinTheme,
-            onCompleted: (_) => controller.verifyOtp(),
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        Obx(
-          () => GradientButton(
-            label: 'Verify OTP',
-            isLoading: controller.isLoading.value,
-            onTap: controller.verifyOtp,
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        Center(
-          child: Obx(() {
-            final secs = controller.secondsRemaining.value;
-            return GestureDetector(
-              onTap: secs == 0 ? controller.resendOtp : null,
-              child: RichText(
-                text: TextSpan(
-                  style: AppTextStyles.bodyMedium().copyWith(
-                    color: AppColors.textHint,
-                  ),
-                  children: [
-                    const TextSpan(text: "Didn't receive it? "),
-                    TextSpan(
-                      text: secs == 0 ? 'Resend OTP' : 'Resend in ${secs}s',
-                      style: TextStyle(
-                        color: secs == 0
-                            ? AppColors.primary
-                            : AppColors.textHint,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────
-// REUSABLES
-// ─────────────────────────────────────────────────
-
-class _TabButton extends StatelessWidget {
-  final String title;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.title,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          gradient: selected ? AppGradients.primary : null,
-          color: selected ? null : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Center(
-          child: Text(
-            title,
-            style: AppTextStyles.bodyMedium().copyWith(
-              color: selected ? Colors.white : AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
@@ -542,10 +259,7 @@ class _InputField extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.inputFillLight,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.inputBorderLight,
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColors.inputBorderLight, width: 1.5),
       ),
       child: TextField(
         controller: controller,
@@ -578,11 +292,7 @@ class _SocialButton extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _SocialButton({
-    required this.emoji,
-    required this.label,
-    this.onTap,
-  });
+  const _SocialButton({required this.emoji, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -594,10 +304,7 @@ class _SocialButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.inputFillLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.inputBorderLight,
-            width: 1.5,
-          ),
+          border: Border.all(color: AppColors.inputBorderLight, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

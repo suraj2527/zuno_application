@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zuno_application/presentation/screens/Dashboard/Chat/chat_screen.dart';
+import 'package:zuno_application/presentation/screens/Dashboard/activity/activity_tab.dart';
 import '../../../utils/constants/app_colors.dart';
 import 'dashboard_controller.dart';
 import 'home/home_tab.dart';
@@ -16,7 +17,7 @@ class DashboardScreen extends GetView<DashboardController> {
     final pages = [
       const HomeTab(),                                        // 0 – Home
       const ChatScreen(),                                    // 1 – Chats
-      const Center(child: Text('Likes')),                    // 2 – Likes
+      const ActivityTab(),                    // 2 – Likes
       const Center(child: Text('Profile')),                  // 3 – Profile
     ];
 
@@ -82,7 +83,7 @@ class DashboardScreen extends GetView<DashboardController> {
   static const List<String> _labels = [
     'Home',
     'Chats',
-    'Likes',
+    'Activity',
     'Profile',
   ];
 }

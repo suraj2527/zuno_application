@@ -735,6 +735,7 @@ Widget _buildFullEmptyState(bool isDark) {
     ),
   );
 }
+  
   Widget _buildSwipeDynamicInfo(bool isDark, DatingProfile profile) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
