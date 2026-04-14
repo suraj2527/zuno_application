@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zuno_application/core/routes/app_routes.dart';
+import 'package:zuno_application/core/services/auth_service.dart';
 import 'package:zuno_application/presentation/home/home_controller.dart';
+import 'package:zuno_application/data/sources/remote/user_api.dart'; // ✅ ADD
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
   final ImagePicker _picker = ImagePicker();
+  final AuthService _authService = AuthService();
+  final UserApi _userApi = UserApi(); 
+  
 
   // ================= PROFILE STATE =================
 
   final Rxn<DatingProfile> profile = Rxn<DatingProfile>();
   final RxBool isLoading = false.obs;
-
-  /// for gallery slider indicator
+  final RxBool isSaving = false.obs;
   final RxInt currentGalleryIndex = 0.obs;
 
   // ================= EDIT FORM CONTROLLERS =================
@@ -26,10 +34,7 @@ class ProfileController extends GetxController {
   final RxString selectedLookingFor = ''.obs;
   final RxList<String> selectedInterests = <String>[].obs;
 
-  /// ✅ main profile image (single)
   final RxString selectedProfileImage = ''.obs;
-
-  /// ✅ gallery images only (max 3)
   final RxList<String> selectedGalleryImages = <String>[].obs;
 
   // ================= MASTER INTERESTS =================
@@ -64,11 +69,7 @@ class ProfileController extends GetxController {
       'title': 'Long-term Relationship',
       'subtitle': 'Looking for something serious',
     },
-    {
-      'emoji': '☕',
-      'title': 'Casual Dating',
-      'subtitle': 'Go with the flow',
-    },
+    {'emoji': '☕', 'title': 'Casual Dating', 'subtitle': 'Go with the flow'},
     {
       'emoji': '🤝',
       'title': 'Friendship',
@@ -81,44 +82,88 @@ class ProfileController extends GetxController {
     },
   ];
 
-  DatingProfile? get myProfile =>
-      homeController.allProfiles.isNotEmpty ? homeController.allProfiles.first : null;
+  DatingProfile? get myProfile => homeController.allProfiles.isNotEmpty
+      ? homeController.allProfiles.first
+      : null;
 
   @override
   void onInit() {
     super.onInit();
-    loadProfileData();
+
+    /// 🔥 ensure clean state first (important for refresh issue)
+    isLoading.value = true;
+
+    Future.delayed(Duration.zero, () {
+      loadProfileData();
+    });
   }
 
+  // ================= 🔥 UPDATED GET API =================
   Future<void> loadProfileData() async {
     isLoading.value = true;
 
-    final data = myProfile;
-    if (data == null) {
+    try {
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
+
+      if (token == null) throw "Token not found";
+
+      final data = await _userApi.getProfile(token);
+
+      /// 🔥 Extract lat lng
+      final lat = data["location"]?["lat"];
+      final lng = data["location"]?["lng"];
+
+      String locationName = "";
+
+      if (lat != null && lng != null) {
+        try {
+          final placemarks = await placemarkFromCoordinates(lat, lng);
+
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+
+            /// 🔥 You can customize this
+            locationName =
+                "${place.locality ?? ''}, ${place.administrativeArea ?? ''}";
+          }
+        } catch (e) {
+          locationName = "";
+        }
+      }
+
+      profile.value = DatingProfile(
+        id: data["_id"] ?? "",
+        userName: data["name"] ?? "",
+        age: (data["age"] ?? 24).toString(),
+        bio: data["bio"] ?? "",
+        location: locationName, // ✅ FIXED
+        interests: List<String>.from(data["interests"] ?? []),
+        profileImageUrl:
+            data["profileImage"] ?? _authService.currentUser?.photoURL ?? "",
+        isActiveNow: true,
+        distance: "",
+        imageUrls: List<String>.from(data["images"] ?? []),
+        gender: data["gender"],
+        lookingFor: data["lookingFor"],
+      );
+
+      nameController.text = data["name"] ?? "";
+      bioController.text = data["bio"] ?? "";
+      locationController.text = locationName; // ✅ IMPORTANT
+
+      selectedGender.value = data["gender"] ?? "";
+      selectedAge.value = (data["age"] ?? 24).toDouble();
+      selectedLookingFor.value = data["lookingFor"] ?? "";
+
+      selectedInterests.assignAll(List<String>.from(data["interests"] ?? []));
+      selectedGalleryImages.assignAll(List<String>.from(data["images"] ?? []));
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
       isLoading.value = false;
-      return;
     }
-
-    profile.value = data;
-
-    // form values
-    nameController.text = data.userName;
-    bioController.text = data.bio;
-    locationController.text = data.location;
-    selectedGender.value = data.gender ?? '';
-    selectedAge.value = double.tryParse(data.age) ?? 24.0;
-    selectedLookingFor.value = data.lookingFor ?? '';
-    selectedInterests.assignAll(data.interests);
-
-    /// separate image states
-    selectedProfileImage.value = data.profileImageUrl;
-    selectedGalleryImages.assignAll(data.imageUrls);
-
-    currentGalleryIndex.value = 0;
-
-    isLoading.value = false;
   }
-
   // ================= IMAGE ACTIONS =================
 
   Future<void> pickProfileImage() async {
@@ -183,6 +228,25 @@ class ProfileController extends GetxController {
     }
   }
 
+  Future<void> logout() async {
+    try {
+      await AuthService().signOut();
+
+      final box = GetStorage();
+      await box.erase();
+
+      Get.deleteAll(force: true);
+
+      Get.offAllNamed(Routes.SIGNIN);
+    } catch (e) {
+      Get.snackbar(
+        "Logout Failed",
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
   bool canSave() {
     return nameController.text.trim().isNotEmpty &&
         bioController.text.trim().isNotEmpty &&
@@ -193,41 +257,85 @@ class ProfileController extends GetxController {
         selectedProfileImage.value.isNotEmpty;
   }
 
-  void saveProfile() {
-    if (!canSave()) {
+  // ================= 🔥 UPDATED PATCH API =================
+  Future<void> saveProfile() async {
+    isSaving.value = true; // 🔥 START LOADER
+
+    try {
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
+
+      if (token == null) throw "Token not found";
+
+      final Map<String, dynamic> body = {};
+
+      if (nameController.text.trim().isNotEmpty) {
+        body["name"] = nameController.text.trim();
+      }
+
+      if (bioController.text.trim().isNotEmpty) {
+        body["bio"] = bioController.text.trim();
+      }
+
+      if (locationController.text.trim().isNotEmpty) {
+        body["locationName"] = locationController.text.trim();
+      }
+
+      if (selectedGender.value.isNotEmpty) {
+        body["gender"] = selectedGender.value;
+      }
+
+      if (selectedAge.value > 0) {
+        body["age"] = selectedAge.value.toInt();
+      }
+
+      if (selectedLookingFor.value.isNotEmpty) {
+        body["lookingFor"] = selectedLookingFor.value;
+      }
+
+      if (selectedInterests.isNotEmpty) {
+        body["interests"] = selectedInterests.toList();
+      }
+
+      if (selectedProfileImage.value.isNotEmpty) {
+        body["profileImage"] = selectedProfileImage.value;
+      }
+
+      if (selectedGalleryImages.isNotEmpty) {
+        body["gallery"] = selectedGalleryImages.toList();
+      }
+
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        body["location"] = {
+          "lat": position.latitude,
+          "lng": position.longitude,
+        };
+      } catch (e) {
+        body["location"] = {"lat": 0.0, "lng": 0.0};
+      }
+
+      if (body.isEmpty) {
+        Get.snackbar("No Changes", "Nothing to update");
+        return;
+      }
+
+      await _userApi.updateProfile(token, body);
+
+      Get.back();
+
       Get.snackbar(
-        "Incomplete Profile",
-        "Please complete all required details.",
-        snackPosition: SnackPosition.BOTTOM,
+        "Profile Updated",
+        "Your profile has been updated successfully.",
       );
-      return;
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isSaving.value = false; // 🔥 STOP LOADER
     }
-
-    final existing = myProfile;
-    if (existing == null) return;
-
-    final updatedProfile = existing.copyWith(
-      userName: nameController.text.trim(),
-      age: selectedAge.value.round().toString(),
-      bio: bioController.text.trim(),
-      location: locationController.text.trim(),
-      interests: selectedInterests.toList(),
-      profileImageUrl: selectedProfileImage.value,
-      imageUrls: selectedGalleryImages.toList(),
-      gender: selectedGender.value,
-      lookingFor: selectedLookingFor.value,
-    );
-
-    homeController.allProfiles[0] = updatedProfile;
-    profile.value = updatedProfile;
-
-    Get.back();
-
-    Get.snackbar(
-      "Profile Updated",
-      "Your profile has been updated successfully.",
-      snackPosition: SnackPosition.BOTTOM,
-    );
   }
 
   @override
@@ -236,5 +344,22 @@ class ProfileController extends GetxController {
     bioController.dispose();
     locationController.dispose();
     super.onClose();
+  }
+
+  Future<String> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+
+        // 🔥 Customize as you want
+        return "${place.locality ?? ''}, ${place.administrativeArea ?? ''}";
+      }
+
+      return "Unknown location";
+    } catch (e) {
+      return "Location not found";
+    }
   }
 }

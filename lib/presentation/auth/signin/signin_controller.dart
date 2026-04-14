@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../data/repositories/auth_repository.dart';
 
 class SignInController extends GetxController {
   final TextEditingController emailController = TextEditingController();
@@ -11,6 +13,7 @@ class SignInController extends GetxController {
   final isPasswordVisible = false.obs;
 
   final AuthService _authService = AuthService();
+  final AuthRepository _authRepository = AuthRepository();
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
@@ -29,13 +32,52 @@ class SignInController extends GetxController {
     isLoading.value = true;
 
     try {
-      final userCredential = await _authService.signInWithEmail(email, password);
+      final userCredential = await _authService.signInWithEmail(
+        email,
+        password,
+      );
 
-      // Check if user has a display name (onboarding check)
-      if (userCredential.user != null && (userCredential.user!.displayName == null || userCredential.user!.displayName!.isEmpty)) {
-        Get.offAllNamed(Routes.ONBOARDING);
-      } else {
+      final token = await userCredential.user?.getIdToken(true);
+      if (token == null) throw "Token not found";
+
+      /// ✅ Health check
+      final isBackendOk = await _authRepository.verifyBackend(token);
+      if (!isBackendOk) {
+        Get.snackbar('Error', 'Server not responding');
+        return;
+      }
+
+      /// ✅ Login API call
+      final response = await _authRepository.login(token);
+      final user = userCredential.user;
+
+      /// ✅ SAVE USER DATA
+      LocalStorage.saveUser(
+        firebaseUid: user!.uid,
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+        backendUserId: response["data"]?["userId"] ?? '',
+      );
+
+      /// 🔥 FIX: DO NOT trust only isProfileCompleted
+      bool isProfileCompleted =
+          response["data"]?["isProfileCompleted"] ?? false;
+
+      /// 🔥 SAFE FALLBACK (IMPORTANT FIX)
+      if (!isProfileCompleted) {
+        try {
+          final profileRes = await _authRepository.login(token);
+          isProfileCompleted =
+              profileRes["data"]?["isProfileCompleted"] ?? false;
+        } catch (_) {}
+      }
+
+      /// ✅ NAVIGATION
+      if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
+      } else {
+        Get.offAllNamed(Routes.ONBOARDING);
       }
     } catch (e) {
       Get.snackbar('Login Failed', e.toString());
@@ -51,10 +93,45 @@ class SignInController extends GetxController {
     try {
       final userCredential = await _authService.signInWithGoogle();
 
-      if (userCredential.user != null && (userCredential.user!.displayName == null || userCredential.user!.displayName!.isEmpty)) {
-        Get.offAllNamed(Routes.ONBOARDING);
-      } else {
+      final token = await userCredential.user?.getIdToken(true);
+      if (token == null) throw "Token not found";
+
+      /// ✅ Health check
+      final isBackendOk = await _authRepository.verifyBackend(token);
+      if (!isBackendOk) {
+        Get.snackbar('Error', 'Server not responding');
+        return;
+      }
+
+      /// ✅ Login API call
+      final response = await _authRepository.login(token);
+      final user = userCredential.user;
+
+      LocalStorage.saveUser(
+        firebaseUid: user!.uid,
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+        backendUserId: response["data"]?["userId"] ?? '',
+      );
+
+      /// 🔥 FIX: fallback check
+      bool isProfileCompleted =
+          response["data"]?["isProfileCompleted"] ?? false;
+
+      if (!isProfileCompleted) {
+        try {
+          final profileRes = await _authRepository.login(token);
+          isProfileCompleted =
+              profileRes["data"]?["isProfileCompleted"] ?? false;
+        } catch (_) {}
+      }
+
+      /// ✅ NAVIGATION
+      if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
+      } else {
+        Get.offAllNamed(Routes.ONBOARDING);
       }
     } catch (e) {
       Get.snackbar('Google Login Failed', e.toString());

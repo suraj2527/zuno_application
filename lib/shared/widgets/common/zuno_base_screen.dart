@@ -26,6 +26,7 @@ class ZunoBaseScreen extends StatelessWidget {
           ZunoTopBar(isDark: isDark),
 
           /// ✅ Optional TabBar (only where needed)
+          // ignore: use_null_aware_elements
           if (tabBar != null) tabBar!,
 
           /// ✅ Content area (same structure as HomeTab)

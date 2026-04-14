@@ -5,6 +5,8 @@ import 'package:zuno_application/shared/constants/app_gradients.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 import 'package:zuno_application/presentation/home/home_controller.dart';
 
+import 'copy_token_icon.dart';
+
 class ZunoTopBar extends StatelessWidget {
   final bool isDark;
 
@@ -35,7 +37,7 @@ class ZunoTopBar extends StatelessWidget {
             /// 🔥 ICONS WITH BADGES
             Row(
               children: [
-                _headerIcon(icon: Icons.bookmark_border_rounded),
+                CopyTokenIcon(isDark: isDark),
                 const SizedBox(width: 10),
                 _headerIcon(icon: Icons.groups_2_outlined, badge: '3'),
                 const SizedBox(width: 10),

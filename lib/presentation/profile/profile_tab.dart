@@ -38,7 +38,7 @@ class ProfileTab extends StatelessWidget {
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -149,14 +149,18 @@ class ProfileTab extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.all(3),
                     child: ClipOval(
-                      child: _buildImage(profile.profileImageUrl),
+                      child: _buildImage(
+                        controller.selectedProfileImage.value.isNotEmpty
+                            ? controller.selectedProfileImage.value
+                            : profile.profileImageUrl,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 14),
 
                 Text(
-                  "${profile.userName}, ${profile.age}",
+                  "${controller.nameController.text.isNotEmpty ? controller.nameController.text : profile.userName}, ${profile.age}",
                   textAlign: TextAlign.center,
                   style: AppTextStyles.headingLarge(
                     isDark: isDark,
@@ -189,6 +193,42 @@ class ProfileTab extends StatelessWidget {
                           style: AppTextStyles.bodySmall(
                             isDark: isDark,
                           ).copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                /// 🚪 LOGOUT BUTTON
+                GestureDetector(
+                  onTap: () => controller.logout(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.logout_rounded,
+                          size: 16,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Logout",
+                          style: AppTextStyles.bodySmall(isDark: isDark)
+                              .copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red,
+                              ),
                         ),
                       ],
                     ),

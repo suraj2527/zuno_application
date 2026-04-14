@@ -1,3 +1,4 @@
+// ignore_for_file: file_names
 
 class DatingProfile {
   final String id;
@@ -6,12 +7,11 @@ class DatingProfile {
   final String bio;
   final String location;
   final List<String> interests;
-  final String profileImageUrl; // ✅ keep for existing screens
+  final String profileImageUrl; 
   final bool isActiveNow;
   final String distance;
   final List<String> imageUrls;
 
-  /// ✅ NEW OPTIONAL FIELDS (safe for old screens)
   final String? gender;
   final String? lookingFor;
 

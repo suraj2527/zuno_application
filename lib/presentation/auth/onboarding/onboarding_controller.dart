@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/data/sources/local/local_storage.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../data/sources/remote/user_api.dart';
+import 'package:geolocator/geolocator.dart';
 
 class OnboardingController extends GetxController {
   // ================= STATE =================
@@ -24,6 +28,9 @@ class OnboardingController extends GetxController {
   final RxString _nameValue = ''.obs;
   String get nameValue => _nameValue.value;
 
+  final AuthService _authService = AuthService();
+  final UserApi _userApi = UserApi();
+
   // ================= DATA =================
 
   final List<Map<String, String>> introSlides = [
@@ -42,8 +49,7 @@ class OnboardingController extends GetxController {
     {
       'emoji': '⚡',
       'title': 'Start Your Journey',
-      'description':
-          'Create your profile and begin finding your spark today.',
+      'description': 'Create your profile and begin finding your spark today.',
     },
   ];
 
@@ -60,11 +66,7 @@ class OnboardingController extends GetxController {
       'title': 'Long-term Relationship',
       'subtitle': 'Looking for something serious',
     },
-    {
-      'emoji': '☕',
-      'title': 'Casual Dating',
-      'subtitle': 'Go with the flow',
-    },
+    {'emoji': '☕', 'title': 'Casual Dating', 'subtitle': 'Go with the flow'},
     {
       'emoji': '🤝',
       'title': 'Friendship',
@@ -102,7 +104,7 @@ class OnboardingController extends GetxController {
     if (_currentStep.value < 7) {
       _currentStep.value++;
     } else {
-      Get.offAllNamed("/dashboard");
+      submitProfile();
     }
   }
 
@@ -145,7 +147,70 @@ class OnboardingController extends GetxController {
     _nameValue.value = value.trim();
   }
 
+  Future<void> submitProfile() async {
+    try {
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
+
+      if (token == null) throw "Token not found";
+
+      Map<String, double> location;
+
+      try {
+        location = await getCurrentLocation();
+      } catch (e) {
+        location = {"lat": 28.6139, "lng": 77.2090}; // fallback Delhi
+      }
+
+      final body = {
+        "name": nameController.text.trim(),
+        "gender": selectedGender,
+        "age": selectedAge.toInt(),
+        "bio": "Hello",
+        "interests": selectedInterests.toList(),
+        "location": {"lat": location["lat"], "lng": location["lng"]},
+      };
+
+      await _userApi.createProfile(token, body);
+
+      Get.offAllNamed("/dashboard");
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    }
+  }
   // ================= HELPERS =================
+
+  Future<Map<String, double>> getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // 🔥 Check location service
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw "Location services are disabled";
+    }
+
+    // 🔥 Check permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+
+      if (permission == LocationPermission.denied) {
+        throw "Location permission denied";
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw "Location permission permanently denied";
+    }
+
+    // 🔥 Get position
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    return {"lat": position.latitude, "lng": position.longitude};
+  }
 
   bool canContinue() {
     switch (currentStep) {
@@ -170,6 +235,14 @@ class OnboardingController extends GetxController {
 
   String getButtonText() {
     return currentStep == 7 ? 'Continue →' : 'Next →';
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    nameController.text = LocalStorage.name ?? '';
+    _nameValue.value = nameController.text;
   }
 
   @override
