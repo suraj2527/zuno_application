@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../shared/widgets/common/zuno_loader.dart';
 import '../routes/app_routes.dart';
 
 class PermissionServiceScreen extends StatefulWidget {
@@ -41,12 +42,9 @@ class _PermissionServiceScreenState extends State<PermissionServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Optional: Show a very minimal loading screen while permission is being handled
     return const Scaffold(
-      backgroundColor: Colors.white, // or your scaffold color
-      body: Center(
-        child: CircularProgressIndicator(), // Simple loader
-      ),
+      backgroundColor: Colors.transparent,
+      body: ZunoLoader(isVisible: true),
     );
   }
 }

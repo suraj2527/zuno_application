@@ -5,6 +5,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_gradients.dart';
 import '../../../shared/constants/app_text_styles.dart';
 import '../../../shared/widgets/common/gradient_button.dart';
+import '../../../shared/widgets/common/zuno_loader.dart';
 import 'signin_controller.dart';
 
 class SignInScreen extends GetView<SignInController> {
@@ -14,21 +15,28 @@ class SignInScreen extends GetView<SignInController> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.scaffold),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Column(
-              children: [
-                const _Header(),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
-                  child: _LoginSelection(controller: controller),
+      body: Obx(
+        () => Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(gradient: AppGradients.scaffold),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      const _Header(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
+                        child: _LoginSelection(controller: controller),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
+            ZunoLoader(isVisible: controller.isLoading.value),
+          ],
         ),
       ),
     );

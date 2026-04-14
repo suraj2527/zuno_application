@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/data/model/chat/chat_message_model.dart';
 import 'package:zuno_application/shared/constants/app_colors.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 import 'package:zuno_application/shared/constants/app_gradients.dart';
@@ -9,13 +10,33 @@ import '../home/home_controller.dart';
 import 'chat_controller.dart';
 import 'widgets/profile_detail_screen.dart';
 
-class ChatDetailScreen extends StatelessWidget {
+class ChatDetailScreen extends StatefulWidget {
+  const ChatDetailScreen({super.key});
+
+  @override
+  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+}
+
+class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final ChatPreviewModel chat;
   final ChatController controller = Get.find<ChatController>();
 
-  ChatDetailScreen({super.key}) : chat = Get.arguments as ChatPreviewModel;
+  _ChatDetailScreenState() : chat = Get.arguments as ChatPreviewModel;
 
   final TextEditingController messageController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadConversationMessages(chat.id);
+  }
+
+  @override
+  void dispose() {
+    controller.clearActiveConversation(chat.id);
+    messageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,116 +153,97 @@ class ChatDetailScreen extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Builder(
-              builder: (_) {
-                final messages = [
-                  {
-                    'text': 'Hey! Saw you nearby. 👋',
-                    'isMe': false,
-                    'time': '2:15 PM',
-                  },
-                  {
-                    'text': 'Hey there! 😁 That was quick!',
-                    'isMe': true,
-                    'time': '2:16 PM',
-                  },
-                  {
-                    'text': 'Yeah, thought why not. What are you up to?',
-                    'isMe': false,
-                    'time': '2:17 PM',
-                  },
-                  {
-                    'text': 'Just grabbing a coffee ☕',
-                    'isMe': true,
-                    'time': '2:18 PM',
-                  },
-                  {
-                    'text': 'Nice! Maybe I’ll join you. 🐱',
-                    'isMe': false,
-                    'time': '2:19 PM',
-                  },
-                ];
+            child: Obx(() {
+              final messages = controller.getConversationMessages(chat.id);
+              if (controller.isMessagesLoading.value && messages.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+              if (messages.isEmpty) {
+                return Center(
+                  child: Text(
+                    "No messages yet. Say hi 👋",
+                    style: AppTextStyles.bodyMedium(isDark: isDark),
                   ),
-                  itemCount: messages.length,
-                  itemBuilder: (_, index) {
-                    final message = messages[messages.length - 1 - index];
-                    final isMe = message['isMe'] as bool;
+                );
+              }
 
-                    final TextStyle messageStyle = isMe
-                        ? AppTextStyles.bodyMedium(isDark: false)
-                            .copyWith(color: Colors.white)
-                        : AppTextStyles.bodyMedium(isDark: isDark)
-                            .copyWith(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.95)
-                                  : Colors.black.withOpacity(0.87),
-                            );
+              return ListView.builder(
+                reverse: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                itemCount: messages.length,
+                itemBuilder: (_, index) {
+                  final ChatMessageModel message =
+                      messages[messages.length - 1 - index];
+                  final isMe = message.isMe;
 
-                    final TextStyle timeStyle = isMe
-                        ? AppTextStyles.bodySmall(isDark: false)
-                            .copyWith(color: Colors.white.withOpacity(0.85))
-                        : AppTextStyles.bodySmall(isDark: isDark)
-                            .copyWith(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.70)
-                                  : Colors.black.withOpacity(0.60),
-                            );
+                  final TextStyle messageStyle = isMe
+                      ? AppTextStyles.bodyMedium(isDark: false).copyWith(
+                          color: Colors.white,
+                        )
+                      : AppTextStyles.bodyMedium(isDark: isDark).copyWith(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.95)
+                              : Colors.black.withOpacity(0.87),
+                        );
 
-                    return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        constraints: BoxConstraints(maxWidth: Get.width * 0.75),
-                        decoration: BoxDecoration(
-                          gradient: isMe ? AppGradients.primary : null,
-                          color: isMe
-                              ? null
-                              : (isDark
-                                  ? AppColors.chatTileHoverDark
-                                  : AppColors.chatTileHoverLight),
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: isMe
-                                ? const Radius.circular(16)
-                                : const Radius.circular(0),
-                            bottomRight: isMe
-                                ? const Radius.circular(0)
-                                : const Radius.circular(16),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              message['text'].toString(),
-                              style: messageStyle,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              message['time'].toString(),
-                              style: timeStyle,
-                            ),
-                          ],
+                  final TextStyle timeStyle = isMe
+                      ? AppTextStyles.bodySmall(isDark: false).copyWith(
+                          color: Colors.white.withOpacity(0.85),
+                        )
+                      : AppTextStyles.bodySmall(isDark: isDark).copyWith(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.70)
+                              : Colors.black.withOpacity(0.60),
+                        );
+
+                  return Align(
+                    alignment:
+                        isMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      constraints: BoxConstraints(maxWidth: Get.width * 0.75),
+                      decoration: BoxDecoration(
+                        gradient: isMe ? AppGradients.primary : null,
+                        color: isMe
+                            ? null
+                            : (isDark
+                                ? AppColors.chatTileHoverDark
+                                : AppColors.chatTileHoverLight),
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(16),
+                          topRight: const Radius.circular(16),
+                          bottomLeft: isMe
+                              ? const Radius.circular(16)
+                              : const Radius.circular(0),
+                          bottomRight: isMe
+                              ? const Radius.circular(0)
+                              : const Radius.circular(16),
                         ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(message.text, style: messageStyle),
+                          const SizedBox(height: 4),
+                          Text(
+                            controller.formatMessageTime(message.createdAt),
+                            style: timeStyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
           ),
 
           // Fully Responsive Message Input with Animated Send Button
@@ -291,9 +293,11 @@ class ChatDetailScreen extends StatelessWidget {
 
             // Animated Send Button
             _AnimatedSendButton(
-              onTap: () {
+              onTap: () async {
                 if (messageController.text.trim().isNotEmpty) {
+                  final text = messageController.text.trim();
                   messageController.clear();
+                  await controller.sendMessage(chat.id, text);
                 }
               },
             ),

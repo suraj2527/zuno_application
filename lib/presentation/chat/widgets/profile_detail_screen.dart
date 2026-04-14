@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/core/services/auth_service.dart';
+import 'package:zuno_application/data/sources/remote/home_api.dart';
 import 'package:zuno_application/shared/constants/app_colors.dart';
 import 'package:zuno_application/shared/constants/app_gradients.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
@@ -23,10 +25,13 @@ class ProfileDetailsScreen extends StatefulWidget {
 
 class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
+  final HomeApi _homeApi = HomeApi();
+  final AuthService _authService = AuthService();
 
   double imageOffset = 0;
   bool showHeart = false;
   int currentGalleryIndex = 0;
+  bool isLikeLoading = false;
 
   @override
   void initState() {
@@ -60,6 +65,16 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             slivers: [_buildAppBar(p), _buildContent(isDark, p)],
           ),
 
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 14,
+            child: SafeArea(
+              top: false,
+              child: _buildLikeButton(),
+            ),
+          ),
+
           /// ❤️ double tap animation
           if (showHeart)
             Center(
@@ -84,6 +99,94 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildLikeButton() {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: AppGradients.primary,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: isLikeLoading ? null : _likeProfile,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: isLikeLoading
+                      ? const SizedBox(
+                          key: ValueKey("like_loader"),
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.favorite_rounded,
+                          key: ValueKey("like_icon"),
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  isLikeLoading ? "Liking..." : "Like Profile",
+                  style: AppTextStyles.bodyMedium(isDark: false).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _likeProfile() async {
+    final targetUserId = (widget.profile?.id ?? "").toString().trim();
+    if (targetUserId.isEmpty) {
+      Get.snackbar("Error", "Invalid profile");
+      return;
+    }
+
+    setState(() => isLikeLoading = true);
+    try {
+      final token = await _authService.currentUser?.getIdToken(true);
+      if (token == null || token.isEmpty) throw "Token not found";
+
+      await _homeApi.sendDiscoveryAction(
+        token: token,
+        targetUserId: targetUserId,
+        action: "like",
+      );
+
+      Get.snackbar("Liked", "You liked this profile");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      if (mounted) setState(() => isLikeLoading = false);
+    }
   }
 
   // ================= APP BAR =================
@@ -258,6 +361,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
 
             /// GALLERY
             _buildGallerySection(isDark, galleryImages),
+            const SizedBox(height: 86),
           ],
         ),
       ),

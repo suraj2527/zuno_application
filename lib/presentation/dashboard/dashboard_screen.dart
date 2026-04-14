@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zuno_application/presentation/chat/chat_screen.dart';
+import 'package:zuno_application/presentation/chat/chat_controller.dart';
 import 'package:zuno_application/presentation/profile/profile_tab.dart';
 import 'package:zuno_application/presentation/activity/activity_tab.dart';
 import 'package:zuno_application/presentation/activity/activity_controller.dart';
@@ -16,6 +17,7 @@ class DashboardScreen extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activityController = Get.find<ActivityController>();
+    final chatController = Get.find<ChatController>();
 
     final pages = [
       const HomeTab(),                                        // 0 – Home
@@ -67,6 +69,7 @@ class DashboardScreen extends GetView<DashboardController> {
                     isDark: isDark,
                     controller: controller,
                     activityController: activityController,
+                    chatController: chatController,
                   ),
                 ),
               ),
@@ -103,6 +106,7 @@ class _NavItem extends StatelessWidget {
   final bool isDark;
   final DashboardController controller;
   final ActivityController activityController;
+  final ChatController chatController;
 
   const _NavItem({
     required this.index,
@@ -111,6 +115,7 @@ class _NavItem extends StatelessWidget {
     required this.isDark,
     required this.controller,
     required this.activityController,
+    required this.chatController,
   });
 
   @override
@@ -123,6 +128,8 @@ class _NavItem extends StatelessWidget {
           activityController.hasUnseenUpdates.value &&
           (activityController.likedProfiles.isNotEmpty ||
               activityController.matchedProfiles.isNotEmpty);
+      final unreadChatCount = chatController.totalUnreadCount;
+      final shouldShowChatCount = index == 1 && unreadChatCount > 0;
 
       return GestureDetector(
         onTap: () => controller.changeTab(index),
@@ -170,6 +177,42 @@ class _NavItem extends StatelessWidget {
                                     ? AppColors.cardDark
                                     : AppColors.white,
                                 width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (shouldShowChatCount)
+                        Positioned(
+                          right: -9,
+                          top: -8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.cardDark
+                                    : AppColors.white,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              unreadChatCount > 99
+                                  ? "99+"
+                                  : unreadChatCount.toString(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),

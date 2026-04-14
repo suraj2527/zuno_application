@@ -48,45 +48,15 @@ class ActivityController extends GetxController {
       final receivedLikes = await _activityApi.getReceivedLikes(token);
       final matches = await _activityApi.getMatches(token);
 
-      final likesData = receivedLikes.map((item) {
-        final image = item["image"]?.toString() ?? "";
-        final distanceKm = item["distanceKm"]?.toString() ?? "";
+      final likesData = receivedLikes
+          .map(_mapActivityProfile)
+          .whereType<DatingProfile>()
+          .toList();
 
-        return DatingProfile(
-          id: item["userId"]?.toString() ?? "",
-          userName: item["name"]?.toString() ?? "",
-          age: (item["age"] ?? "").toString(),
-          bio: item["bio"]?.toString() ?? "",
-          location: item["location"]?.toString() ?? "",
-          interests: List<String>.from(item["interests"] ?? []),
-          profileImageUrl: image,
-          isActiveNow: true,
-          distance: distanceKm.isNotEmpty ? "📍 $distanceKm km" : "",
-          imageUrls: image.isNotEmpty ? [image] : [],
-          gender: item["gender"]?.toString(),
-          lookingFor: item["lookingFor"]?.toString(),
-        );
-      }).toList();
-
-      final matchesData = matches.map((item) {
-        final image = item["image"]?.toString() ?? "";
-        final distanceKm = item["distanceKm"]?.toString() ?? "";
-
-        return DatingProfile(
-          id: item["userId"]?.toString() ?? "",
-          userName: item["name"]?.toString() ?? "",
-          age: (item["age"] ?? "").toString(),
-          bio: item["bio"]?.toString() ?? "",
-          location: item["location"]?.toString() ?? "",
-          interests: List<String>.from(item["interests"] ?? []),
-          profileImageUrl: image,
-          isActiveNow: true,
-          distance: distanceKm.isNotEmpty ? "📍 $distanceKm km" : "",
-          imageUrls: image.isNotEmpty ? [image] : [],
-          gender: item["gender"]?.toString(),
-          lookingFor: item["lookingFor"]?.toString(),
-        );
-      }).toList();
+      final matchesData = matches
+          .map(_mapActivityProfile)
+          .whereType<DatingProfile>()
+          .toList();
 
       likedProfiles.assignAll(likesData);
       matchedProfiles.assignAll(matchesData);
@@ -96,5 +66,68 @@ class ActivityController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  DatingProfile? _mapActivityProfile(dynamic raw) {
+    if (raw is! Map) return null;
+
+    final item = Map<String, dynamic>.from(raw);
+
+    // Matches payloads are often nested (e.g. matchedUser/user/targetUser).
+    final nestedUser = _firstMap([
+      item["matchedUser"],
+      item["user"],
+      item["targetUser"],
+      item["profile"],
+    ]);
+    final source = nestedUser ?? item;
+
+    final image =
+        source["image"]?.toString() ??
+        source["profileImage"]?.toString() ??
+        item["image"]?.toString() ??
+        "";
+    final distanceKm =
+        source["distanceKm"]?.toString() ?? item["distanceKm"]?.toString() ?? "";
+
+    final interestsRaw = source["interests"] ?? item["interests"];
+    final interests = interestsRaw is List
+        ? interestsRaw.map((e) => e.toString()).where((e) => e.isNotEmpty).toList()
+        : <String>[];
+
+    return DatingProfile(
+      id:
+          source["userId"]?.toString() ??
+          source["_id"]?.toString() ??
+          item["userId"]?.toString() ??
+          item["_id"]?.toString() ??
+          "",
+      userName: source["name"]?.toString() ?? item["name"]?.toString() ?? "",
+      age: (source["age"] ?? item["age"] ?? "").toString(),
+      bio: source["bio"]?.toString() ?? item["bio"]?.toString() ?? "",
+      location:
+          source["locationName"]?.toString() ??
+          source["location"]?.toString() ??
+          item["locationName"]?.toString() ??
+          item["location"]?.toString() ??
+          "",
+      interests: interests,
+      profileImageUrl: image,
+      isActiveNow: true,
+      distance: distanceKm.isNotEmpty ? "📍 $distanceKm km" : "",
+      imageUrls: image.isNotEmpty ? [image] : [],
+      gender: source["gender"]?.toString() ?? item["gender"]?.toString(),
+      lookingFor:
+          source["lookingFor"]?.toString() ?? item["lookingFor"]?.toString(),
+    );
+  }
+
+  Map<String, dynamic>? _firstMap(List<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is Map) {
+        return Map<String, dynamic>.from(candidate);
+      }
+    }
+    return null;
   }
 }

@@ -57,19 +57,16 @@ class SignInController extends GetxController {
         name: user.displayName,
         email: user.email,
         photo: user.photoURL,
-        backendUserId: response["data"]?["userId"] ?? '',
+        backendUserId: response["userId"]?.toString() ?? '',
       );
 
-      /// 🔥 FIX: DO NOT trust only isProfileCompleted
-      bool isProfileCompleted =
-          response["data"]?["isProfileCompleted"] ?? false;
+      bool isProfileCompleted = response["isProfileCompleted"] == true;
 
       /// 🔥 SAFE FALLBACK (IMPORTANT FIX)
       if (!isProfileCompleted) {
         try {
           final profileRes = await _authRepository.login(token);
-          isProfileCompleted =
-              profileRes["data"]?["isProfileCompleted"] ?? false;
+          isProfileCompleted = profileRes["isProfileCompleted"] == true;
         } catch (_) {}
       }
 
@@ -112,18 +109,15 @@ class SignInController extends GetxController {
         name: user.displayName,
         email: user.email,
         photo: user.photoURL,
-        backendUserId: response["data"]?["userId"] ?? '',
+        backendUserId: response["userId"]?.toString() ?? '',
       );
 
-      /// 🔥 FIX: fallback check
-      bool isProfileCompleted =
-          response["data"]?["isProfileCompleted"] ?? false;
+      bool isProfileCompleted = response["isProfileCompleted"] == true;
 
       if (!isProfileCompleted) {
         try {
           final profileRes = await _authRepository.login(token);
-          isProfileCompleted =
-              profileRes["data"]?["isProfileCompleted"] ?? false;
+          isProfileCompleted = profileRes["isProfileCompleted"] == true;
         } catch (_) {}
       }
 
