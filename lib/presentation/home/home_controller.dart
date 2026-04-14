@@ -1,7 +1,10 @@
 // ignore_for_file: unused_local_variable
 
+import 'dart:developer';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/core/services/auth_service.dart';
+import 'package:zuno_application/data/sources/remote/home_api.dart';
 
 class DatingProfile {
   final String id;
@@ -10,10 +13,10 @@ class DatingProfile {
   final String bio;
   final String location;
   final List<String> interests;
-  final String profileImageUrl; // ✅ single main profile image
+  final String profileImageUrl; 
   final bool isActiveNow;
   final String distance;
-  final List<String> imageUrls; // ✅ gallery images
+  final List<String> imageUrls; 
   final String? gender;
   final String? lookingFor;
 
@@ -65,6 +68,8 @@ class DatingProfile {
 
 class HomeController extends GetxController {
   final isLoading = true.obs;
+  final AuthService _authService = AuthService();
+  final HomeApi _homeApi = HomeApi();
 
   final CardSwiperController cardSwiperController = CardSwiperController();
 
@@ -106,61 +111,52 @@ class HomeController extends GetxController {
   Future<void> loadHomeData() async {
     profiles.clear();
     allProfiles.clear();
+    isLoading.value = true;
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
 
-    final data = [
-      DatingProfile(
-        id: "1",
-        userName: "Maya",
-        age: "23",
-        bio: "Coffee lover, music addict and weekend explorer.",
-        location: "New Delhi, India",
-        interests: ["🎵 Music", "✈️ Travel", "☕ Coffee", "🎬 Movies"],
-        profileImageUrl:
-            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
-        imageUrls: [
-          "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=436&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=600&auto=format&fit=crop",
-        ],
-        isActiveNow: true,
-        distance: "📍 2.1 km",
-        gender: "Woman",
-        lookingFor: "Long-term Relationship",
-      ),
-      DatingProfile(
-        id: "2",
-        userName: "Priya",
-        age: "24",
-        bio: "Into books, long drives and good conversations.",
-        location: "Gurugram, India",
-        interests: ["📚 Reading", "✈️ Travel", "🍕 Foodie", "🎵 Music"],
-        profileImageUrl:
-            "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=436&auto=format&fit=crop",
-        imageUrls: [
-          "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?q=80&w=436&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop",
-          "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=600&auto=format&fit=crop",
-        ],
-        isActiveNow: false,
-        distance: "📍 4.3 km",
-        gender: "Woman",
-        lookingFor: "Casual Dating",
-      ),
-    ];
+      if (token == null) throw "Token not found";
 
-    allProfiles.assignAll(data);
-    profiles.assignAll(data);
+      final feedData = await _homeApi.getDiscoveryFeed(token);
 
-    isLoading.value = false;
+      final mappedProfiles = feedData.map((item) {
+        final distanceKm = (item["distanceKm"] ?? 0).toString();
+        final image = item["image"]?.toString() ?? "";
+
+        return DatingProfile(
+          id: item["userId"]?.toString() ?? "",
+          userName: item["name"]?.toString() ?? "",
+          age: (item["age"] ?? "").toString(),
+          bio: item["bio"]?.toString() ?? "",
+          location: "",
+          interests: List<String>.from(item["interests"] ?? []),
+          profileImageUrl: image,
+          isActiveNow: true,
+          distance: "📍 $distanceKm km",
+          imageUrls: image.isNotEmpty ? [image] : [],
+          gender: null,
+          lookingFor: null,
+        );
+      }).toList();
+
+      allProfiles.assignAll(mappedProfiles);
+      profiles.assignAll(mappedProfiles);
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void onSwipeLeft(int index) {
+    _sendActionForIndex(index, "dislike");
     _syncAfterSwipe();
   }
 
   void onSwipeRight(int index) {
+    _sendActionForIndex(index, "like");
     _syncAfterSwipe();
   }
 
@@ -224,5 +220,46 @@ class HomeController extends GetxController {
     await Future.delayed(const Duration(milliseconds: 120));
     isBoostPressed.value = false;
     swipeUp();
+  }
+
+  Future<void> _sendActionForIndex(int index, String action) async {
+    try {
+      if (index < 0 || index >= profiles.length) return;
+      final targetUserId = profiles[index].id;
+      if (targetUserId.isEmpty) return;
+      print("HomeController: swipe action -> $action for userId=$targetUserId");
+
+      log(
+        "Triggering $action for index=$index targetUserId=$targetUserId",
+        name: "HomeController",
+      );
+
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
+      if (token == null) {
+        print("HomeController: token is null, API not called for $action");
+        log(
+          "Skipping $action: Firebase token is null",
+          name: "HomeController",
+        );
+        return;
+      }
+
+      await _homeApi.sendDiscoveryAction(
+        token: token,
+        targetUserId: targetUserId,
+        action: action,
+      );
+      print("HomeController: $action API call completed for $targetUserId");
+
+      log(
+        "$action action submitted successfully for $targetUserId",
+        name: "HomeController",
+      );
+    } catch (e) {
+      print("HomeController: $action API error -> $e");
+      log("Failed to submit $action action: $e", name: "HomeController");
+      // Keep swipe flow smooth even if action API fails.
+    }
   }
 }

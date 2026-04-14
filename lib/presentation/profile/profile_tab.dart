@@ -10,6 +10,7 @@ import 'package:zuno_application/shared/constants/app_gradients.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 import 'package:zuno_application/shared/widgets/common/app_refresh_wrapper.dart';
 import 'package:zuno_application/shared/widgets/common/zuno_base_screen.dart';
+import 'package:zuno_application/shared/widgets/shimmers/shimmer_box.dart';
 
 class ProfileTab extends StatelessWidget {
   ProfileTab({super.key});
@@ -33,7 +34,7 @@ class ProfileTab extends StatelessWidget {
               if (!controller.isLoading.value) {
                 Future.microtask(() => controller.loadProfileData());
               }
-              return const Center();
+              return _buildProfileShimmer(isDark);
             }
 
             return SingleChildScrollView(
@@ -421,6 +422,88 @@ class ProfileTab extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===================== SHIMMER (USES YOUR WIDGET) =====================
+
+  Widget _buildProfileShimmer(bool isDark) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+      child: Column(
+        children: [
+          /// Profile Header shimmer
+          ShimmerWrapper(
+            isLoading: true,
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                children: [
+                  const ShimmerBox(width: 118, height: 118, radius: 100),
+                  const SizedBox(height: 14),
+                  const ShimmerBox(width: 180, height: 16),
+                  const SizedBox(height: 12),
+                  const ShimmerBox(width: 120, height: 34, radius: 50),
+                  const SizedBox(height: 10),
+                  const ShimmerBox(width: 120, height: 34, radius: 50),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// Gallery shimmer
+          ShimmerWrapper(
+            isLoading: true,
+            child: Container(
+              height: 240,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const ShimmerBox(radius: 22),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// Cards shimmer
+          _shimmerCard(isDark),
+          const SizedBox(height: 14),
+          _shimmerCard(isDark),
+          const SizedBox(height: 14),
+          _shimmerCard(isDark),
+          const SizedBox(height: 14),
+          _shimmerCard(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerCard(bool isDark) {
+    return ShimmerWrapper(
+      isLoading: true,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            ShimmerBox(width: 120, height: 14),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 50, radius: 14),
           ],
         ),
       ),

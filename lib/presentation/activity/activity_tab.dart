@@ -147,7 +147,19 @@ class _ActivityTabState extends State<ActivityTab>
                 /// Avatar
                 CircleAvatar(
                   radius: 26,
-                  backgroundImage: NetworkImage(profile.profileImageUrl),
+                  backgroundColor: Colors.grey.shade300,
+                  child: ClipOval(
+                    child: profile.profileImageUrl.trim().isNotEmpty
+                        ? Image.network(
+                            profile.profileImageUrl,
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.person, size: 24),
+                          )
+                        : const Icon(Icons.person, size: 24),
+                  ),
                 ),
 
                 const SizedBox(width: 12),
@@ -276,9 +288,58 @@ class _ActivityTabState extends State<ActivityTab>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 40),
-            const Icon(Icons.hourglass_empty, size: 80),
-            const SizedBox(height: 20),
+            Container(
+              width: 170,
+              height: 170,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.cardDark : AppColors.white,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.05),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.28 : 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      color: isDark ? AppColors.cardDark : AppColors.white,
+                      alignment: Alignment.center,
+                      child: Image.asset(
+                        'assets/images/dog.jpg',
+                        fit: BoxFit.contain,
+                        alignment: Alignment.center,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            (isDark ? AppColors.cardDark : AppColors.white)
+                                .withOpacity(0.12),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 26),
             Text(
               "You’re all caught up! 🥳",
               style: AppTextStyles.headingLarge(isDark: isDark),

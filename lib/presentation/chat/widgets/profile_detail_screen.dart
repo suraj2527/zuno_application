@@ -169,6 +169,9 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
     final List<String> galleryImages = (p.imageUrls is List<String>)
         ? p.imageUrls
         : <String>[];
+    final hasLocation = _hasText((p.location ?? '').toString());
+    final hasGender = _hasText((p.gender ?? '').toString());
+    final hasLookingFor = _hasText((p.lookingFor ?? '').toString());
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -198,38 +201,36 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             const SizedBox(height: 16),
 
             /// INFO
-            _buildInfoCard(
-              isDark: isDark,
-              title: "Location",
-              value: (p.location ?? '').toString().trim().isNotEmpty
-                  ? p.location
-                  : "Not added",
-              icon: Icons.location_on_rounded,
-            ),
+            if (hasLocation) ...[
+              _buildInfoCard(
+                isDark: isDark,
+                title: "Location",
+                value: p.location,
+                icon: Icons.location_on_rounded,
+              ),
+              const SizedBox(height: 14),
+            ],
 
-            const SizedBox(height: 14),
+            if (hasGender) ...[
+              _buildInfoCard(
+                isDark: isDark,
+                title: "Gender",
+                value: p.gender,
+                icon: Icons.person_outline_rounded,
+              ),
+              const SizedBox(height: 14),
+            ],
 
-            _buildInfoCard(
-              isDark: isDark,
-              title: "Gender",
-              value: (p.gender ?? '').toString().trim().isNotEmpty
-                  ? p.gender
-                  : "Not added",
-              icon: Icons.person_outline_rounded,
-            ),
-
-            const SizedBox(height: 14),
-
-            _buildInfoCard(
-              isDark: isDark,
-              title: "Looking For",
-              value: (p.lookingFor ?? '').toString().trim().isNotEmpty
-                  ? p.lookingFor
-                  : "Not added",
-              icon: Icons.favorite_border_rounded,
-            ),
-
-            const SizedBox(height: 16),
+            if (hasLookingFor) ...[
+              _buildInfoCard(
+                isDark: isDark,
+                title: "Looking For",
+                value: p.lookingFor,
+                icon: Icons.favorite_border_rounded,
+              ),
+              const SizedBox(height: 16),
+            ] else
+              const SizedBox(height: 2),
 
             /// INTERESTS
             _buildSection(
@@ -264,6 +265,8 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   }
 
   Widget _buildProfileHeader(bool isDark, dynamic p) {
+    final hasLocation = _hasText((p.location ?? '').toString());
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
@@ -287,24 +290,27 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
               isDark: isDark,
             ).copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.location_on_rounded,
-                size: 17,
-                color: isDark ? AppColors.textHintDark : AppColors.textHint,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  p.location ?? "Unknown location",
-                  style: AppTextStyles.bodySmall(isDark: isDark),
+          if (hasLocation) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  size: 17,
+                  color: isDark ? AppColors.textHintDark : AppColors.textHint,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    p.location,
+                    style: AppTextStyles.bodySmall(isDark: isDark),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ] else
+            const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
@@ -537,4 +543,6 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
       ),
     );
   }
+
+  bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
 }

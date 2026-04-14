@@ -336,7 +336,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       children: [
         Positioned.fill(
           child: profile.profileImageUrl.isNotEmpty
-              ? Image.network(profile.profileImageUrl, fit: BoxFit.cover)
+              ? Image.network(
+                  profile.profileImageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _profilePlaceholder(),
+                )
               : Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -396,26 +400,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           child: Hero(
             tag: "profile_${profile.id}",
             child: profile.profileImageUrl.isNotEmpty
-                ? Image.network(profile.profileImageUrl, fit: BoxFit.cover)
-                : Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.profilePlaceholderStart,
-                          AppColors.profilePlaceholderEnd,
-                        ],
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.person,
-                        size: 90,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
+                ? Image.network(
+                    profile.profileImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _profilePlaceholder(),
+                  )
+                : _profilePlaceholder(),
           ),
         ),
         Positioned(
@@ -523,6 +513,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   Widget _buildDynamicInfo(bool isDark) {
     final profile = controller.currentProfile;
+    final hasLocation = _hasText(profile?.location);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
@@ -548,25 +539,27 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyMedium(isDark: isDark),
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                Icons.location_on_rounded,
-                size: 16,
-                color: isDark ? AppColors.textHintDark : AppColors.textHint,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  profile?.location ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall(isDark: isDark),
+          if (hasLocation) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  size: 16,
+                  color: isDark ? AppColors.textHintDark : AppColors.textHint,
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    profile?.location ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall(isDark: isDark),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -605,16 +598,46 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 170,
+            height: 170,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark
-                  ? Colors.white.withOpacity(0.04)
-                  : AppColors.white.withOpacity(0.06),
+              color: isDark ? AppColors.cardDark : AppColors.white,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.black.withOpacity(0.05),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.28 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            child: SizedBox(
-              height: 150,
-              child: Image.asset('assets/images/dog.jpg', fit: BoxFit.cover),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset('assets/images/dog.jpg', fit: BoxFit.cover),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          (isDark ? AppColors.cardDark : AppColors.white)
+                              .withOpacity(0.12),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -646,6 +669,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildSwipeDynamicInfo(bool isDark, DatingProfile profile) {
+    final hasLocation = _hasText(profile.location);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
@@ -671,25 +695,27 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyMedium(isDark: isDark),
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                Icons.location_on_rounded,
-                size: 16,
-                color: isDark ? AppColors.textHintDark : AppColors.textHint,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  profile.location,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall(isDark: isDark),
+          if (hasLocation) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  size: 16,
+                  color: isDark ? AppColors.textHintDark : AppColors.textHint,
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    profile.location,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall(isDark: isDark),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -847,6 +873,26 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         color:
             iconColor ??
             (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+      ),
+    );
+  }
+
+  bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
+
+  Widget _profilePlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.profilePlaceholderStart,
+            AppColors.profilePlaceholderEnd,
+          ],
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.person, size: 90, color: AppColors.white),
       ),
     );
   }

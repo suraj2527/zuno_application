@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:zuno_application/presentation/chat/chat_screen.dart';
 import 'package:zuno_application/presentation/profile/profile_tab.dart';
 import 'package:zuno_application/presentation/activity/activity_tab.dart';
+import 'package:zuno_application/presentation/activity/activity_controller.dart';
 import '../../shared/constants/app_colors.dart';
 import 'dashboard_controller.dart';
 import '../home/home_tab.dart';
@@ -14,6 +15,7 @@ class DashboardScreen extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activityController = Get.find<ActivityController>();
 
     final pages = [
       const HomeTab(),                                        // 0 – Home
@@ -64,6 +66,7 @@ class DashboardScreen extends GetView<DashboardController> {
                     label: _labels[i],
                     isDark: isDark,
                     controller: controller,
+                    activityController: activityController,
                   ),
                 ),
               ),
@@ -99,6 +102,7 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isDark;
   final DashboardController controller;
+  final ActivityController activityController;
 
   const _NavItem({
     required this.index,
@@ -106,6 +110,7 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isDark,
     required this.controller,
+    required this.activityController,
   });
 
   @override
@@ -113,6 +118,11 @@ class _NavItem extends StatelessWidget {
     return Obx(() {
       final isSelected = controller.currentIndex.value == index;
       final activeColor = isDark ? AppColors.primaryDark : AppColors.primary;
+      final shouldShowActivityDot =
+          index == 2 &&
+          activityController.hasUnseenUpdates.value &&
+          (activityController.likedProfiles.isNotEmpty ||
+              activityController.matchedProfiles.isNotEmpty);
 
       return GestureDetector(
         onTap: () => controller.changeTab(index),
@@ -135,12 +145,36 @@ class _NavItem extends StatelessWidget {
                 child: AnimatedScale(
                   scale: isSelected ? 1.2 : 1.0,
                   duration: const Duration(milliseconds: 280),
-                  child: Icon(
-                    icon,
-                    size: 24,
-                    color: isSelected
-                        ? activeColor
-                        : (isDark ? Colors.white38 : Colors.black38),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 24,
+                        color: isSelected
+                            ? activeColor
+                            : (isDark ? Colors.white38 : Colors.black38),
+                      ),
+                      if (shouldShowActivityDot)
+                        Positioned(
+                          right: -2,
+                          top: -1,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.cardDark
+                                    : AppColors.white,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
