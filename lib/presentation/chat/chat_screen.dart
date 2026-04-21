@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zuno_application/data/model/chat/chat_preview_model.dart';
 import 'package:zuno_application/presentation/chat/chat_controller.dart';
 import 'package:zuno_application/presentation/chat/widgets/active_user_avatar.dart';
 import 'package:zuno_application/presentation/chat/widgets/chat_skeleton.dart';
@@ -20,27 +21,29 @@ class ChatScreen extends GetView<ChatController> {
     return ZunoBaseScreen(
       isDark: isDark,
       child: Obx(() {
+        if (controller.isLoading.value) {
+          return const ChatSkeleton();
+        }
+
         return AppRefreshWrapper(
           onRefresh: controller.refreshChats,
-          child: controller.isLoading.value
-              ? const ChatSkeleton()
-              : SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildActiveNowSection(isDark),
-                      const SizedBox(height: 24),
-                      _buildMessagesSection(isDark),
-                    ],
-                  ),
-                ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+          child: _buildActiveTab(isDark),
         );
       }),
     );
   }
 
+  Widget _buildActiveTab(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildActiveNowSection(isDark),
+        const SizedBox(height: 24),
+        _buildMessagesSection(isDark),
+      ],
+    );
+  }
 
   Widget _buildActiveNowSection(bool isDark) {
     return Container(
@@ -87,7 +90,8 @@ class ChatScreen extends GetView<ChatController> {
   }
 
   Widget _buildMessagesSection(bool isDark) {
-    if (controller.chatList.isEmpty) {
+    final chats = controller.activeChats;
+    if (chats.isEmpty) {
       return const EmptyChatView();
     }
 
@@ -116,7 +120,7 @@ class ChatScreen extends GetView<ChatController> {
             ],
           ),
           child: ListView.separated(
-            itemCount: controller.chatList.length,
+            itemCount: chats.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -130,12 +134,55 @@ class ChatScreen extends GetView<ChatController> {
               endIndent: 18,
             ),
             itemBuilder: (context, index) {
-              final chat = controller.chatList[index];
-              return ChatTile(chat: chat);
+              final chat = chats[index];
+              return ChatTile(
+                chat: chat,
+                onLongPress: () => _showChatActionsSheet(
+                  context: context,
+                  chat: chat,
+                ),
+              );
             },
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _showChatActionsSheet({
+    required BuildContext context,
+    required ChatPreviewModel chat,
+  }) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: isDark ? AppColors.cardDark : AppColors.cardLight,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    "Delete Chat",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () => Navigator.of(context).pop("delete"),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selected == "delete") {
+      await controller.deleteChat(chat);
+    }
   }
 }

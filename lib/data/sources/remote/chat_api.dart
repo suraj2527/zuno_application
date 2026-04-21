@@ -60,4 +60,30 @@ class ChatApi {
 
     throw "Failed to send message: ${res.body}";
   }
+
+  Future<void> deleteConversation({
+    required String token,
+    required String conversationId,
+  }) async {
+    final headers = {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    };
+    final paths = <Uri>[
+      Uri.parse("$baseUrl/chats/$conversationId"),
+      Uri.parse("$baseUrl/chats/delete"),
+    ];
+
+    final first = await http.delete(paths.first, headers: headers);
+    if (first.statusCode >= 200 && first.statusCode < 300) return;
+
+    final second = await http.post(
+      paths[1],
+      headers: headers,
+      body: jsonEncode({"conversationId": conversationId}),
+    );
+    if (second.statusCode >= 200 && second.statusCode < 300) return;
+
+    throw "Failed to delete conversation";
+  }
 }

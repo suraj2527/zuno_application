@@ -25,6 +25,9 @@ class _ActivityTabState extends State<ActivityTab>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.markAllActivitiesSeen();
+    });
   }
 
   @override
@@ -99,16 +102,30 @@ class _ActivityTabState extends State<ActivityTab>
     /// ❗ FIX: NO ListView here
     return Column(
       children: controller.likedProfiles
-          .map((profile) => _buildLikeItem(profile, isDark))
+          .map((profile) => _buildLikeItem(profile, isDark, type: 'like'))
           .toList(),
     );
   }
 
-  Widget _buildLikeItem(DatingProfile profile, bool isDark) {
+  Widget _buildLikeItem(
+    DatingProfile profile,
+    bool isDark, {
+    required String type,
+  }) {
+    final isSeen = controller.isActivitySeen(type, profile);
+    final bgColor = isDark
+        ? AppColors.inputFillDark.withOpacity(isSeen ? 0.38 : 0.88)
+        : AppColors.inputFillLight.withOpacity(isSeen ? 0.45 : 1);
+    final borderColor = isDark
+        ? AppColors.inputBorderDark.withOpacity(isSeen ? 0.4 : 0.9)
+        : AppColors.inputBorderLight.withOpacity(isSeen ? 0.55 : 1);
+    final textOpacity = isSeen ? 0.72 : 1.0;
+
     return Column(
       children: [
         GestureDetector(
           onTap: () {
+            controller.markActivitySeen(type, profile);
             Get.to(
               () => ProfileDetailsScreen(
                 profile: profile,
@@ -116,28 +133,23 @@ class _ActivityTabState extends State<ActivityTab>
               ),
             );
           },
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.cardDark : AppColors.cardLight,
+              color: bgColor,
               borderRadius: BorderRadius.circular(14),
-
-              /// ✅ NEW: subtle border
               border: Border.all(
-                color: isDark
-                    ? Colors.white.withOpacity(0.06)
-                    : Colors.black.withOpacity(0.06),
+                color: borderColor,
                 width: 1,
               ),
-
-              /// ✅ Improved shadow (less muddy, more lifted)
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.35)
-                      : Colors.black.withOpacity(0.04),
-                  blurRadius: 12,
+                      ? Colors.black.withOpacity(isSeen ? 0.18 : 0.28)
+                      : Colors.black.withOpacity(isSeen ? 0.03 : 0.06),
+                  blurRadius: isSeen ? 8 : 12,
                   offset: const Offset(0, 6),
                 ),
               ],
@@ -173,7 +185,14 @@ class _ActivityTabState extends State<ActivityTab>
                         "${profile.userName} ${profile.age}",
                         style: AppTextStyles.headingMedium(
                           isDark: isDark,
-                        ).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
+                        ).copyWith(
+                          fontSize: 14,
+                          fontWeight: isSeen ? FontWeight.w500 : FontWeight.w700,
+                          color: (isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary)
+                              .withOpacity(textOpacity),
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -182,7 +201,13 @@ class _ActivityTabState extends State<ActivityTab>
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bodySmall(
                           isDark: isDark,
-                        ).copyWith(fontSize: 12),
+                        ).copyWith(
+                          fontSize: 12,
+                          color: (isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary)
+                              .withOpacity(textOpacity),
+                        ),
                       ),
                     ],
                   ),
@@ -202,18 +227,25 @@ class _ActivityTabState extends State<ActivityTab>
                       ),
                     ),
                     const SizedBox(height: 6),
-
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.favorite,
-                        size: 14,
-                        color: Colors.red,
-                      ),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 180),
+                      opacity: isSeen ? 0 : 1,
+                      child: isSeen
+                          ? const SizedBox(width: 12, height: 12)
+                          : Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.cardDark
+                                      : AppColors.white,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
                     ),
                   ],
                 ),
@@ -251,7 +283,7 @@ class _ActivityTabState extends State<ActivityTab>
 
     return Column(
       children: controller.matchedProfiles
-          .map((profile) => _buildLikeItem(profile, isDark))
+          .map((profile) => _buildLikeItem(profile, isDark, type: 'match'))
           .toList(),
     );
   }

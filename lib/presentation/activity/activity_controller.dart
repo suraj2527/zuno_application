@@ -8,6 +8,7 @@ class ActivityController extends GetxController {
   final hasUnseenUpdates = false.obs;
   final AuthService _authService = AuthService();
   final ActivityApi _activityApi = ActivityApi();
+  final RxSet<String> _seenActivityKeys = <String>{}.obs;
 
   // Likes Tab Data
   final likedProfiles = <DatingProfile>[].obs;
@@ -18,8 +19,36 @@ class ActivityController extends GetxController {
   bool get hasActivityUpdates =>
       likedProfiles.isNotEmpty || matchedProfiles.isNotEmpty;
 
-  void markUpdatesAsSeen() {
+  String _activityKey(String type, String profileId) => "$type::$profileId";
+
+  bool isActivitySeen(String type, DatingProfile profile) {
+    return _seenActivityKeys.contains(_activityKey(type, profile.id));
+  }
+
+  void markActivitySeen(String type, DatingProfile profile) {
+    _seenActivityKeys.add(_activityKey(type, profile.id));
+    hasUnseenUpdates.value = _hasUnseenItems();
+  }
+
+  bool _hasUnseenItems() {
+    final hasUnseenLikes = likedProfiles.any((p) => !isActivitySeen("like", p));
+    final hasUnseenMatches =
+        matchedProfiles.any((p) => !isActivitySeen("match", p));
+    return hasUnseenLikes || hasUnseenMatches;
+  }
+
+  void markAllActivitiesSeen() {
+    for (final p in likedProfiles) {
+      _seenActivityKeys.add(_activityKey("like", p.id));
+    }
+    for (final p in matchedProfiles) {
+      _seenActivityKeys.add(_activityKey("match", p.id));
+    }
     hasUnseenUpdates.value = false;
+  }
+
+  void markUpdatesAsSeen() {
+    markAllActivitiesSeen();
   }
 
   @override
@@ -60,7 +89,7 @@ class ActivityController extends GetxController {
 
       likedProfiles.assignAll(likesData);
       matchedProfiles.assignAll(matchesData);
-      hasUnseenUpdates.value = hasActivityUpdates;
+      hasUnseenUpdates.value = _hasUnseenItems();
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {

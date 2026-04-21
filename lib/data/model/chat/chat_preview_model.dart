@@ -10,6 +10,8 @@ class ChatPreviewModel {
   final int unreadCount;
   final bool isSeen;
   final bool isDelivered;
+  /// True when the conversation is archived/inactive and should not appear in Active tab.
+  final bool isArchived;
 
   ChatPreviewModel({
     required this.id,
@@ -22,6 +24,7 @@ class ChatPreviewModel {
     required this.unreadCount,
     required this.isSeen,
     required this.isDelivered,
+    required this.isArchived,
   });
 
   factory ChatPreviewModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +39,7 @@ class ChatPreviewModel {
       unreadCount: json['unreadCount'] ?? 0,
       isSeen: json['isSeen'] ?? false,
       isDelivered: json['isDelivered'] ?? false,
+      isArchived: json['isArchived'] ?? false,
     );
   }
 
@@ -51,6 +55,7 @@ class ChatPreviewModel {
       'unreadCount': unreadCount,
       'isSeen': isSeen,
       'isDelivered': isDelivered,
+      'isArchived': isArchived,
     };
   }
 }

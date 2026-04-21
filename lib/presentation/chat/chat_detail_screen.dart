@@ -24,6 +24,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   _ChatDetailScreenState() : chat = Get.arguments as ChatPreviewModel;
 
   final TextEditingController messageController = TextEditingController();
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -41,10 +42,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final profiles = Get.find<HomeController>().allProfiles;
-    final profile = profiles.where((p) => p.id == chat.id).isNotEmpty
-        ? profiles.firstWhere((p) => p.id == chat.id)
-        : null;
+    final profile = _buildProfileFromChat(chat);
+    final displayName = controller.normalizeDisplayName(chat.name);
 
     return Scaffold(
       backgroundColor: isDark
@@ -66,52 +65,62 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               onPressed: () => Get.back(),
             ),
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                Get.to(
-                  () => ProfileDetailsScreen(
-                    profile: profile,
-                    heroTag: "profile_${profile?.id}",
-                  ),
-                );
-              },
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.white.withOpacity(0.25),
-                backgroundImage: chat.imageUrl.isNotEmpty
-                    ? NetworkImage(chat.imageUrl)
-                    : null,
-                child: chat.imageUrl.isEmpty
-                    ? Text(
-                        controller.getInitials(chat.name),
-                        style: AppTextStyles.bodyMedium(
-                          isDark: false,
-                        ).copyWith(color: Colors.white),
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    chat.name,
-                    style: AppTextStyles.headingMedium(
-                      isDark: false,
-                    ).copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              child: GestureDetector(
+                onTap: () {
+                  Get.to(
+                    () => ProfileDetailsScreen(
+                      profile: profile,
+                      heroTag: "profile_${profile.id}",
                     ),
-                  ),
-                  Text(
-                    chat.isOnline ? 'Online now' : 'Offline',
-                    style: AppTextStyles.bodySmall(
-                      isDark: false,
-                    ).copyWith(color: Colors.white70),
-                  ),
-                ],
+                  );
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.white.withOpacity(0.25),
+                      backgroundImage: chat.imageUrl.isNotEmpty
+                          ? NetworkImage(chat.imageUrl)
+                          : null,
+                      child: chat.imageUrl.isEmpty
+                          ? Text(
+                              controller.getInitials(displayName),
+                              style: AppTextStyles.bodyMedium(
+                                isDark: false,
+                              ).copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: AppTextStyles.headingMedium(
+                              isDark: false,
+                            ).copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            chat.isOnline ? 'Online now' : 'Offline',
+                            style: AppTextStyles.bodySmall(
+                              isDark: false,
+                            ).copyWith(color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -171,14 +180,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               return ListView.builder(
                 reverse: true,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: 10,
+                  vertical: 14,
                 ),
                 itemCount: messages.length,
                 itemBuilder: (_, index) {
                   final ChatMessageModel message =
                       messages[messages.length - 1 - index];
                   final isMe = message.isMe;
+                  final hasOlderMessage = index < messages.length - 1;
+                  final olderMessage = hasOlderMessage
+                      ? messages[messages.length - 2 - index]
+                      : null;
+                  final isSenderChanged =
+                      olderMessage == null || olderMessage.isMe != isMe;
+                  final isDateChanged =
+                      olderMessage == null ||
+                      !_isSameDay(message.createdAt, olderMessage.createdAt);
+                  final maxBubbleWidth = MediaQuery.of(context).size.width * 0.62;
 
                   final TextStyle messageStyle = isMe
                       ? AppTextStyles.bodyMedium(isDark: false).copyWith(
@@ -200,46 +219,121 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               : Colors.black.withOpacity(0.60),
                         );
 
-                  return Align(
-                    alignment:
-                        isMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      constraints: BoxConstraints(maxWidth: Get.width * 0.75),
-                      decoration: BoxDecoration(
-                        gradient: isMe ? AppGradients.primary : null,
-                        color: isMe
-                            ? null
-                            : (isDark
-                                ? AppColors.chatTileHoverDark
-                                : AppColors.chatTileHoverLight),
-                        borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: const Radius.circular(16),
-                          bottomLeft: isMe
-                              ? const Radius.circular(16)
-                              : const Radius.circular(0),
-                          bottomRight: isMe
-                              ? const Radius.circular(0)
-                              : const Radius.circular(16),
+                  return Column(
+                    children: [
+                      if (isDateChanged)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.inputFillDark
+                                  : AppColors.inputFillLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _dayLabel(message.createdAt),
+                              style: AppTextStyles.bodySmall(
+                                isDark: isDark,
+                              ).copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      Row(
+                        mainAxisAlignment: isMe
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
                         children: [
-                          Text(message.text, style: messageStyle),
-                          const SizedBox(height: 4),
-                          Text(
-                            controller.formatMessageTime(message.createdAt),
-                            style: timeStyle,
+                          Container(
+                            margin: EdgeInsets.only(
+                              top: isSenderChanged ? 8 : 2,
+                              bottom: 2,
+                              left: isMe ? 56 : 8,
+                              right: isMe ? 8 : 56,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: maxBubbleWidth),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: isMe
+                                      ? (isDark
+                                          ? AppColors.primary2
+                                          : AppColors.primary3)
+                                      : (isDark
+                                          ? AppColors.inputFillDark
+                                          : AppColors.cardLight),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: Radius.circular(isMe ? 16 : 4),
+                                    bottomRight: Radius.circular(isMe ? 4 : 16),
+                                  ),
+                                  border: isMe
+                                      ? null
+                                      : Border.all(
+                                          color: isDark
+                                              ? AppColors.inputBorderDark
+                                              : AppColors.inputBorderLight,
+                                        ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(
+                                        isDark ? 0.22 : 0.07,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Align(
+                                        alignment: isMe
+                                            ? Alignment.centerRight
+                                            : Alignment.centerLeft,
+                                        child: Text(message.text, style: messageStyle),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            controller.formatMessageTime(
+                                              message.createdAt,
+                                            ),
+                                            style: timeStyle,
+                                          ),
+                                          if (isMe) ...[
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              message.isDelivered || message.isSeen
+                                                  ? Icons.done_all_rounded
+                                                  : Icons.done_rounded,
+                                              size: 14,
+                                              color: message.isSeen
+                                                  ? const Color(0xFF42A5F5)
+                                                  : Colors.white.withOpacity(0.9),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   );
                 },
               );
@@ -293,26 +387,73 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
             // Animated Send Button
             _AnimatedSendButton(
-              onTap: () async {
-                if (messageController.text.trim().isNotEmpty) {
-                  final text = messageController.text.trim();
-                  messageController.clear();
-                  await controller.sendMessage(chat.id, text);
-                }
-              },
+              isLoading: _isSending,
+              onTap: _isSending
+                  ? null
+                  : () async {
+                      if (_isSending || messageController.text.trim().isEmpty) {
+                        return;
+                      }
+                      final text = messageController.text.trim();
+                      messageController.clear();
+                      setState(() => _isSending = true);
+                      try {
+                        await controller.sendMessage(chat.id, text);
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSending = false);
+                        }
+                      }
+                    },
             ),
           ],
         ),
       ),
     );
   }
+
+  DatingProfile _buildProfileFromChat(ChatPreviewModel chat) {
+    return DatingProfile(
+      id: chat.id,
+      userName: controller.normalizeDisplayName(chat.name),
+      age: "",
+      bio: chat.lastMessage.trim().isNotEmpty ? chat.lastMessage : "No bio added yet",
+      location: "",
+      interests: const <String>[],
+      profileImageUrl: chat.imageUrl,
+      isActiveNow: chat.isOnline,
+      distance: "",
+      imageUrls: chat.imageUrl.trim().isNotEmpty
+          ? <String>[chat.imageUrl]
+          : const <String>[],
+      gender: null,
+      lookingFor: null,
+    );
+  }
+
+  bool _isSameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _dayLabel(DateTime? date) {
+    if (date == null) return "Today";
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    final diff = today.difference(target).inDays;
+    if (diff == 0) return "Today";
+    if (diff == 1) return "Yesterday";
+    return "${date.day}/${date.month}/${date.year}";
+  }
 }
 
 // Animated Send Button Widget
 class _AnimatedSendButton extends StatefulWidget {
-  final VoidCallback onTap;
+  final Future<void> Function()? onTap;
+  final bool isLoading;
 
-  const _AnimatedSendButton({required this.onTap});
+  const _AnimatedSendButton({required this.onTap, this.isLoading = false});
 
   @override
   State<_AnimatedSendButton> createState() => _AnimatedSendButtonState();
@@ -348,7 +489,10 @@ class _AnimatedSendButtonState extends State<_AnimatedSendButton>
 
   void _handleTapUp(TapUpDetails details) {
     _controller.reverse();
-    widget.onTap();
+    final callback = widget.onTap;
+    if (callback != null) {
+      callback();
+    }
   }
 
   void _handleTapCancel() {
@@ -357,10 +501,11 @@ class _AnimatedSendButtonState extends State<_AnimatedSendButton>
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.onTap == null || widget.isLoading;
     return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
+      onTapDown: isDisabled ? null : _handleTapDown,
+      onTapUp: isDisabled ? null : _handleTapUp,
+      onTapCancel: isDisabled ? null : _handleTapCancel,
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
@@ -369,10 +514,24 @@ class _AnimatedSendButtonState extends State<_AnimatedSendButton>
             gradient: AppGradients.primary,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.send,
-            color: AppColors.white,
-            size: 24,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: widget.isLoading
+                ? const SizedBox(
+                    key: ValueKey("send_loading"),
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                    ),
+                  )
+                : const Icon(
+                    Icons.send,
+                    key: ValueKey("send_icon"),
+                    color: AppColors.white,
+                    size: 24,
+                  ),
           ),
         ),
       ),

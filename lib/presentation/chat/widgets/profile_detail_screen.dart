@@ -55,6 +55,37 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final p = widget.profile;
 
+    if (p == null) {
+      return Scaffold(
+        backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+        appBar: AppBar(
+          backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            "Profile",
+            style: AppTextStyles.headingMedium(isDark: isDark),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              "This profile is not available right now.",
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium(isDark: isDark),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
       body: Stack(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:zuno_application/shared/constants/app_colors.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 
 import '../../../data/model/chat/chat_user_model.dart';
+import '../chat_controller.dart';
 
 class ActiveUserAvatar extends StatelessWidget {
    final ChatUserModel user; // 
@@ -13,6 +15,8 @@ class ActiveUserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final chatController = Get.find<ChatController>();
+    final displayName = chatController.normalizeDisplayName(user.name);
 
     return SizedBox(
       width: 72,
@@ -49,12 +53,16 @@ class ActiveUserAvatar extends StatelessWidget {
                       ? NetworkImage(user.imageUrl)
                       : null,
                   child: user.imageUrl.isEmpty
-                      ? Icon(
-                          Icons.person_rounded,
-                          size: 28,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondary,
+                      ? Text(
+                          chatController.getInitials(displayName),
+                          style: AppTextStyles.bodySmall(isDark: isDark)
+                              .copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
+                              ),
                         )
                       : null,
                 ),
@@ -81,7 +89,7 @@ class ActiveUserAvatar extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            user.name,
+            displayName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
