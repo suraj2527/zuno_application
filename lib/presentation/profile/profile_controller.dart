@@ -4,10 +4,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:zuno_application/core/routes/app_routes.dart';
-import 'package:zuno_application/core/services/auth_service.dart';
-import 'package:zuno_application/presentation/home/home_controller.dart';
-import 'package:zuno_application/data/sources/remote/user_api.dart'; // ✅ ADD
+import 'package:nearly/core/routes/app_routes.dart';
+import 'package:nearly/core/services/auth_service.dart';
+import 'package:nearly/data/sources/remote/user_api.dart';
+import 'package:nearly/presentation/home/home_controller.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'package:nearly/shared/constants/app_gradients.dart';
+import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
+import 'package:nearly/shared/widgets/common/gradient_button.dart';
+import 'package:nearly/shared/widgets/common/zuno_loader.dart';
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();

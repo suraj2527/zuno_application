@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:zuno_application/core/services/auth_service.dart';
-import 'package:zuno_application/data/sources/remote/activity_api.dart';
-import 'package:zuno_application/data/sources/remote/home_api.dart'; // ✅ ADD
-import 'package:zuno_application/presentation/home/home_controller.dart'; // DatingProfile model
+import 'package:nearly/core/services/auth_service.dart';
+import 'package:nearly/data/sources/remote/activity_api.dart';
+import 'package:nearly/data/sources/remote/home_api.dart';
+import 'package:nearly/presentation/home/home_controller.dart';
+
 
 class ActivityController extends GetxController {
   final isLoading = true.obs;

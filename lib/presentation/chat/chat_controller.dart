@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
+import 'package:nearly/core/services/auth_service.dart';
+import 'package:nearly/data/model/chat/chat_message_model.dart';
+import 'package:nearly/data/sources/remote/chat_api.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'package:zuno_application/core/services/auth_service.dart';
-import 'package:zuno_application/data/model/chat/chat_message_model.dart';
-import 'package:zuno_application/data/sources/remote/chat_api.dart';
+
 import '../../data/model/chat/chat_preview_model.dart';
 import '../../data/model/chat/chat_user_model.dart';
 

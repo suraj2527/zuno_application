@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/data/sources/local/local_storage.dart';
+import 'package:nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/repositories/auth_repository.dart';
