@@ -154,12 +154,14 @@ class _ProfileFlow extends StatelessWidget {
       case 3:
         return _buildNameStep();
       case 4:
-        return _buildGenderStep();
+        return _buildBioStep();
       case 5:
-        return _buildAgeStep();
+        return _buildGenderStep();
       case 6:
-        return _buildLookingForStep();
+        return _buildAgeStep();
       case 7:
+        return _buildLookingForStep();
+      case 8:
         return _buildInterestStep();
       default:
         return const SizedBox.shrink();
@@ -188,6 +190,48 @@ class _ProfileFlow extends StatelessWidget {
             ),
             decoration: InputDecoration(
               hintText: 'Enter your full name',
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 17,
+              ),
+              hintStyle: AppTextStyles.bodyMedium().copyWith(
+                color: AppColors.textHint,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // =========================
+  // BIO STEP
+  // =========================
+  Widget _buildBioStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _StepTitleBlock(
+          title: 'Tell us about yourself 📝',
+          subtitle: 'A great bio helps you stand out from the crowd.',
+        ),
+        const SizedBox(height: 28),
+        _SoftInputContainer(
+          child: TextField(
+            controller: controller.bioController,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: controller.onBioChanged,
+            maxLines: 5,
+            minLines: 3,
+            style: AppTextStyles.bodyMedium().copyWith(
+              color: AppColors.textPrimary,
+              height: 1.5,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Write a short bio about yourself...',
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -690,7 +734,7 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int profileIndex = controller.currentStep - 2;
-    const int totalProfileSteps = 5;
+    const int totalProfileSteps = 6;
     final double progress = profileIndex / totalProfileSteps;
 
     return Column(

@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:nearly/core/services/auth_service.dart';
-import 'package:nearly/data/sources/remote/activity_api.dart';
-import 'package:nearly/data/sources/remote/home_api.dart'; // ✅ ADD
-import 'package:nearly/presentation/home/home_controller.dart'; // DatingProfile model
+import 'package:Nearly/core/services/auth_service.dart';
+import 'package:Nearly/data/sources/remote/activity_api.dart';
+import 'package:Nearly/data/sources/remote/home_api.dart'; // ✅ ADD
+import 'package:Nearly/presentation/home/home_controller.dart'; // DatingProfile model
 
 class ActivityController extends GetxController {
   final isLoading = true.obs;

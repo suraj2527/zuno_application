@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'nearly_top_bar.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'Nearly_top_bar.dart';
 
 class NearlyBaseScreen extends StatelessWidget {
   final Widget child;

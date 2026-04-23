@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../shared/widgets/common/nearly_loader.dart';
+import '../../shared/widgets/common/Nearly_loader.dart';
 import '../routes/app_routes.dart';
 
 class PermissionServiceScreen extends StatefulWidget {

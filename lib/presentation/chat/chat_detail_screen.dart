@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/data/model/chat/chat_message_model.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/data/model/chat/chat_preview_model.dart';
+import 'package:Nearly/data/model/chat/chat_message_model.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/data/model/chat/chat_preview_model.dart';
 
 import '../home/home_controller.dart';
 import 'chat_controller.dart';

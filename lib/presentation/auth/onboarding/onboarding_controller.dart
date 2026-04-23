@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/data/sources/local/local_storage.dart';
+import 'package:Nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/sources/remote/user_api.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,6 +12,7 @@ class OnboardingController extends GetxController {
   int get currentStep => _currentStep.value;
 
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController bioController = TextEditingController();
 
   final RxString _selectedGender = ''.obs;
   String get selectedGender => _selectedGender.value;
@@ -27,6 +28,9 @@ class OnboardingController extends GetxController {
   /// Used only for name field button refresh
   final RxString _nameValue = ''.obs;
   String get nameValue => _nameValue.value;
+
+  final RxString _bioValue = ''.obs;
+  String get bioValue => _bioValue.value;
 
   final AuthService _authService = AuthService();
   final UserApi _userApi = UserApi();
@@ -101,7 +105,7 @@ class OnboardingController extends GetxController {
   void nextStep() {
     if (!canContinue()) return;
 
-    if (_currentStep.value < 7) {
+    if (_currentStep.value < 8) {
       _currentStep.value++;
     } else {
       submitProfile();
@@ -147,6 +151,11 @@ class OnboardingController extends GetxController {
     _nameValue.value = value.trim();
   }
 
+  void onBioChanged(String value) {
+    if (_bioValue.value == value.trim()) return;
+    _bioValue.value = value.trim();
+  }
+
   Future<void> submitProfile() async {
     try {
       final user = _authService.currentUser;
@@ -166,7 +175,7 @@ class OnboardingController extends GetxController {
         "name": nameController.text.trim(),
         "gender": selectedGender,
         "age": selectedAge.toInt(),
-        "bio": "Hello",
+        "bio": bioController.text.trim().isEmpty ? "Hello" : bioController.text.trim(),
         "interests": selectedInterests.toList(),
         "location": {"lat": location["lat"], "lng": location["lng"]},
       };
@@ -221,12 +230,14 @@ class OnboardingController extends GetxController {
       case 3:
         return nameValue.trim().isNotEmpty;
       case 4:
-        return selectedGender.isNotEmpty;
+        return bioValue.trim().isNotEmpty;
       case 5:
-        return true;
+        return selectedGender.isNotEmpty;
       case 6:
-        return lookingFor.isNotEmpty;
+        return true;
       case 7:
+        return lookingFor.isNotEmpty;
+      case 8:
         return selectedInterests.length >= 3;
       default:
         return false;
@@ -234,7 +245,7 @@ class OnboardingController extends GetxController {
   }
 
   String getButtonText() {
-    return currentStep == 7 ? 'Continue →' : 'Next →';
+    return currentStep == 8 ? 'Continue →' : 'Next →';
   }
 
   @override

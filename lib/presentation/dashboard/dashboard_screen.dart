@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/presentation/chat/chat_screen.dart';
-import 'package:nearly/presentation/chat/chat_controller.dart';
-import 'package:nearly/presentation/profile/profile_tab.dart';
-import 'package:nearly/presentation/activity/activity_tab.dart';
-import 'package:nearly/presentation/activity/activity_controller.dart';
+import 'package:Nearly/presentation/chat/chat_screen.dart';
+import 'package:Nearly/presentation/chat/chat_controller.dart';
+import 'package:Nearly/presentation/profile/profile_tab.dart';
+import 'package:Nearly/presentation/activity/activity_tab.dart';
+import 'package:Nearly/presentation/activity/activity_controller.dart';
 import '../../shared/constants/app_colors.dart';
 import 'dashboard_controller.dart';
 import '../home/home_tab.dart';

@@ -1,4 +1,4 @@
-# nearly_application
+# Nearly_application
 
 A new Flutter project.
 

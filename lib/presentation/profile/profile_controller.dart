@@ -4,10 +4,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nearly/core/routes/app_routes.dart';
-import 'package:nearly/core/services/auth_service.dart';
-import 'package:nearly/presentation/home/home_controller.dart';
-import 'package:nearly/data/sources/remote/user_api.dart'; // ✅ ADD
+import 'package:Nearly/core/routes/app_routes.dart';
+import 'package:Nearly/core/services/auth_service.dart';
+import 'package:Nearly/presentation/home/home_controller.dart';
+import 'package:Nearly/data/sources/remote/user_api.dart'; // ✅ ADD
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();

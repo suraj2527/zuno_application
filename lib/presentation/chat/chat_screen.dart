@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:nearly/data/model/chat/chat_preview_model.dart';
-import 'package:nearly/presentation/chat/chat_controller.dart';
-import 'package:nearly/presentation/chat/widgets/chat_skeleton.dart';
-import 'package:nearly/presentation/chat/widgets/chat_tile.dart';
-import 'package:nearly/presentation/chat/widgets/empty_chat_view.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
+import 'package:Nearly/data/model/chat/chat_preview_model.dart';
+import 'package:Nearly/presentation/chat/chat_controller.dart';
+import 'package:Nearly/presentation/chat/widgets/chat_skeleton.dart';
+import 'package:Nearly/presentation/chat/widgets/chat_tile.dart';
+import 'package:Nearly/presentation/chat/widgets/empty_chat_view.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});

@@ -3,8 +3,8 @@
 import 'dart:developer';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
-import 'package:nearly/core/services/auth_service.dart';
-import 'package:nearly/data/sources/remote/home_api.dart';
+import 'package:Nearly/core/services/auth_service.dart';
+import 'package:Nearly/data/sources/remote/home_api.dart';
 
 class DatingProfile {
   final String id;

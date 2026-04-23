@@ -5,7 +5,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_gradients.dart';
 import '../../../shared/constants/app_text_styles.dart';
 import '../../../shared/widgets/common/gradient_button.dart';
-import '../../../shared/widgets/common/nearly_loader.dart';
+import '../../../shared/widgets/common/Nearly_loader.dart';
 import 'signin_controller.dart';
 
 class SignInScreen extends GetView<SignInController> {
@@ -81,7 +81,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'nearly',
+                  'Nearly',
                   style: AppTextStyles.logo().copyWith(
                     color: Colors.white,
                     fontSize: 32,

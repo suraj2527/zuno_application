@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
 
 import '../../../data/model/chat/chat_user_model.dart';
 import '../chat_controller.dart';

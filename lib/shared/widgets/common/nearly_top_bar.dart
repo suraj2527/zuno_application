@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/presentation/home/home_controller.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/presentation/home/home_controller.dart';
 
 import 'copy_token_icon.dart';
 
@@ -28,7 +28,7 @@ class NearlyTopBar extends StatelessWidget {
             ShaderMask(
               shaderCallback: (bounds) => AppGradients.primary.createShader(bounds),
               child: Text(
-                'nearly',
+                'Nearly',
                 style: AppTextStyles.logo(isDark: false)
                     .copyWith(color: AppColors.white, fontSize: 30, height: 1),
               ),

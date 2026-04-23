@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
 
 class EmptyChatView extends StatelessWidget {
   const EmptyChatView({super.key});

@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:nearly/presentation/activity/activity_controller.dart';
+import 'package:Nearly/presentation/activity/activity_controller.dart';
 
 class DashboardController extends GetxController {
   var currentIndex = 0.obs;

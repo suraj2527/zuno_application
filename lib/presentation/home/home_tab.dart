@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
-import 'package:nearly/presentation/home/home_controller.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:Nearly/presentation/home/home_controller.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 import '../../shared/widgets/common/app_refresh_wrapper.dart';
-import '../../shared/widgets/common/nearly_base_screen.dart';
+import '../../shared/widgets/common/Nearly_base_screen.dart';
 import '../chat/widgets/profile_detail_screen.dart';
 
 class HomeTab extends StatefulWidget {

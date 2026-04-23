@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:nearly/shared/widgets/common/gradient_button.dart';
-import 'package:nearly/shared/widgets/common/nearly_loader.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
+import 'package:Nearly/shared/widgets/common/gradient_button.dart';
+import 'package:Nearly/shared/widgets/common/Nearly_loader.dart';
 
 import 'profile_controller.dart';
 

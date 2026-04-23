@@ -80,7 +80,7 @@ class SplashScreen extends StatelessWidget {
                 children: [
                   // Logo  — Syne 800, white, 64px, ls -2
                   Text(
-                    'nearly',
+                    'Nearly',
                     style: AppTextStyles.logo().copyWith(
                       fontSize: 64,
                       letterSpacing: -2,

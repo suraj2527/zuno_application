@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:nearly/presentation/home/home_controller.dart';
+import 'package:Nearly/presentation/home/home_controller.dart';
 import '../chat/chat_controller.dart';
 import '../profile/profile_controller.dart';
 import '../activity/activity_controller.dart';

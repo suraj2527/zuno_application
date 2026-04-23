@@ -4,13 +4,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:nearly/presentation/profile/edit_profile_screen.dart';
-import 'package:nearly/presentation/profile/profile_controller.dart';
-import 'package:nearly/shared/constants/app_colors.dart';
-import 'package:nearly/shared/constants/app_gradients.dart';
-import 'package:nearly/shared/constants/app_text_styles.dart';
-import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:nearly/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:Nearly/presentation/profile/edit_profile_screen.dart';
+import 'package:Nearly/presentation/profile/profile_controller.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
+import 'package:Nearly/shared/constants/app_gradients.dart';
+import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
+import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 class ProfileTab extends StatelessWidget {
   ProfileTab({super.key});
