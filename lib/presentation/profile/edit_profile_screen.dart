@@ -6,7 +6,6 @@ import 'package:zuno_application/shared/constants/app_colors.dart';
 import 'package:zuno_application/shared/constants/app_gradients.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 import 'package:zuno_application/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:zuno_application/shared/widgets/common/zuno_base_screen.dart';
 import 'package:zuno_application/shared/widgets/common/gradient_button.dart';
 import 'package:zuno_application/shared/widgets/common/zuno_loader.dart';
 
@@ -21,116 +20,189 @@ class EditProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Obx(
-      () => Stack(
-        children: [
-          ZunoBaseScreen(
-            isDark: isDark,
-            child: Material(
-              color: Colors.transparent,
-              child: AppRefreshWrapper(
-                onRefresh: () async => controller.loadProfileData(),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 40).copyWith(
-                    bottom: 32 + MediaQuery.of(context).padding.bottom,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildMainProfilePhotoSection(isDark),
-                      const SizedBox(height: 16),
-
-                      _buildGalleryPhotosSection(isDark),
-                      const SizedBox(height: 16),
-
-                      _buildTextFieldCard(
-                        isDark: isDark,
-                        title: "Name",
-                        controller: controller.nameController,
-                        hint: "Enter your name",
-                      ),
-                      const SizedBox(height: 14),
-
-                      _buildTextFieldCard(
-                        isDark: isDark,
-                        title: "Bio",
-                        controller: controller.bioController,
-                        hint: "Tell something about yourself",
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 14),
-
-                      _buildAgeSection(isDark),
-                      const SizedBox(height: 14),
-
-                      _buildGenderSection(isDark),
-                      const SizedBox(height: 14),
-
-                      _buildLookingForSection(isDark),
-                      const SizedBox(height: 14),
-
-                      _buildInterestsSection(isDark),
-                      const SizedBox(height: 24),
-
-                      _buildSaveButton(isDark),
-                    ],
-                  ),
-                ),
-              ),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GestureDetector(
+          onTap: () => Get.back(),
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.cardDark.withOpacity(0.8) : Colors.white.withOpacity(0.8),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 18,
+              color: isDark ? Colors.white : AppColors.textPrimary,
             ),
           ),
+        ),
+        title: Text(
+          "Edit Profile",
+          style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Obx(
+        () => Stack(
+          children: [
+            Container(
+              color: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: AppRefreshWrapper(
+                      onRefresh: () async => controller.loadProfileData(),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 60, 16, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMainProfilePhotoSection(isDark),
+                            const SizedBox(height: 20),
 
-          ZunoLoader(isVisible: controller.isSaving.value),
-        ],
+                            _buildGalleryPhotosSection(isDark),
+                            const SizedBox(height: 20),
+
+                            _buildTextFieldCard(
+                              isDark: isDark,
+                              title: "Name",
+                              controller: controller.nameController,
+                              hint: "Enter your name",
+                            ),
+                            const SizedBox(height: 20),
+
+                            _buildTextFieldCard(
+                              isDark: isDark,
+                              title: "Bio",
+                              controller: controller.bioController,
+                              hint: "Tell something about yourself",
+                              maxLines: 4,
+                            ),
+                            const SizedBox(height: 20),
+
+                            _buildAgeSection(isDark),
+                            const SizedBox(height: 20),
+
+                            _buildGenderSection(isDark),
+                            const SizedBox(height: 20),
+
+                            _buildLookingForSection(isDark),
+                            const SizedBox(height: 20),
+
+                            _buildInterestsSection(isDark),
+                            const SizedBox(height: 100), // Space for sticky button
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Sticky Save Button
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      (isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight).withOpacity(0.0),
+                      (isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight).withOpacity(0.9),
+                      isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight,
+                    ],
+                    stops: const [0.0, 0.4, 1.0],
+                  ),
+                ),
+                child: _buildSaveButton(isDark),
+              ),
+            ),
+
+            ZunoLoader(isVisible: controller.isSaving.value),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildMainProfilePhotoSection(bool isDark) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Edit",
-      child: Obx(() {
-        final image = controller.selectedProfileImage.value;
-
-        return Center(
-          child: GestureDetector(
-            onTap: controller.pickProfileImage,
-            child: Stack(
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: ClipOval(child: _buildImage(image)),
-                ),
-                Positioned(
-                  bottom: 4,
-                  right: 4,
-                  child: Container(
-                    width: 34,
-                    height: 34,
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.2),
+                width: 2,
+              ),
+            ),
+          ),
+          Obx(() {
+            final image = controller.selectedProfileImage.value;
+            return GestureDetector(
+              onTap: controller.pickProfileImage,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       gradient: AppGradients.primary,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: AppColors.white,
-                      size: 18,
+                    padding: const EdgeInsets.all(3),
+                    child: ClipOval(child: _buildImage(image)),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? AppColors.cardDark : Colors.white,
+                          width: 3,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: AppColors.white,
+                        size: 16,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -140,6 +212,8 @@ class EditProfileScreen extends StatelessWidget {
       title: "Your Best Pics",
       child: Obx(() {
         final images = controller.selectedGalleryImages;
+        // Access length to register the observable with Obx
+        final _ = images.length;
 
         return Row(
           children: List.generate(3, (index) {
@@ -154,10 +228,12 @@ class EditProfileScreen extends StatelessWidget {
                   child: Container(
                     height: 140,
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.inputFillDark
-                          : AppColors.primary5,
+                      color: isDark ? AppColors.inputFillDark : AppColors.primary5,
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                        width: 1,
+                      ),
                     ),
                     child: hasImage
                         ? Stack(
@@ -172,31 +248,41 @@ class EditProfileScreen extends StatelessWidget {
                                 top: 8,
                                 right: 8,
                                 child: GestureDetector(
-                                  onTap: () =>
-                                      controller.removeGalleryImage(index),
+                                  onTap: () => controller.removeGalleryImage(index),
                                   child: Container(
-                                    width: 30,
-                                    height: 30,
+                                    width: 28,
+                                    height: 28,
                                     decoration: BoxDecoration(
-                                      color: AppColors.black.withOpacity(0.55),
+                                      color: Colors.black.withOpacity(0.6),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
-                                      Icons.close,
+                                      Icons.close_rounded,
                                       color: AppColors.white,
-                                      size: 18,
+                                      size: 16,
                                     ),
                                   ),
                                 ),
                               ),
                             ],
                           )
-                        : Icon(
-                            Icons.add_a_photo_outlined,
-                            size: 30,
-                            color: isDark
-                                ? AppColors.textHintDark
-                                : AppColors.textHint,
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 28,
+                                color: AppColors.primary.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                "Add",
+                                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),
@@ -441,16 +527,46 @@ class EditProfileScreen extends StatelessWidget {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTextStyles.headingMedium(isDark: isDark)),
-          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: AppTextStyles.headingSmall(isDark: isDark).copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
           child,
         ],
       ),

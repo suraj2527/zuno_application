@@ -37,6 +37,13 @@ class AppTextStyles {
         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
       );
 
+  static TextStyle headingSmall({bool isDark = false}) => TextStyle(
+        fontFamily: 'Syne',
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+      );
+
   // ── Body ────────────────────────────────────────
   static TextStyle body({bool isDark = false}) => TextStyle(
         fontFamily: 'Outfit',

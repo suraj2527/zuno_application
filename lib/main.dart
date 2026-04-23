@@ -14,16 +14,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init();
-  runApp(const ZunoApp());
+  runApp(const NearlyApp());
 }
 
-class ZunoApp extends StatelessWidget {
-  const ZunoApp({super.key});
+class NearlyApp extends StatelessWidget {
+  const NearlyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Zuno',
+      title: 'Nearly',
       initialBinding: InitialBinding(),
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

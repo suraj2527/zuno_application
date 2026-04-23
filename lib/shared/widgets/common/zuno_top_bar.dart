@@ -28,7 +28,7 @@ class ZunoTopBar extends StatelessWidget {
             ShaderMask(
               shaderCallback: (bounds) => AppGradients.primary.createShader(bounds),
               child: Text(
-                'zuno',
+                'nearly',
                 style: AppTextStyles.logo(isDark: false)
                     .copyWith(color: AppColors.white, fontSize: 30, height: 1),
               ),

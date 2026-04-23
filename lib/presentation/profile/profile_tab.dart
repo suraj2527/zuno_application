@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:zuno_application/presentation/profile/edit_profile_screen.dart';
 import 'package:zuno_application/presentation/profile/profile_controller.dart';
@@ -9,7 +10,6 @@ import 'package:zuno_application/shared/constants/app_colors.dart';
 import 'package:zuno_application/shared/constants/app_gradients.dart';
 import 'package:zuno_application/shared/constants/app_text_styles.dart';
 import 'package:zuno_application/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:zuno_application/shared/widgets/common/zuno_base_screen.dart';
 import 'package:zuno_application/shared/widgets/shimmers/shimmer_box.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -21,66 +21,51 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ZunoBaseScreen(
-      isDark: isDark,
-      child: Material(
-        color: Colors.transparent,
-        child: AppRefreshWrapper(
-          onRefresh: () async => controller.loadProfileData(),
-          child: Obx(() {
-            final profile = controller.profile.value;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+        body: Obx(() {
+          final profile = controller.profile.value;
 
-            if (controller.isLoading.value || profile == null) {
-              if (!controller.isLoading.value) {
-                Future.microtask(() => controller.loadProfileData());
-              }
-              return _buildProfileShimmer(isDark);
+          if (controller.isLoading.value || profile == null) {
+            if (!controller.isLoading.value) {
+              Future.microtask(() => controller.loadProfileData());
             }
+            return _buildProfileShimmer(isDark);
+          }
 
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileHeader(isDark, profile),
-                  const SizedBox(height: 18),
-                  _buildGallerySection(isDark, profile.imageUrls),
-                  const SizedBox(height: 18),
-                  _buildBioCard(isDark, profile.bio),
-                  const SizedBox(height: 14),
-                  _buildInfoCard(
-                    isDark: isDark,
-                    title: "Location",
-                    value: profile.location,
-                    icon: Icons.location_on_rounded,
+          return AppRefreshWrapper(
+            onRefresh: () async => controller.loadProfileData(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header (Scrolls away / 'Wraps up')
+                _buildProfileHeader(isDark, profile),
+                
+                const SizedBox(height: 24),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildGallerySection(isDark, profile.imageUrls),
+                      const SizedBox(height: 24),
+                      _buildBioCard(isDark, profile.bio),
+                      const SizedBox(height: 20),
+                      _buildPersonalInfoGrid(isDark, profile),
+                      const SizedBox(height: 20),
+                      _buildInterestsCard(isDark, profile.interests),
+                      // Extra space for Bottom Nav + Safe Area
+                      SizedBox(height: 120 + MediaQuery.of(context).padding.bottom),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                  _buildInfoCard(
-                    isDark: isDark,
-                    title: "Gender",
-                    value: (profile.gender ?? '').isNotEmpty
-                        ? profile.gender!
-                        : "Not added",
-                    icon: Icons.person_outline_rounded,
-                  ),
-                  const SizedBox(height: 14),
-                  _buildInfoCard(
-                    isDark: isDark,
-                    title: "Looking For",
-                    value: (profile.lookingFor ?? '').isNotEmpty
-                        ? profile.lookingFor!
-                        : "Not added",
-                    icon: Icons.favorite_border_rounded,
-                  ),
-                  const SizedBox(height: 14),
-                  _buildInterestsCard(isDark, profile.interests),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            );
-          }),
-        ),
+                ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
@@ -88,151 +73,267 @@ class ProfileTab extends StatelessWidget {
   Widget _buildProfileHeader(bool isDark, dynamic profile) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
+            color: AppColors.black.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
         children: [
-          /// ⚙️ SETTINGS (TOP RIGHT)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.settings_outlined,
-                  size: 20,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimary,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Header Background Pattern/Gradient
+              Container(
+                height: 160,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: AppGradients.primary,
+                  image: DecorationImage(
+                    image: NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'),
+                    opacity: 0.1,
+                    repeat: ImageRepeat.repeat,
+                  ),
                 ),
               ),
-            ),
-          ),
-
-          /// 🎯 CENTERED CONTENT
-          Align(
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Hero(
-                  tag: "my_profile_avatar",
+              
+              // Settings Button
+              Positioned(
+                top: MediaQuery.of(Get.context!).padding.top + 10,
+                right: 20,
+                child: GestureDetector(
+                  onTap: () {},
                   child: Container(
-                    width: 118,
-                    height: 118,
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
-                      gradient: AppGradients.primary,
                     ),
-                    padding: const EdgeInsets.all(3),
-                    child: ClipOval(
-                      child: _buildImage(
-                        controller.selectedProfileImage.value.isNotEmpty
-                            ? controller.selectedProfileImage.value
-                            : profile.profileImageUrl,
+                    child: const Icon(
+                      Icons.settings_outlined,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Avatar
+              Positioned(
+                bottom: -50,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Hero(
+                    tag: "my_profile_avatar",
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: _buildImage(
+                          controller.selectedProfileImage.value.isNotEmpty
+                              ? controller.selectedProfileImage.value
+                              : profile.profileImageUrl,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 60),
 
-                Text(
-                  "${controller.nameController.text.isNotEmpty ? controller.nameController.text : profile.userName}, ${profile.age}",
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.headingLarge(
-                    isDark: isDark,
-                  ).copyWith(fontWeight: FontWeight.w700),
-                ),
+          Text(
+            "${controller.nameController.text.isNotEmpty ? controller.nameController.text : profile.userName}, ${profile.age}",
+            textAlign: TextAlign.center,
+            style: AppTextStyles.headingLarge(
+              isDark: isDark,
+            ).copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          ),
+          
+          const SizedBox(height: 4),
+          
+          Text(
+            profile.location ?? "Location not set",
+            style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
 
-                const SizedBox(height: 12),
+          const SizedBox(height: 20),
 
-                /// ✏️ EDIT BUTTON
-                GestureDetector(
-                  onTap: () => Get.to(() => EditProfileScreen()),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.inputFillDark
-                          : AppColors.primary5,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.edit_outlined, size: 16),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Edit Profile",
-                          style: AppTextStyles.bodySmall(
-                            isDark: isDark,
-                          ).copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => EditProfileScreen()),
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.primary,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            "Edit Profile",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 10),
-
-                /// 🚪 LOGOUT BUTTON
+                const SizedBox(width: 12),
                 GestureDetector(
                   onTap: () => controller.logout(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(50),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.logout_rounded,
-                          size: 16,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Logout",
-                          style: AppTextStyles.bodySmall(isDark: isDark)
-                              .copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.red,
-                              ),
-                        ),
-                      ],
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      size: 20,
+                      color: Colors.red,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalInfoGrid(bool isDark, dynamic profile) {
+    return _sectionCard(
+      isDark: isDark,
+      title: "About Me",
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 2.2,
+        children: [
+          _buildInfoItem(
+            isDark: isDark,
+            label: "Gender",
+            value: (profile.gender ?? '').isNotEmpty ? profile.gender! : "Not set",
+            icon: Icons.person_outline_rounded,
+          ),
+          _buildInfoItem(
+            isDark: isDark,
+            label: "Looking For",
+            value: (profile.lookingFor ?? '').isNotEmpty ? profile.lookingFor! : "Not set",
+            icon: Icons.favorite_border_rounded,
+          ),
+          _buildInfoItem(
+            isDark: isDark,
+            label: "Age",
+            value: "${profile.age} years",
+            icon: Icons.cake_outlined,
+          ),
+          _buildInfoItem(
+            isDark: isDark,
+            label: "Location",
+            value: profile.location ?? "Not set",
+            icon: Icons.location_on_outlined,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem({
+    required bool isDark,
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.inputFillDark : AppColors.primary5,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.inputBorderDark : AppColors.inputBorderLight,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? AppColors.textHintDark : AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -322,40 +423,26 @@ class ProfileTab extends StatelessWidget {
     return _sectionCard(
       isDark: isDark,
       title: "Bio",
-      child: Text(
-        bio.isNotEmpty ? bio : "No bio added yet",
-        style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(height: 1.55),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required bool isDark,
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return _sectionCard(
-      isDark: isDark,
-      title: title,
-      child: Row(
+      child: Stack(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              gradient: AppGradients.primary,
-              borderRadius: BorderRadius.circular(14),
+          Positioned(
+            right: -10,
+            bottom: -10,
+            child: Icon(
+              Icons.format_quote_rounded,
+              size: 60,
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
             ),
-            child: Icon(icon, color: AppColors.white, size: 20),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: AppTextStyles.bodyMedium(
-                isDark: isDark,
-              ).copyWith(fontWeight: FontWeight.w600),
+          Text(
+            bio.isNotEmpty ? bio : "Write something interesting about yourself to attract more matches!",
+            style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
+              height: 1.6,
+              letterSpacing: 0.2,
+              fontStyle: bio.isEmpty ? FontStyle.italic : null,
+              color: bio.isEmpty 
+                  ? (isDark ? AppColors.textHintDark : AppColors.textHint)
+                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
             ),
           ),
         ],
@@ -395,35 +482,49 @@ class ProfileTab extends StatelessWidget {
     required String title,
     required Widget child,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.cardDark : AppColors.cardLight,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 3),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+          width: 1,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: AppTextStyles.headingMedium(
-                isDark: isDark,
-              ).copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 14),
-            child,
-          ],
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: AppTextStyles.headingMedium(
+                  isDark: isDark,
+                ).copyWith(fontWeight: FontWeight.w800, fontSize: 18),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          child,
+        ],
       ),
     );
   }

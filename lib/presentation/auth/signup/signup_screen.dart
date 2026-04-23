@@ -85,7 +85,7 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Sign up to start your journey with Zuno',
+                  'Sign up to start your journey with Nearly',
                   style: AppTextStyles.body().copyWith(
                     color: Colors.white.withOpacity(0.82),
                   ),
