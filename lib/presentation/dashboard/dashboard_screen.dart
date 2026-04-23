@@ -44,8 +44,8 @@ class DashboardScreen extends GetView<DashboardController> {
               height: 70,
               decoration: BoxDecoration(
                 color: isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.white.withOpacity(0.85),
+                    ? AppColors.white.withOpacity(0.08)
+                    : AppColors.white.withOpacity(0.85),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
                   color: isDark ? Colors.white12 : AppColors.primary4,

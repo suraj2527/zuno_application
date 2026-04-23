@@ -159,6 +159,10 @@ class ChatController extends GetxController {
       final token = await user?.getIdToken(true);
       if (token == null) throw "Token not found";
 
+      // Ensure current user ID is available for message mapping
+      _myUserId = user?.uid;
+      _registerMyId(_myUserId);
+
       final data = await _chatApi.getMessages(token, conversationId);
       final mapped = data.map(_mapMessage).toList();
       getConversationMessages(conversationId).assignAll(mapped);
@@ -413,13 +417,18 @@ class ChatController extends GetxController {
       item["senderFirebaseUid"]?.toString().trim() ?? "",
       item["createdBy"]?.toString().trim() ?? "",
     }..removeWhere((e) => e.isEmpty);
+    // Ensure we always have the current user ID for proper comparison
+    final currentUserId = _myUserId ?? _authService.currentUser?.uid ?? "";
     final myCandidates = <String>{
-      (_myUserId ?? "").trim(),
-      (_authService.currentUser?.uid ?? "").trim(),
+      currentUserId.trim(),
       ..._myKnownIds,
     }..removeWhere((e) => e.isEmpty);
     final isMe = explicitIsMe ||
         senderCandidates.any((sender) => myCandidates.contains(sender));
+    // Debug logging to verify the comparison
+    if (senderId.isNotEmpty) {
+      print('DEBUG: senderId="$senderId", currentUserId="$currentUserId", isMe=$isMe');
+    }
     if (isMe) {
       _registerMyId(senderId);
       _registerMyId(senderMap?["_id"]?.toString());
