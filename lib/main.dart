@@ -1,32 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'core/routes/app_routes.dart';
-import 'core/routes/app_pages.dart';  
-import 'firebase_options.dart';
+import 'package:get_storage/get_storage.dart';
+import 'core/routes/app_pages.dart';
 import 'core/bindings/initial_binding.dart';
+import 'core/routes/app_routes.dart';
+import 'core/config/firebase_options.dart';
+import 'shared/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  runApp(const MyApp());
+  await GetStorage.init();
+  runApp(const NearlyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class NearlyApp extends StatelessWidget {
+  const NearlyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      title: 'Nearly',
       initialBinding: InitialBinding(),
-      themeMode: ThemeMode.light, 
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: Routes.DASHBOARD,
       getPages: AppPages.routes,
+      // Start with Permission Screen
+      initialRoute: Routes.PERMISSION,
     );
   }
 }
-
