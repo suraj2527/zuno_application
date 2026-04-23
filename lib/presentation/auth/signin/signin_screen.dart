@@ -81,7 +81,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'zuno',
+                  'Nearly',
                   style: AppTextStyles.logo().copyWith(
                     color: Colors.white,
                     fontSize: 32,
