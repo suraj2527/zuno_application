@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:zuno_application/shared/constants/app_colors.dart';
-import 'zuno_top_bar.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'nearly_top_bar.dart';
 
-class ZunoBaseScreen extends StatelessWidget {
+class NearlyBaseScreen extends StatelessWidget {
   final Widget child;
   final bool isDark;
 
   /// Optional TabBar (for Activity screen etc.)
   final Widget? tabBar;
 
-  const ZunoBaseScreen({
+  const NearlyBaseScreen({
     super.key,
     required this.child,
     required this.isDark,
@@ -23,7 +23,7 @@ class ZunoBaseScreen extends StatelessWidget {
       child: Column(
         children: [
           /// ✅ SAME header as HomeTab
-          ZunoTopBar(isDark: isDark),
+          NearlyTopBar(isDark: isDark),
 
           /// ✅ Optional TabBar (only where needed)
           // ignore: use_null_aware_elements

@@ -1,4 +1,4 @@
-# zuno_application
+# nearly_application
 
 A new Flutter project.
 

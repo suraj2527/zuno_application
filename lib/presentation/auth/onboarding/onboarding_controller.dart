@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/data/sources/local/local_storage.dart';
+import 'package:nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/sources/remote/user_api.dart';
 import 'package:geolocator/geolocator.dart';

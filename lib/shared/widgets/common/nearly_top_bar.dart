@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/shared/constants/app_colors.dart';
-import 'package:zuno_application/shared/constants/app_gradients.dart';
-import 'package:zuno_application/shared/constants/app_text_styles.dart';
-import 'package:zuno_application/presentation/home/home_controller.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'package:nearly/shared/constants/app_gradients.dart';
+import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:nearly/presentation/home/home_controller.dart';
 
 import 'copy_token_icon.dart';
 
-class ZunoTopBar extends StatelessWidget {
+class NearlyTopBar extends StatelessWidget {
   final bool isDark;
 
-  const ZunoTopBar({super.key, required this.isDark});
+  const NearlyTopBar({super.key, required this.isDark});
 
   HomeController get controller => Get.find<HomeController>();
 

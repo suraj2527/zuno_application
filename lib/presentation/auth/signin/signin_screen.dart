@@ -5,7 +5,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_gradients.dart';
 import '../../../shared/constants/app_text_styles.dart';
 import '../../../shared/widgets/common/gradient_button.dart';
-import '../../../shared/widgets/common/zuno_loader.dart';
+import '../../../shared/widgets/common/nearly_loader.dart';
 import 'signin_controller.dart';
 
 class SignInScreen extends GetView<SignInController> {
@@ -35,7 +35,7 @@ class SignInScreen extends GetView<SignInController> {
                 ),
               ),
             ),
-            ZunoLoader(isVisible: controller.isLoading.value),
+            NearlyLoader(isVisible: controller.isLoading.value),
           ],
         ),
       ),
@@ -81,7 +81,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'zuno',
+                  'nearly',
                   style: AppTextStyles.logo().copyWith(
                     color: Colors.white,
                     fontSize: 32,

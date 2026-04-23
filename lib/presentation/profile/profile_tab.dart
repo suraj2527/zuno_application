@@ -4,13 +4,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/presentation/profile/edit_profile_screen.dart';
-import 'package:zuno_application/presentation/profile/profile_controller.dart';
-import 'package:zuno_application/shared/constants/app_colors.dart';
-import 'package:zuno_application/shared/constants/app_gradients.dart';
-import 'package:zuno_application/shared/constants/app_text_styles.dart';
-import 'package:zuno_application/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:zuno_application/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:nearly/presentation/profile/edit_profile_screen.dart';
+import 'package:nearly/presentation/profile/profile_controller.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'package:nearly/shared/constants/app_gradients.dart';
+import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
+import 'package:nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 class ProfileTab extends StatelessWidget {
   ProfileTab({super.key});
@@ -225,7 +225,109 @@ class ProfileTab extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: () => controller.logout(),
+                  onTap: () {
+                    Get.dialog(
+                      Dialog(
+                        backgroundColor: Colors.transparent,
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 50),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.logout_rounded,
+                                  color: AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "Logout?",
+                                style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Are you sure you want to sign out?",
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => Get.back(),
+                                      child: Container(
+                                        height: 44,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppColors.inputFillDark : AppColors.primary5,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          "No",
+                                          style: TextStyle(
+                                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Get.back();
+                                        controller.logout();
+                                      },
+                                      child: Container(
+                                        height: 44,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          gradient: AppGradients.primary,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Text(
+                                          "Logout",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   child: Container(
                     width: 48,
                     height: 48,

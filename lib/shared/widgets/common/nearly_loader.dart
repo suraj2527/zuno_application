@@ -3,16 +3,16 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 
-class ZunoLoader extends StatefulWidget {
+class NearlyLoader extends StatefulWidget {
   final bool isVisible;
 
-  const ZunoLoader({super.key, required this.isVisible});
+  const NearlyLoader({super.key, required this.isVisible});
 
   @override
-  State<ZunoLoader> createState() => _ZunoLoaderState();
+  State<NearlyLoader> createState() => _NearlyLoaderState();
 }
 
-class _ZunoLoaderState extends State<ZunoLoader>
+class _NearlyLoaderState extends State<NearlyLoader>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;

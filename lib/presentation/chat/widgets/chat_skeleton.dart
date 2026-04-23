@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zuno_application/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 class ChatSkeleton extends StatelessWidget {
   const ChatSkeleton({super.key});

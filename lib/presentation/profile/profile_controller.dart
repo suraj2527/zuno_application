@@ -4,10 +4,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:zuno_application/core/routes/app_routes.dart';
-import 'package:zuno_application/core/services/auth_service.dart';
-import 'package:zuno_application/presentation/home/home_controller.dart';
-import 'package:zuno_application/data/sources/remote/user_api.dart'; // ✅ ADD
+import 'package:nearly/core/routes/app_routes.dart';
+import 'package:nearly/core/services/auth_service.dart';
+import 'package:nearly/presentation/home/home_controller.dart';
+import 'package:nearly/data/sources/remote/user_api.dart'; // ✅ ADD
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
@@ -158,11 +158,30 @@ class ProfileController extends GetxController {
 
       selectedInterests.assignAll(List<String>.from(data["interests"] ?? []));
       selectedGalleryImages.assignAll(List<String>.from(data["images"] ?? []));
+      selectedProfileImage.value = data["profileImage"] ?? _authService.currentUser?.photoURL ?? "";
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// 🔥 Pre-fill all edit form fields from current profile state
+  void prepareEditForm() {
+    final p = profile.value;
+    if (p == null) return;
+
+    nameController.text = p.userName;
+    bioController.text = p.bio;
+    locationController.text = p.location;
+
+    selectedGender.value = p.gender ?? "";
+    selectedAge.value = double.tryParse(p.age) ?? 24.0;
+    selectedLookingFor.value = p.lookingFor ?? "";
+
+    selectedInterests.assignAll(p.interests);
+    selectedGalleryImages.assignAll(p.imageUrls);
+    selectedProfileImage.value = p.profileImageUrl;
   }
   // ================= IMAGE ACTIONS =================
 

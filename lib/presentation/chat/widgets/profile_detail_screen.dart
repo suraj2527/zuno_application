@@ -3,11 +3,11 @@ import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/core/services/auth_service.dart';
-import 'package:zuno_application/data/sources/remote/home_api.dart';
-import 'package:zuno_application/shared/constants/app_colors.dart';
-import 'package:zuno_application/shared/constants/app_gradients.dart';
-import 'package:zuno_application/shared/constants/app_text_styles.dart';
+import 'package:nearly/core/services/auth_service.dart';
+import 'package:nearly/data/sources/remote/home_api.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'package:nearly/shared/constants/app_gradients.dart';
+import 'package:nearly/shared/constants/app_text_styles.dart';
 
 class ProfileDetailsScreen extends StatefulWidget {
   final dynamic profile;

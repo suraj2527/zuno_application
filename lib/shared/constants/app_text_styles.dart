@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// All text styles match the Zuno design system.
+/// All text styles match the Nearly design system.
 /// Headings use Syne (800/700), body uses Outfit (300-700).
 /// Install both via pubspec: google_fonts package.
 class AppTextStyles {

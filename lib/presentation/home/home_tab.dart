@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
-import 'package:zuno_application/presentation/home/home_controller.dart';
-import 'package:zuno_application/shared/constants/app_colors.dart';
-import 'package:zuno_application/shared/constants/app_gradients.dart';
-import 'package:zuno_application/shared/constants/app_text_styles.dart';
-import 'package:zuno_application/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:nearly/presentation/home/home_controller.dart';
+import 'package:nearly/shared/constants/app_colors.dart';
+import 'package:nearly/shared/constants/app_gradients.dart';
+import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 import '../../shared/widgets/common/app_refresh_wrapper.dart';
-import '../../shared/widgets/common/zuno_base_screen.dart';
+import '../../shared/widgets/common/nearly_base_screen.dart';
 import '../chat/widgets/profile_detail_screen.dart';
 
 class HomeTab extends StatefulWidget {
@@ -42,7 +42,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     final availableHeight = size.height - headerHeight - actionHeight - 120;
     final cardHeight = availableHeight.clamp(430.0, 590.0);
 
-    return ZunoBaseScreen(
+    return NearlyBaseScreen(
       isDark: isDark,
       child: SafeArea(
         bottom: false,
