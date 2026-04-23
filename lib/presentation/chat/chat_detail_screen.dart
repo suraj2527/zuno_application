@@ -5,7 +5,7 @@ import 'package:nearly/data/model/chat/chat_preview_model.dart';
 import 'package:nearly/shared/constants/app_colors.dart';
 import 'package:nearly/shared/constants/app_gradients.dart';
 import 'package:nearly/shared/constants/app_text_styles.dart';
-
+import 'package:nearly/shared/widgets/common/app_refresh_wrapper.dart';
 
 import '../home/home_controller.dart';
 import 'chat_controller.dart';
@@ -81,37 +81,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     return _buildEmptyState(isDark, displayName);
                   }
 
-                  return ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 16,
-                    ),
-                    itemCount: messages.length,
-                    itemBuilder: (_, index) {
-                      final ChatMessageModel message =
-                          messages[messages.length - 1 - index];
-                      final isMe = message.isMe;
-                      final hasOlderMessage = index < messages.length - 1;
-                      final olderMessage = hasOlderMessage
-                          ? messages[messages.length - 2 - index]
-                          : null;
-                      final isSenderChanged =
-                          olderMessage == null || olderMessage.isMe != isMe;
-                      final isDateChanged = olderMessage == null ||
-                          !_isSameDay(
-                              message.createdAt, olderMessage.createdAt);
+                  return RefreshIndicator(
+                    onRefresh: () => controller.loadConversationMessages(chat.id),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                      itemCount: messages.length,
+                      itemBuilder: (_, index) {
+                        final ChatMessageModel message =
+                            messages[messages.length - 1 - index];
+                        final isMe = message.isMe;
+                        final hasOlderMessage = index < messages.length - 1;
+                        final olderMessage = hasOlderMessage
+                            ? messages[messages.length - 2 - index]
+                            : null;
+                        final isSenderChanged =
+                            olderMessage == null || olderMessage.isMe != isMe;
+                        final isDateChanged = olderMessage == null ||
+                            !_isSameDay(
+                                message.createdAt, olderMessage.createdAt);
 
-                      return _buildMessageItem(
-                        context: context,
-                        isDark: isDark,
-                        message: message,
-                        isMe: isMe,
-                        isSenderChanged: isSenderChanged,
-                        isDateChanged: isDateChanged,
-                      );
-                    },
+                        return _buildMessageItem(
+                          context: context,
+                          isDark: isDark,
+                          message: message,
+                          isMe: isMe,
+                          isSenderChanged: isSenderChanged,
+                          isDateChanged: isDateChanged,
+                        );
+                      },
+                    ),
                   );
                 }),
               ),
@@ -188,6 +191,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               () => ProfileDetailsScreen(
                 profile: profile,
                 heroTag: "profile_${profile.id}",
+                openedFrom: ProfileOpenedFrom.chat,
               ),
             ),
             child: Stack(
@@ -238,6 +242,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 () => ProfileDetailsScreen(
                   profile: profile,
                   heroTag: "profile_${profile.id}",
+                  openedFrom: ProfileOpenedFrom.chat,
                 ),
               ),
               behavior: HitTestBehavior.opaque,

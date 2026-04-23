@@ -8,16 +8,26 @@ import 'package:nearly/data/sources/remote/home_api.dart';
 import 'package:nearly/shared/constants/app_colors.dart';
 import 'package:nearly/shared/constants/app_gradients.dart';
 import 'package:nearly/shared/constants/app_text_styles.dart';
+import 'package:nearly/presentation/dashboard/dashboard_controller.dart' as nearly_dashboard;
 
+
+enum ProfileOpenedFrom {
+  home,
+  likes,
+  matches,
+  chat,
+}
 
 class ProfileDetailsScreen extends StatefulWidget {
   final dynamic profile;
   final String heroTag;
+  final ProfileOpenedFrom openedFrom;
 
   const ProfileDetailsScreen({
     super.key,
     required this.profile,
     required this.heroTag,
+    required this.openedFrom,
   });
 
   @override
@@ -33,6 +43,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   bool showHeart = false;
   int currentGalleryIndex = 0;
   bool isLikeLoading = false;
+  bool isLiked = false;
 
   @override
   void initState() {
@@ -97,15 +108,18 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
             slivers: [_buildAppBar(p), _buildContent(isDark, p)],
           ),
 
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 14,
-            child: SafeArea(
-              top: false,
-              child: _buildLikeButton(),
+          if (widget.openedFrom != ProfileOpenedFrom.chat)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 14,
+              child: SafeArea(
+                top: false,
+                child: widget.openedFrom == ProfileOpenedFrom.matches
+                    ? _buildChatButton()
+                    : _buildLikeButton(),
+              ),
             ),
-          ),
 
           /// ❤️ double tap animation
           if (showHeart)
@@ -151,7 +165,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: isLikeLoading ? null : _likeProfile,
+          onTap: (isLikeLoading || isLiked) ? null : _likeProfile,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -180,7 +194,9 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  isLikeLoading ? "Liking..." : "Like Profile",
+                  isLiked
+                      ? "Liked"
+                      : (isLikeLoading ? "Liking..." : "Like Profile"),
                   style: AppTextStyles.bodyMedium(isDark: false).copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -214,11 +230,63 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
       );
 
       Get.snackbar("Liked", "You liked this profile");
+      if (mounted) setState(() => isLiked = true);
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
       if (mounted) setState(() => isLikeLoading = false);
     }
+  }
+
+  Widget _buildChatButton() {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: AppGradients.primary,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            Get.back();
+            try {
+              Get.find<nearly_dashboard.DashboardController>().changeTab(1);
+            } catch (_) {}
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.chat_bubble_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  "Chat",
+                  style: AppTextStyles.bodyMedium(isDark: false).copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ================= APP BAR =================

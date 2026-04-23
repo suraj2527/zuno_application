@@ -59,7 +59,10 @@ class _ActivityTabState extends State<ActivityTab>
                       );
                     }
                     if (controller.likedProfiles.isEmpty) {
-                      return _buildFullEmptyState(isDark, isLikes: true);
+                      return AppRefreshWrapper(
+                        onRefresh: controller.refreshActivity,
+                        child: _buildFullEmptyState(isDark, isLikes: true),
+                      );
                     }
                     return AppRefreshWrapper(
                       onRefresh: controller.refreshActivity,
@@ -74,7 +77,10 @@ class _ActivityTabState extends State<ActivityTab>
                       );
                     }
                     if (controller.matchedProfiles.isEmpty) {
-                      return _buildFullEmptyState(isDark, isLikes: false);
+                      return AppRefreshWrapper(
+                        onRefresh: controller.refreshActivity,
+                        child: _buildFullEmptyState(isDark, isLikes: false),
+                      );
                     }
                     return AppRefreshWrapper(
                       onRefresh: controller.refreshActivity,
@@ -255,6 +261,9 @@ class _ActivityTabState extends State<ActivityTab>
           () => ProfileDetailsScreen(
             profile: profile,
             heroTag: "${type}_${profile.id}",
+            openedFrom: type == 'like'
+                ? ProfileOpenedFrom.likes
+                : ProfileOpenedFrom.matches,
           ),
         );
       },
@@ -478,8 +487,9 @@ class _ActivityTabState extends State<ActivityTab>
 
   // ================= EMPTY =================
   Widget _buildFullEmptyState(bool isDark, {bool isLikes = true}) {
-    return SizedBox.expand(
+    return Center(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(

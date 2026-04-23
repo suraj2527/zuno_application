@@ -82,7 +82,7 @@ class HomeController extends GetxController {
 
   /// button press animation states
   final isDislikePressed = false.obs;
-  final isStarPressed = false.obs;
+  final isSkipPressed = false.obs;
   final isLikePressed = false.obs;
   final isBoostPressed = false.obs;
 
@@ -199,11 +199,11 @@ class HomeController extends GetxController {
     swipeLeft();
   }
 
-  Future<void> pressStar() async {
+  Future<void> pressSkip() async {
     if (!hasProfiles) return;
-    isStarPressed.value = true;
+    isSkipPressed.value = true;
     await Future.delayed(const Duration(milliseconds: 120));
-    isStarPressed.value = false;
+    isSkipPressed.value = false;
     swipeUp();
   }
 

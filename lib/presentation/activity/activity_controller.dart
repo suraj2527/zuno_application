@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:nearly/core/services/auth_service.dart';
@@ -20,6 +22,8 @@ class ActivityController extends GetxController {
 
   // Matches Tab Data (new)
   final matchedProfiles = <DatingProfile>[].obs;
+
+  Timer? _refreshTimer;
 
   bool get hasActivityUpdates =>
       likedProfiles.isNotEmpty || matchedProfiles.isNotEmpty;
@@ -60,6 +64,15 @@ class ActivityController extends GetxController {
   void onInit() {
     super.onInit();
     loadActivityData();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _loadActivityDataSilently();
+    });
+  }
+
+  @override
+  void onClose() {
+    _refreshTimer?.cancel();
+    super.onClose();
   }
 
   Future<void> refreshActivity() async {
@@ -70,11 +83,16 @@ class ActivityController extends GetxController {
 
   Future<void> loadActivityData() async {
     isLoading.value = true;
+    await _fetchData();
+    isLoading.value = false;
+  }
 
-    likedProfiles.clear();
-    matchedProfiles.clear();
-    likedProfileIds.clear(); // ✅ Reset on refresh
+  Future<void> _loadActivityDataSilently() async {
+    if (isLoading.value) return; // Don't interrupt manual refresh
+    await _fetchData();
+  }
 
+  Future<void> _fetchData() async {
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
@@ -103,9 +121,7 @@ class ActivityController extends GetxController {
       matchedProfiles.assignAll(matchesData);
       hasUnseenUpdates.value = _hasUnseenItems();
     } catch (e) {
-      Get.snackbar("Error", e.toString());
-    } finally {
-      isLoading.value = false;
+      // Silently fail on background refresh, but log or handle if needed
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:nearly/core/services/auth_service.dart';
 import 'package:nearly/data/model/chat/chat_message_model.dart';
@@ -28,14 +30,29 @@ class ChatController extends GetxController {
 
   List<ChatPreviewModel> get activeChats => chatList;
 
+  Timer? _refreshTimer;
+
   @override
   void onInit() {
     super.onInit();
     loadChatData();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _loadChatDataSilently();
+    });
   }
 
   Future<void> loadChatData() async {
     isLoading.value = true;
+    await _fetchData();
+    isLoading.value = false;
+  }
+
+  Future<void> _loadChatDataSilently() async {
+    if (isLoading.value || isRefreshing.value) return;
+    await _fetchData();
+  }
+
+  Future<void> _fetchData() async {
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
@@ -66,9 +83,7 @@ class ChatController extends GetxController {
             .toList(),
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString());
-    } finally {
-      isLoading.value = false;
+      // Silently fail on background refresh
     }
   }
 
@@ -660,6 +675,7 @@ class ChatController extends GetxController {
 
   @override
   void onClose() {
+    _refreshTimer?.cancel();
     _socket?.dispose();
     super.onClose();
   }

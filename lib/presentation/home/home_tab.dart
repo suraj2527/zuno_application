@@ -257,6 +257,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           () => ProfileDetailsScreen(
             profile: profile,
             heroTag: "profile_${profile.id}",
+            openedFrom: ProfileOpenedFrom.home,
           ),
         );
       },
@@ -768,15 +769,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           ),
           const SizedBox(width: 16),
           _interactiveActionButton(
-            onTap: controller.pressStar,
-            pressed: controller.isStarPressed.value,
+            onTap: controller.pressSkip,
+            pressed: controller.isSkipPressed.value,
             disabled: disabled,
             child: _actionButton(
-              icon: Icons.star_rounded,
+              icon: Icons.keyboard_double_arrow_up_rounded,
               isDark: isDark,
               size: 46,
               gradient: null,
               bordered: true,
+              iconColor: AppColors.primary, // Make it primary colored to differentiate
             ),
           ),
           const SizedBox(width: 16),
