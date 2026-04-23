@@ -143,6 +143,7 @@ class ActivityController extends GetxController {
       item["profile"],
       item["matchedUser"],
       item["user"],
+      item["fromUser"], // ✅ ADD
       item["targetUser"],
     ]) ?? item;
 
@@ -179,9 +180,9 @@ class ActivityController extends GetxController {
     }
 
     return DatingProfile(
-      id: profile["userId"]?.toString() ??
+      id: item["userId"]?.toString() ??
+          profile["userId"]?.toString() ??
           profile["_id"]?.toString() ??
-          item["userId"]?.toString() ??
           item["_id"]?.toString() ??
           "",
       userName: profile["name"]?.toString() ?? item["name"]?.toString() ?? "",
