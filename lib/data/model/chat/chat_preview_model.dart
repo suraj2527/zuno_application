@@ -1,6 +1,7 @@
 // lib/models/chat_preview_model.dart
 class ChatPreviewModel {
   final String id;
+  final String matchId;
   final String name;
   final String imageUrl;
   final String lastMessage;
@@ -10,11 +11,14 @@ class ChatPreviewModel {
   final int unreadCount;
   final bool isSeen;
   final bool isDelivered;
+
   /// True when the conversation is archived/inactive and should not appear in Active tab.
   final bool isArchived;
+  final dynamic rawProfileData;
 
   ChatPreviewModel({
     required this.id,
+    this.matchId = '',
     required this.name,
     required this.imageUrl,
     required this.lastMessage,
@@ -25,11 +29,13 @@ class ChatPreviewModel {
     required this.isSeen,
     required this.isDelivered,
     required this.isArchived,
+    this.rawProfileData,
   });
 
   factory ChatPreviewModel.fromJson(Map<String, dynamic> json) {
     return ChatPreviewModel(
       id: json['id'] ?? '',
+      matchId: json['matchId'] ?? '',
       name: json['name'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
       lastMessage: json['lastMessage'] ?? '',
@@ -40,12 +46,14 @@ class ChatPreviewModel {
       isSeen: json['isSeen'] ?? false,
       isDelivered: json['isDelivered'] ?? false,
       isArchived: json['isArchived'] ?? false,
+      rawProfileData: json['rawProfileData'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'matchId': matchId,
       'name': name,
       'imageUrl': imageUrl,
       'lastMessage': lastMessage,
@@ -56,6 +64,7 @@ class ChatPreviewModel {
       'isSeen': isSeen,
       'isDelivered': isDelivered,
       'isArchived': isArchived,
+      'rawProfileData': rawProfileData,
     };
   }
 }

@@ -8,9 +8,7 @@ class ActivityApi {
   Future<List<dynamic>> getReceivedLikes(String token) async {
     final res = await http.get(
       Uri.parse("$baseUrl/likes/received"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {
@@ -25,9 +23,7 @@ class ActivityApi {
   Future<List<dynamic>> getMatches(String token) async {
     final res = await http.get(
       Uri.parse("$baseUrl/matches"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {

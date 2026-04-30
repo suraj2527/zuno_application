@@ -16,43 +16,47 @@ class SplashController extends GetxController {
   }
 
   Future<void> _navigate() async {
+    final minimumWait = Future.delayed(const Duration(seconds: 2));
+    
     try {
-      await Future.delayed(const Duration(seconds: 2));
-
       final user = _auth.currentUser;
 
       if (user == null) {
+        await minimumWait;
         Get.offAllNamed(Routes.SIGNIN);
         return;
       }
 
       final token = await user.getIdToken(true);
       if (token == null || token.isEmpty) {
+        await minimumWait;
         Get.offAllNamed(Routes.SIGNIN);
         return;
       }
 
-      bool isProfileCompleted = false;
+      // Hit login and profile APIs in parallel for faster startup
+      final results = await Future.wait([
+        _authRepository.login(token).catchError((_) => <String, dynamic>{}),
+        _userApi.getProfile(token).catchError((_) => <String, dynamic>{}),
+      ]);
 
-      try {
-        final loginRes = await _authRepository.login(token);
-        isProfileCompleted = loginRes["isProfileCompleted"] == true;
-      } catch (_) {}
+      final loginRes = results[0] as Map<String, dynamic>;
+      final profileData = results[1] as Map<String, dynamic>;
 
-      if (!isProfileCompleted) {
-        // Fallback: if profile exists, treat user as completed.
-        try {
-          final profileData = await _userApi.getProfile(token);
-          isProfileCompleted = profileData.isNotEmpty;
-        } catch (_) {}
-      }
+      final bool isProfileCompleted = (loginRes["isProfileCompleted"] == true) || 
+                                     (profileData.isNotEmpty);
+
+      // Ensure splash screen is visible for at least 2 seconds for UX
+      await minimumWait;
 
       if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
       } else {
         Get.offAllNamed(Routes.ONBOARDING);
       }
-    } catch (_) {
+    } catch (e) {
+      print("Splash navigation error: $e");
+      await minimumWait;
       Get.offAllNamed(Routes.SIGNIN);
     }
   }

@@ -61,22 +61,29 @@ class _ActivityTabState extends State<ActivityTab> {
               Expanded(
                 child: Obx(() {
                   final isLikes = _selectedTab.value == 'Likes';
-                  final profiles = isLikes ? controller.likedProfiles : controller.matchedProfiles;
-                  
+                  final profiles = isLikes
+                      ? controller.likedProfiles
+                      : controller.matchedProfiles;
+
                   if (controller.isLoading.value) {
                     return AppRefreshWrapper(
                       onRefresh: controller.refreshActivity,
                       child: _buildGrid(isDark, isLoading: true, profiles: []),
                     );
                   }
-                  
+
                   if (profiles.isEmpty) {
                     return _buildElegantEmptyState(isDark, isLikes: isLikes);
                   }
 
                   return AppRefreshWrapper(
                     onRefresh: controller.refreshActivity,
-                    child: _buildGrid(isDark, isLoading: false, profiles: profiles, type: isLikes ? 'like' : 'match'),
+                    child: _buildGrid(
+                      isDark,
+                      isLoading: false,
+                      profiles: profiles,
+                      type: isLikes ? 'like' : 'match',
+                    ),
                   );
                 }),
               ),
@@ -96,18 +103,25 @@ class _ActivityTabState extends State<ActivityTab> {
         children: tabs.map((tab) {
           return Obx(() {
             final isSelected = _selectedTab.value == tab;
-            final count = tab == 'Likes' ? controller.likedProfiles.length : controller.matchedProfiles.length;
+            final count = tab == 'Likes'
+                ? controller.likedProfiles.length
+                : controller.matchedProfiles.length;
             return GestureDetector(
               onTap: () => _selectedTab.value = tab,
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? (isDark ? AppColors.primary.withOpacity(0.2) : const Color(0xFFE6F0FF))
+                  color: isSelected
+                      ? (isDark
+                            ? AppColors.primary.withOpacity(0.2)
+                            : const Color(0xFFE6F0FF))
                       : (isDark ? AppColors.cardDark : const Color(0xFFF6F6F6)),
                   borderRadius: BorderRadius.circular(100),
-                  border: isSelected && isDark 
+                  border: isSelected && isDark
                       ? Border.all(color: AppColors.primary.withOpacity(0.5))
                       : null,
                 ),
@@ -116,10 +130,14 @@ class _ActivityTabState extends State<ActivityTab> {
                     Text(
                       tab,
                       style: TextStyle(
-                        color: isSelected 
-                            ? (isDark ? AppColors.primaryDark : const Color(0xFF3B82F6))
+                        color: isSelected
+                            ? (isDark
+                                  ? AppColors.primaryDark
+                                  : const Color(0xFF3B82F6))
                             : (isDark ? Colors.white54 : Colors.black54),
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),
@@ -165,27 +183,39 @@ class _ActivityTabState extends State<ActivityTab> {
 
   Widget _buildContentTab(bool isDark, {required bool isLikes}) {
     return Obx(() {
-      final profiles = isLikes ? controller.likedProfiles : controller.matchedProfiles;
-      
+      final profiles = isLikes
+          ? controller.likedProfiles
+          : controller.matchedProfiles;
+
       if (controller.isLoading.value) {
         return AppRefreshWrapper(
           onRefresh: controller.refreshActivity,
           child: _buildGrid(isDark, isLoading: true, profiles: []),
         );
       }
-      
+
       if (profiles.isEmpty) {
         return _buildElegantEmptyState(isDark, isLikes: isLikes);
       }
 
       return AppRefreshWrapper(
         onRefresh: controller.refreshActivity,
-        child: _buildGrid(isDark, isLoading: false, profiles: profiles, type: isLikes ? 'like' : 'match'),
+        child: _buildGrid(
+          isDark,
+          isLoading: false,
+          profiles: profiles,
+          type: isLikes ? 'like' : 'match',
+        ),
       );
     });
   }
 
-  Widget _buildGrid(bool isDark, {required bool isLoading, required List<DatingProfile> profiles, String type = 'like'}) {
+  Widget _buildGrid(
+    bool isDark, {
+    required bool isLoading,
+    required List<DatingProfile> profiles,
+    String type = 'like',
+  }) {
     return GridView.builder(
       padding: const EdgeInsets.all(20),
       shrinkWrap: true,
@@ -204,7 +234,11 @@ class _ActivityTabState extends State<ActivityTab> {
     );
   }
 
-  Widget _buildElegantGridCard(bool isDark, DatingProfile profile, String type) {
+  Widget _buildElegantGridCard(
+    bool isDark,
+    DatingProfile profile,
+    String type,
+  ) {
     return GestureDetector(
       onTap: () {
         controller.markActivitySeen(type, profile);
@@ -244,7 +278,7 @@ class _ActivityTabState extends State<ActivityTab> {
                       : _profilePlaceholder(),
                 ),
               ),
-              
+
               // Gradient Overlay
               Positioned.fill(
                 child: Container(
@@ -267,7 +301,7 @@ class _ActivityTabState extends State<ActivityTab> {
               Positioned(
                 bottom: 12,
                 left: 12,
-                right: 12,
+                right: type == 'like' ? 48 : 12, // Leave space for like button
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -282,11 +316,17 @@ class _ActivityTabState extends State<ActivityTab> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_rounded, size: 10, color: Colors.white70),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 10,
+                          color: Colors.white70,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            profile.location.isNotEmpty ? profile.location : "Nearby",
+                            profile.location.isNotEmpty
+                                ? profile.location
+                                : "Nearby",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -300,6 +340,23 @@ class _ActivityTabState extends State<ActivityTab> {
                   ],
                 ),
               ),
+
+              if (type == 'like')
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: Obx(() {
+                    final isLiked = controller.likedProfileIds.contains(
+                      profile.id,
+                    );
+                    return _LikeButton(
+                      isLiked: isLiked,
+                      onTap: isLiked
+                          ? null
+                          : () => controller.likeProfile(profile.id),
+                    );
+                  }),
+                ),
 
               if (!controller.isActivitySeen(type, profile))
                 Positioned(
@@ -365,7 +422,9 @@ class _ActivityTabState extends State<ActivityTab> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isLikes ? Icons.favorite_border_rounded : Icons.flash_on_rounded,
+                isLikes
+                    ? Icons.favorite_border_rounded
+                    : Icons.flash_on_rounded,
                 size: 64,
                 color: AppColors.primary,
               ),
@@ -381,9 +440,9 @@ class _ActivityTabState extends State<ActivityTab> {
             ),
             const SizedBox(height: 12),
             Text(
-              isLikes 
-                ? "Keep swiping! Your profile is being seen by many potential matches." 
-                : "The magic happens when both of you like each other. Keep exploring!",
+              isLikes
+                  ? "Keep swiping! Your profile is being seen by many potential matches."
+                  : "The magic happens when both of you like each other. Keep exploring!",
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
@@ -392,6 +451,82 @@ class _ActivityTabState extends State<ActivityTab> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ================= ANIMATED LIKE BUTTON WIDGET =================
+class _LikeButton extends StatefulWidget {
+  final bool isLiked;
+  final VoidCallback? onTap;
+
+  const _LikeButton({required this.isLiked, this.onTap});
+
+  @override
+  State<_LikeButton> createState() => _LikeButtonState();
+}
+
+class _LikeButtonState extends State<_LikeButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _anim;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _scale = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.45), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.45, end: 0.9), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 0.9, end: 1.0), weight: 30),
+    ]).animate(CurvedAnimation(parent: _anim, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    if (widget.onTap == null) return;
+    _anim.forward(from: 0);
+    widget.onTap!();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.isLiked ? null : _handleTap,
+      child: ScaleTransition(
+        scale: _scale,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: widget.isLiked ? null : AppGradients.primary,
+            color: widget.isLiked ? Colors.grey.withOpacity(0.3) : null,
+            shape: BoxShape.circle,
+            boxShadow: widget.isLiked
+                ? []
+                : [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          child: const Icon(
+            Icons.favorite_rounded,
+            size: 18,
+            color: Colors.white,
+          ),
         ),
       ),
     );

@@ -46,15 +46,18 @@ class EditProfileScreen extends StatelessWidget {
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'Upload photos to show up in matches',
-                              style: TextStyle(color: Colors.black54, fontSize: 13),
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // New style Photo Grid (exactly 3 allowed)
                           _buildPinterestPhotoGrid(isDark),
                           const SizedBox(height: 16),
-                          
+
                           Center(
                             child: GestureDetector(
                               onTap: () {},
@@ -99,7 +102,12 @@ class EditProfileScreen extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20,
+                  20,
+                  20 + MediaQuery.of(context).padding.bottom,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -130,10 +138,7 @@ class EditProfileScreen extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       leading: GestureDetector(
         onTap: () => Get.back(),
-        child: const Icon(
-          Icons.arrow_back,
-          color: Colors.black,
-        ),
+        child: const Icon(Icons.arrow_back, color: Colors.black),
       ),
       title: const Text(
         "Edit profile",
@@ -172,10 +177,7 @@ class EditProfileScreen extends StatelessWidget {
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          color: const Color(0xFFEEEEEE),
-        ),
+        child: Container(height: 1, color: const Color(0xFFEEEEEE)),
       ),
     );
   }
@@ -188,7 +190,9 @@ class EditProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: _buildPhotoSlot(index: -1, isMain: true, height: 280)),
+              Expanded(
+                child: _buildPhotoSlot(index: -1, isMain: true, height: 280),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -204,7 +208,11 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPhotoSlot({required int index, bool isMain = false, required double height}) {
+  Widget _buildPhotoSlot({
+    required int index,
+    bool isMain = false,
+    required double height,
+  }) {
     String imagePath = '';
     if (isMain) {
       imagePath = controller.selectedProfileImage.value;
@@ -215,72 +223,125 @@ class EditProfileScreen extends StatelessWidget {
     }
 
     final bool hasImage = imagePath.isNotEmpty;
+    final int slotIndex = isMain ? -1 : index;
 
-    return GestureDetector(
-      onTap: () {
-        if (!hasImage) {
-          if (isMain) {
-            controller.pickProfileImage();
-          } else {
-            controller.pickGalleryImage();
-          }
-        }
-      },
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
-          border: hasImage
-              ? null
-              : Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
-        ),
-        child: Stack(
-          children: [
-            if (hasImage)
-              Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: _buildImage(imagePath),
-                ),
-              ),
-            if (isMain && hasImage)
-              Positioned(
-                top: 12,
-                left: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: const Text(
-                    'Main',
-                    style: TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
-            if (!hasImage)
-              const Center(child: Icon(Icons.add, color: Color(0xFFBBBBBB), size: 32)),
-            if (hasImage && !isMain)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: () => controller.removeGalleryImage(index),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 14),
-                  ),
-                ),
-              ),
-          ],
-        ),
+    Widget content = Container(
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        border: hasImage
+            ? null
+            : Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
       ),
+      child: Stack(
+        children: [
+          if (hasImage)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: _buildImage(imagePath),
+              ),
+            ),
+          if (isMain && hasImage)
+            Positioned(
+              top: 12,
+              left: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: const Text(
+                  'Main',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          if (!hasImage)
+            const Center(
+              child: Icon(Icons.add, color: Color(0xFFBBBBBB), size: 32),
+            ),
+          if (hasImage && !isMain)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => controller.removeGalleryImage(index),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    Widget draggableContent = hasImage
+        ? LongPressDraggable<int>(
+            data: slotIndex,
+            feedback: Material(
+              color: Colors.transparent,
+              child: Opacity(
+                opacity: 0.8,
+                child: SizedBox(
+                  width: 150,
+                  height: height,
+                  child: content,
+                ),
+              ),
+            ),
+            childWhenDragging: Opacity(
+              opacity: 0.3,
+              child: content,
+            ),
+            child: content,
+          )
+        : content;
+
+    return DragTarget<int>(
+      onAcceptWithDetails: (details) {
+        controller.swapImages(details.data, slotIndex);
+      },
+      builder: (context, candidateData, rejectedData) {
+        return GestureDetector(
+          onTap: () {
+            if (!hasImage) {
+              if (isMain) {
+                controller.pickProfileImage();
+              } else {
+                controller.pickGalleryImage();
+              }
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: candidateData.isNotEmpty
+                  ? Border.all(color: const Color(0xFF5B89FF), width: 3)
+                  : null,
+            ),
+            child: draggableContent,
+          ),
+        );
+      },
     );
   }
 
@@ -289,7 +350,11 @@ class EditProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.w400),
+        style: const TextStyle(
+          fontSize: 18,
+          color: Colors.black87,
+          fontWeight: FontWeight.w400,
+        ),
       ),
     );
   }
@@ -314,13 +379,17 @@ class EditProfileScreen extends StatelessWidget {
         children: [
           _buildListItem(
             icon: Icons.badge_outlined,
-            label: controller.nameController.text.isNotEmpty ? controller.nameController.text : "Add Name",
+            label: controller.nameController.text.isNotEmpty
+                ? controller.nameController.text
+                : "Add Name",
             hideLabel: true,
             onTap: () => _showEditSheet(
-              context, isDark, "Name",
+              context,
+              isDark,
+              "Name",
               _buildTextFieldCard(
                 isDark: isDark,
-                controller: controller.nameController, 
+                controller: controller.nameController,
                 hint: "Enter your name",
               ),
             ),
@@ -328,18 +397,29 @@ class EditProfileScreen extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           _buildListItem(
             icon: Icons.cake_outlined,
-            label: controller.selectedAge.value > 0 ? controller.selectedAge.value.round().toString() : "Add Age",
+            label: controller.selectedAge.value > 0
+                ? controller.selectedAge.value.round().toString()
+                : "Add Age",
             hideLabel: true,
-            onTap: () => _showEditSheet(context, isDark, "Age", _buildAgeSection(isDark)),
+            onTap: () => _showEditSheet(
+              context,
+              isDark,
+              "Age",
+              _buildAgeSection(isDark),
+            ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           _buildListItem(
             icon: Icons.male_outlined,
-            label: controller.selectedGender.value.isNotEmpty ? controller.selectedGender.value : "Add Gender",
+            label: controller.selectedGender.value.isNotEmpty
+                ? controller.selectedGender.value
+                : "Add Gender",
             hideLabel: true,
             onTap: () => _navigateToListSelection(
               title: "Gender",
-              items: controller.genderOptions.map((e) => "${e['emoji']} ${e['label']}").toList(),
+              items: controller.genderOptions
+                  .map((e) => "${e['emoji']} ${e['label']}")
+                  .toList(),
               currentValue: controller.selectedGender,
               onSelect: (val) {
                 // val is like "👩 Woman", we just want "Woman"
@@ -369,13 +449,15 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.visibility_outlined,
             label: "Looking for",
-            value: controller.selectedLookingFor.value.isNotEmpty 
-                ? controller.selectedLookingFor.value 
+            value: controller.selectedLookingFor.value.isNotEmpty
+                ? controller.selectedLookingFor.value
                 : "Marriage (immediate)",
             showArrow: true,
             onTap: () => _navigateToListSelection(
               title: "Looking for",
-              items: controller.lookingForOptions.map((e) => "${e['emoji']} ${e['title']}").toList(),
+              items: controller.lookingForOptions
+                  .map((e) => "${e['emoji']} ${e['title']}")
+                  .toList(),
               currentValue: controller.selectedLookingFor,
               onSelect: (val) {
                 final realVal = val.toString().substring(2).trim();
@@ -387,8 +469,8 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.spa_outlined,
             label: "Religion or faith",
-            value: controller.selectedReligion.value.isNotEmpty 
-                ? controller.selectedReligion.value 
+            value: controller.selectedReligion.value.isNotEmpty
+                ? controller.selectedReligion.value
                 : "Add Religion",
             showArrow: true,
             onTap: () => _navigateToListSelection(
@@ -404,8 +486,8 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.location_on_outlined,
             label: "City",
-            value: controller.locationController.text.isNotEmpty 
-                ? controller.locationController.text 
+            value: controller.locationController.text.isNotEmpty
+                ? controller.locationController.text
                 : "Delhi NCR",
             showArrow: true,
             onTap: () => _navigateToCitySelection(),
@@ -414,16 +496,18 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.edit_note_rounded,
             label: "Bio",
-            value: controller.bioController.text.isNotEmpty 
-                ? controller.bioController.text 
+            value: controller.bioController.text.isNotEmpty
+                ? controller.bioController.text
                 : "Tap to edit",
             showArrow: true,
             onTap: () => _showEditSheet(
-              context, isDark, "Bio",
+              context,
+              isDark,
+              "Bio",
               _buildTextFieldCard(
                 isDark: isDark,
-                controller: controller.bioController, 
-                hint: "Tell something about yourself", 
+                controller: controller.bioController,
+                hint: "Tell something about yourself",
                 maxLines: 4,
               ),
             ),
@@ -479,7 +563,11 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.phone_android_outlined,
             label: "Mobile number",
-            trailing: const Icon(Icons.check_circle, color: Color(0xFF4285F4), size: 22),
+            trailing: const Icon(
+              Icons.check_circle,
+              color: Color(0xFF4285F4),
+              size: 22,
+            ),
             onTap: () {},
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -512,12 +600,23 @@ class EditProfileScreen extends StatelessWidget {
             Icon(icon, size: 22, color: Colors.black87),
             const SizedBox(width: 16),
             if (!hideLabel)
-              Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             if (hideLabel)
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             if (!hideLabel) const Spacer(),
@@ -528,11 +627,16 @@ class EditProfileScreen extends StatelessWidget {
                   textAlign: TextAlign.right,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             if (value != null && showArrow) const SizedBox(width: 12),
-            if (showArrow) const Icon(Icons.arrow_forward, size: 20, color: Colors.black87),
+            if (showArrow)
+              const Icon(Icons.arrow_forward, size: 20, color: Colors.black87),
             if (trailing != null) trailing,
           ],
         ),
@@ -554,82 +658,108 @@ class EditProfileScreen extends StatelessWidget {
     bool isMultiSelect = false,
     RxList<String>? selectedItems,
   }) {
-    Get.to(() => Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    Get.to(
+      () => Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 28,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Obx(() {
+                // Read values synchronously so Obx tracks them properly instead of inside the lazy itemBuilder!
+                final currentSingleValue = currentValue?.value;
+                final currentMultiList = isMultiSelect && selectedItems != null
+                    ? selectedItems.toList()
+                    : [];
+
+                return ListView.separated(
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    bool isSelected = false;
+
+                    if (isMultiSelect) {
+                      isSelected = currentMultiList.contains(item);
+                    } else {
+                      // For single select, match the stripped text
+                      final cleanedItem = item.startsWith(RegExp(r'^\S+\s'))
+                          ? item.substring(2).trim()
+                          : item;
+                      isSelected = currentSingleValue == cleanedItem;
+                    }
+
+                    return InkWell(
+                      onTap: () {
+                        onSelect(item);
+                        if (!isMultiSelect) {
+                          Get.back();
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check,
+                                color: Color(0xFF4285F4),
+                                size: 20,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w700),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Obx(() {
-              // Read values synchronously so Obx tracks them properly instead of inside the lazy itemBuilder!
-              final currentSingleValue = currentValue?.value;
-              final currentMultiList = isMultiSelect && selectedItems != null ? selectedItems.toList() : [];
-
-              return ListView.separated(
-                itemCount: items.length,
-                separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  bool isSelected = false;
-                  
-                  if (isMultiSelect) {
-                    isSelected = currentMultiList.contains(item);
-                  } else {
-                    // For single select, match the stripped text
-                    final cleanedItem = item.startsWith(RegExp(r'^\S+\s')) ? item.substring(2).trim() : item;
-                    isSelected = currentSingleValue == cleanedItem;
-                  }
-
-                  return InkWell(
-                    onTap: () {
-                      onSelect(item);
-                      if (!isMultiSelect) {
-                        Get.back();
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            item,
-                            style: const TextStyle(fontSize: 15, color: Colors.black87),
-                          ),
-                          if (isSelected)
-                            const Icon(Icons.check, color: Color(0xFF4285F4), size: 20),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
-    ));
+    );
   }
 
   // ─── Bottom sheet for remaining items (like Name/Age/Bio) ─────────────────────
-  void _showEditSheet(BuildContext context, bool isDark, String title, Widget content) {
+  void _showEditSheet(
+    BuildContext context,
+    bool isDark,
+    String title,
+    Widget content,
+  ) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -644,7 +774,9 @@ class EditProfileScreen extends StatelessWidget {
             children: [
               Text(
                 "Edit $title",
-                style: AppTextStyles.headingMedium(isDark: isDark).copyWith(fontWeight: FontWeight.w700),
+                style: AppTextStyles.headingMedium(
+                  isDark: isDark,
+                ).copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 20),
               content,
@@ -656,12 +788,18 @@ class EditProfileScreen extends StatelessWidget {
                   onPressed: () => Get.back(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _indigo,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                    ),
                     elevation: 0,
                   ),
                   child: const Text(
                     "Done",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -691,7 +829,9 @@ class EditProfileScreen extends StatelessWidget {
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: AppTextStyles.bodySmall(isDark: isDark).copyWith(fontSize: 14),
+        hintStyle: AppTextStyles.bodySmall(
+          isDark: isDark,
+        ).copyWith(fontSize: 14),
         filled: true,
         fillColor: isDark ? AppColors.inputFillDark : const Color(0xFFF8F8FB),
         border: OutlineInputBorder(
@@ -706,7 +846,10 @@ class EditProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _indigo, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -720,17 +863,26 @@ class EditProfileScreen extends StatelessWidget {
             children: [
               Text(
                 'Your age',
-                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(color: const Color(0xFF888888), fontSize: 14),
+                style: AppTextStyles.bodySmall(
+                  isDark: isDark,
+                ).copyWith(color: const Color(0xFF888888), fontSize: 14),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: _indigo.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
                   '${controller.selectedAge.value.round()} yrs',
-                  style: const TextStyle(color: _indigo, fontWeight: FontWeight.w700, fontSize: 14),
+                  style: const TextStyle(
+                    color: _indigo,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
@@ -834,7 +986,7 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
     try {
       final cities = await getCountryCities('IN');
       final states = await getStatesOfCountry('IN');
-      
+
       final stateCodeToName = <String, String>{};
       for (var state in states) {
         stateCodeToName[state.isoCode] = state.name;
@@ -904,7 +1056,11 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               "Select city",
-              style: TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 28,
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           Padding(
@@ -914,7 +1070,10 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
               decoration: InputDecoration(
                 hintText: "Search city",
                 hintStyle: const TextStyle(color: Colors.grey),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
@@ -932,28 +1091,36 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: _isLoading 
+            child: _isLoading
                 ? const NearlyLoader(isVisible: true)
                 : ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              itemCount: _filteredCities.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () {
-                    widget.controller.locationController.text = _filteredCities[index];
-                    Get.back();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    child: Text(
-                      _filteredCities[index],
-                      style: const TextStyle(fontSize: 15, color: Colors.black87),
-                    ),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _filteredCities.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () {
+                          widget.controller.locationController.text =
+                              _filteredCities[index];
+                          Get.back();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          child: Text(
+                            _filteredCities[index],
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

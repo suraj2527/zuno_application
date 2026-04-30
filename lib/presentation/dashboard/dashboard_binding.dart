@@ -13,6 +13,5 @@ class DashboardBinding extends Bindings {
     Get.lazyPut<ChatController>(() => ChatController());
     Get.lazyPut<ActivityController>(() => ActivityController());
     Get.lazyPut<ProfileController>(() => ProfileController());
-
   }
 }

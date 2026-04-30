@@ -7,10 +7,9 @@ import '../../../data/model/chat/chat_user_model.dart';
 import '../chat_controller.dart';
 
 class ActiveUserAvatar extends StatelessWidget {
-   final ChatUserModel user; // 
+  final ChatUserModel user; //
 
   const ActiveUserAvatar({super.key, required this.user});
-
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +92,9 @@ class ActiveUserAvatar extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.bodySmall(
+              isDark: isDark,
+            ).copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),

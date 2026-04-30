@@ -13,10 +13,10 @@ class DatingProfile {
   final String bio;
   final String location;
   final List<String> interests;
-  final String profileImageUrl; 
+  final String profileImageUrl;
   final bool isActiveNow;
   final String distance;
-  final List<String> imageUrls; 
+  final List<String> imageUrls;
   final String? gender;
   final String? lookingFor;
   final String? religion;
@@ -95,7 +95,7 @@ class HomeController extends GetxController {
   final isGoldenChatPressed = false.obs;
 
   /// Subscription/Limit logic
-  final directMessageLimit = 3.obs; 
+  final directMessageLimit = 3.obs;
   final messagesSentCount = 0.obs;
 
   DatingProfile? get currentProfile =>
@@ -109,7 +109,10 @@ class HomeController extends GetxController {
     loadHomeData();
   }
 
-  void pressGoldenChat(DatingProfile profile, Function(DatingProfile) onShowDialog) {
+  void pressGoldenChat(
+    DatingProfile profile,
+    Function(DatingProfile) onShowDialog,
+  ) {
     isGoldenChatPressed.value = true;
     Future.delayed(const Duration(milliseconds: 150), () {
       isGoldenChatPressed.value = false;
@@ -174,10 +177,10 @@ class HomeController extends GetxController {
       final mappedProfiles = feedData.map((item) {
         final distanceKm = (item["distanceKm"] ?? 0).toString();
         final imagesData = item["images"] as List<dynamic>? ?? [];
-        
+
         String primaryImage = "";
         List<String> allImages = [];
-        
+
         if (imagesData.isNotEmpty) {
           // Extract unique non-empty URLs
           allImages = imagesData
@@ -191,7 +194,7 @@ class HomeController extends GetxController {
             orElse: () => imagesData.first,
           );
           primaryImage = primaryObj["url"]?.toString() ?? "";
-          
+
           // Move primary image to the front if it's not already
           if (allImages.contains(primaryImage)) {
             allImages.remove(primaryImage);
@@ -199,7 +202,7 @@ class HomeController extends GetxController {
           } else if (primaryImage.isNotEmpty) {
             allImages.insert(0, primaryImage);
           }
-          
+
           // Limit to 3 images as requested
           allImages = allImages.take(3).toList();
         } else {
@@ -314,7 +317,6 @@ class HomeController extends GetxController {
       final targetUserId = profiles[index].id;
       if (targetUserId.isEmpty) return;
       print("HomeController: swipe action -> $action for userId=$targetUserId");
-
       log(
         "Triggering $action for index=$index targetUserId=$targetUserId",
         name: "HomeController",
@@ -337,7 +339,6 @@ class HomeController extends GetxController {
         action: action,
       );
       print("HomeController: $action API call completed for $targetUserId");
-
       log(
         "$action action submitted successfully for $targetUserId",
         name: "HomeController",

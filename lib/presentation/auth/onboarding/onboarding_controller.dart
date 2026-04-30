@@ -66,12 +66,14 @@ class OnboardingController extends GetxController {
     {
       'emoji': '💫',
       'title': 'Find People Nearby 📍',
-      'description': 'Discover amazing people around you. Connect with those who share your vibe and interests.',
+      'description':
+          'Discover amazing people around you. Connect with those who share your vibe and interests.',
     },
     {
       'emoji': '✨',
       'title': 'Real Connections Only 💜',
-      'description': 'Match with people who truly align with your personality and lifestyle.',
+      'description':
+          'Match with people who truly align with your personality and lifestyle.',
     },
     {
       'emoji': '⚡',
@@ -88,26 +90,72 @@ class OnboardingController extends GetxController {
   ];
 
   final List<Map<String, String>> lookingForOptions = [
-    {'emoji': '❤️', 'title': 'Long-term Relationship', 'subtitle': 'Looking for something serious'},
+    {
+      'emoji': '❤️',
+      'title': 'Long-term Relationship',
+      'subtitle': 'Looking for something serious',
+    },
     {'emoji': '☕', 'title': 'Casual Dating', 'subtitle': 'Go with the flow'},
-    {'emoji': '🤝', 'title': 'Friendship', 'subtitle': 'Just making new friends'},
-    {'emoji': '🌟', 'title': 'Not sure yet', 'subtitle': 'Let’s see what happens'},
+    {
+      'emoji': '🤝',
+      'title': 'Friendship',
+      'subtitle': 'Just making new friends',
+    },
+    {
+      'emoji': '🌟',
+      'title': 'Not sure yet',
+      'subtitle': 'Let’s see what happens',
+    },
   ];
 
   final List<String> interests = [
-    '🎵 Music', '🏔️ Hiking', '📚 Reading', '☕ Coffee', '🎮 Gaming', '🍕 Foodie',
-    '🐶 Dogs', '🧘 Yoga', '✈️ Travel', '🎨 Art', '🎬 Movies', '🏋️ Fitness',
-    '📸 Photography', '🍳 Cooking',
+    '🎵 Music',
+    '🏔️ Hiking',
+    '📚 Reading',
+    '☕ Coffee',
+    '🎮 Gaming',
+    '🍕 Foodie',
+    '🐶 Dogs',
+    '🧘 Yoga',
+    '✈️ Travel',
+    '🎨 Art',
+    '🎬 Movies',
+    '🏋️ Fitness',
+    '📸 Photography',
+    '🍳 Cooking',
   ];
 
-  final List<String> religionOptions = ['Hindu', 'Muslim', 'Christian', 'Buddhist', 'Parsi', 'Sikh', 'Jain', 'Atheist', 'Other'];
+  final List<String> religionOptions = [
+    'Hindu',
+    'Muslim',
+    'Christian',
+    'Buddhist',
+    'Parsi',
+    'Sikh',
+    'Jain',
+    'Atheist',
+    'Other',
+  ];
 
   final List<String> zodiacOptions = [
-    '♈ Aries', '♉ Taurus', '♊ Gemini', '♋ Cancer', '♌ Leo', '♍ Virgo',
-    '♎ Libra', '♏ Scorpio', '♐ Sagittarius', '♑ Capricorn', '♒ Aquarius', '♓ Pisces'
+    '♈ Aries',
+    '♉ Taurus',
+    '♊ Gemini',
+    '♋ Cancer',
+    '♌ Leo',
+    '♍ Virgo',
+    '♎ Libra',
+    '♏ Scorpio',
+    '♐ Sagittarius',
+    '♑ Capricorn',
+    '♒ Aquarius',
+    '♓ Pisces',
   ];
 
-  final List<String> heightOptions = List.generate(81, (index) => "${140 + index} cm");
+  final List<String> heightOptions = List.generate(
+    81,
+    (index) => "${140 + index} cm",
+  );
 
   // ================= ACTIONS =================
 
@@ -116,7 +164,7 @@ class OnboardingController extends GetxController {
     super.onInit();
     nameController.text = LocalStorage.name ?? '';
     _nameValue.value = nameController.text;
-    
+
     citySearchController.addListener(() {
       filterCities(citySearchController.text);
     });
@@ -149,7 +197,11 @@ class OnboardingController extends GetxController {
     if (query.isEmpty) {
       filteredCities.assignAll(allCitiesRaw);
     } else {
-      filteredCities.assignAll(allCitiesRaw.where((city) => city.toLowerCase().contains(query.toLowerCase())).toList());
+      filteredCities.assignAll(
+        allCitiesRaw
+            .where((city) => city.toLowerCase().contains(query.toLowerCase()))
+            .toList(),
+      );
     }
   }
 
@@ -233,7 +285,11 @@ class OnboardingController extends GetxController {
 
   Future<void> pickGalleryImage() async {
     if (selectedGalleryImages.length >= 2) {
-      Get.snackbar("Limit Reached", "You can upload maximum 2 gallery photos.", snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Limit Reached",
+        "You can upload maximum 2 gallery photos.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -244,17 +300,58 @@ class OnboardingController extends GetxController {
     selectedGalleryImages.removeAt(index);
   }
 
+  void swapImages(int fromIndex, int toIndex) {
+    if (fromIndex == toIndex) return;
+
+    String fromPath = fromIndex == -1 
+        ? _selectedProfileImage.value 
+        : (fromIndex < selectedGalleryImages.length ? selectedGalleryImages[fromIndex] : '');
+    
+    if (fromPath.isEmpty) return; // Cannot drag an empty slot
+
+    String toPath = toIndex == -1 
+        ? _selectedProfileImage.value 
+        : (toIndex < selectedGalleryImages.length ? selectedGalleryImages[toIndex] : '');
+
+    List<String> newGallery = List.from(selectedGalleryImages);
+
+    // Update fromIndex slot
+    if (fromIndex == -1) {
+      _selectedProfileImage.value = toPath;
+    } else {
+      if (fromIndex < newGallery.length) {
+        newGallery[fromIndex] = toPath;
+      }
+    }
+
+    // Update toIndex slot
+    if (toIndex == -1) {
+      _selectedProfileImage.value = fromPath;
+    } else {
+      if (toIndex < newGallery.length) {
+        newGallery[toIndex] = fromPath;
+      } else {
+        while (newGallery.length < toIndex) {
+          newGallery.add('');
+        }
+        newGallery.add(fromPath);
+      }
+    }
+
+    newGallery.removeWhere((item) => item.isEmpty);
+    selectedGalleryImages.assignAll(newGallery);
+  }
+
   Future<void> submitProfile() async {
     if (isLoading.value) return;
     isLoading.value = true;
-    
+
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
       if (token == null) throw "Token not found";
+      print("🚀 STARTING PROFILE CREATION...");
 
-      debugPrint("🚀 STARTING PROFILE CREATION...");
-      
       double lat = 0.0;
       double lng = 0.0;
       try {
@@ -264,55 +361,54 @@ class OnboardingController extends GetxController {
         lat = position.latitude;
         lng = position.longitude;
       } catch (e) {
-        debugPrint("⚠️ Could not get location: $e");
+        print("⚠️ Could not get location: $e");
       }
 
       final body = {
         "name": nameController.text.trim(),
         "gender": selectedGender,
         "age": selectedAge.toInt(),
-        "bio": bioController.text.trim().isEmpty ? "Hello" : bioController.text.trim(),
+        "bio": bioController.text.trim().isEmpty
+            ? "Hello"
+            : bioController.text.trim(),
         "interests": selectedInterests.toList(),
         "lookingFor": lookingFor,
         "religion": selectedReligion,
         "height": selectedHeight,
         "zodiac": selectedZodiac,
-        "location": {
-          "city": selectedCity,
-          "lat": lat,
-          "lng": lng,
-        },
+        "location": {"city": selectedCity, "lat": lat, "lng": lng},
       };
 
       await _userApi.createProfile(token, body);
-      debugPrint("✅ PROFILE CREATED SUCCESSFULLY");
+      print("✅ PROFILE CREATED SUCCESSFULLY");
 
       // 1. Upload Main Photo
       if (selectedProfileImage.isNotEmpty) {
-        debugPrint("📸 UPLOADING MAIN PHOTO: ${selectedProfileImage}");
+        print("📸 UPLOADING MAIN PHOTO: ${selectedProfileImage}");
         final result = await _userApi.uploadPhoto(token, selectedProfileImage);
         final publicId = result['data']?['publicId'];
-        debugPrint("✅ MAIN PHOTO UPLOADED. PublicID: $publicId");
+        print("✅ MAIN PHOTO UPLOADED. PublicID: $publicId");
 
         if (publicId != null) {
-          debugPrint("🌟 SETTING MAIN PHOTO AS PRIMARY...");
+          print("🌟 SETTING MAIN PHOTO AS PRIMARY...");
           await _userApi.setPrimaryPhoto(token, publicId);
-          debugPrint("✅ PRIMARY PHOTO SET");
+          print("✅ PRIMARY PHOTO SET");
         }
       }
 
       // 2. Upload Gallery Photos
       for (int i = 0; i < selectedGalleryImages.length; i++) {
         final imgPath = selectedGalleryImages[i];
-        debugPrint("🖼️ UPLOADING GALLERY PHOTO [${i+1}/${selectedGalleryImages.length}]: $imgPath");
+        print(
+          "🖼️ UPLOADING GALLERY PHOTO [${i + 1}/${selectedGalleryImages.length}]: $imgPath",
+        );
         await _userApi.uploadPhoto(token, imgPath);
-        debugPrint("✅ GALLERY PHOTO [${i+1}] UPLOADED");
+        print("✅ GALLERY PHOTO [${i + 1}] UPLOADED");
       }
-
-      debugPrint("🎉 ALL STEPS COMPLETED. NAVIGATING TO DASHBOARD...");
+      print("🎉 ALL STEPS COMPLETED. NAVIGATING TO DASHBOARD...");
       Get.offAllNamed("/dashboard");
     } catch (e) {
-      debugPrint("❌ ERROR DURING ONBOARDING: $e");
+      print("❌ ERROR DURING ONBOARDING: $e");
       Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
@@ -323,19 +419,32 @@ class OnboardingController extends GetxController {
     switch (currentStep) {
       case 0:
       case 1:
-      case 2: return true;
-      case 3: return nameValue.trim().isNotEmpty;
-      case 4: return bioValue.trim().isNotEmpty;
-      case 5: return selectedGender.isNotEmpty;
-      case 6: return true; // Age has slider
-      case 7: return lookingFor.isNotEmpty;
-      case 8: return selectedInterests.length >= 3;
-      case 9: return selectedReligion.isNotEmpty;
-      case 10: return selectedHeight.isNotEmpty;
-      case 11: return selectedZodiac.isNotEmpty;
-      case 12: return selectedCity.isNotEmpty;
-      case 13: return selectedProfileImage.isNotEmpty; // must have at least main image
-      default: return false;
+      case 2:
+        return true;
+      case 3:
+        return nameValue.trim().isNotEmpty;
+      case 4:
+        return bioValue.trim().isNotEmpty;
+      case 5:
+        return selectedGender.isNotEmpty;
+      case 6:
+        return true; // Age has slider
+      case 7:
+        return lookingFor.isNotEmpty;
+      case 8:
+        return selectedInterests.length >= 3;
+      case 9:
+        return selectedReligion.isNotEmpty;
+      case 10:
+        return selectedHeight.isNotEmpty;
+      case 11:
+        return selectedZodiac.isNotEmpty;
+      case 12:
+        return selectedCity.isNotEmpty;
+      case 13:
+        return selectedProfileImage.isNotEmpty; // must have at least main image
+      default:
+        return false;
     }
   }
 

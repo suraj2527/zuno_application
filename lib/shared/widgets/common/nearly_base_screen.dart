@@ -30,9 +30,7 @@ class NearlyBaseScreen extends StatelessWidget {
           if (tabBar != null) tabBar!,
 
           /// ✅ Content area (same structure as HomeTab)
-          Expanded(
-            child: child,
-          ),
+          Expanded(child: child),
         ],
       ),
     );

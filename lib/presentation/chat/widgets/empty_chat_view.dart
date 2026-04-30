@@ -24,10 +24,7 @@ class EmptyChatView extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
-              child: Image.asset(
-                'assets/images/dog.jpg',
-                fit: BoxFit.cover,
-              ),
+              child: Image.asset('assets/images/dog.jpg', fit: BoxFit.cover),
             ),
           ),
 

@@ -21,19 +21,17 @@ class DashboardScreen extends GetView<DashboardController> {
     final chatController = Get.find<ChatController>();
 
     final pages = [
-      const HomeTab(),                                        // 0 – Home
-      const ChatScreen(),                                    // 1 – Chats
-      const ActivityTab(),                    // 2 – Likes
-      ProfileTab(),                  // 3 – Profile
+      const HomeTab(), // 0 – Home
+      const ChatScreen(), // 1 – Chats
+      const ActivityTab(), // 2 – Likes
+      ProfileTab(), // 3 – Profile
     ];
 
     return Scaffold(
       extendBody: true,
       body: Obx(
-        () => IndexedStack(
-          index: controller.currentIndex.value,
-          children: pages,
-        ),
+        () =>
+            IndexedStack(index: controller.currentIndex.value, children: pages),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -88,12 +86,7 @@ class DashboardScreen extends GetView<DashboardController> {
     Icons.person_rounded,
   ];
 
-  static const List<String> _labels = [
-    'Home',
-    'Chats',
-    'Activity',
-    'Profile',
-  ];
+  static const List<String> _labels = ['Home', 'Chats', 'Activity', 'Profile'];
 }
 
 // ─────────────────────────────────────────────────
@@ -228,8 +221,7 @@ class _NavItem extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 10,
-                  fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected
                       ? activeColor
                       : (isDark ? Colors.white38 : Colors.black38),

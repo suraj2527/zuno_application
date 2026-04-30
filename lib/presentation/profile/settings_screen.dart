@@ -20,7 +20,11 @@ class SettingsScreen extends StatelessWidget {
         ),
         title: const Text(
           "Settings",
-          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w400),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w400,
+          ),
         ),
         titleSpacing: 0,
         bottom: PreferredSize(
@@ -41,15 +45,11 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
           _buildSectionTitle("Show distance in"),
-          _buildCard([
-            _buildListItem("Kilometers"),
-          ]),
+          _buildCard([_buildListItem("Kilometers")]),
 
           const SizedBox(height: 24),
           _buildSectionTitle("Notifications"),
-          _buildCard([
-            _buildListItem("Emails and notifications"),
-          ]),
+          _buildCard([_buildListItem("Emails and notifications")]),
 
           const SizedBox(height: 24),
           _buildSectionTitle("Liked, Skipped and Blocked profiles"),
@@ -84,7 +84,7 @@ class SettingsScreen extends StatelessWidget {
           _buildHelpCard(),
 
           const SizedBox(height: 40),
-          
+
           // Log out button just in case, since Settings usually has it
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -93,12 +93,18 @@ class SettingsScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFF0F0),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: const Text(
                 "Log Out",
-                style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -113,7 +119,11 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w400),
+        style: const TextStyle(
+          fontSize: 16,
+          color: Colors.black87,
+          fontWeight: FontWeight.w400,
+        ),
       ),
     );
   }
@@ -149,7 +159,11 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 Text(
                   "Help and support",
-                  style: TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
                 Icon(Icons.arrow_forward, size: 20, color: Colors.black87),
               ],
@@ -172,7 +186,11 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const Icon(Icons.arrow_forward, size: 20, color: Colors.black87),
             ],

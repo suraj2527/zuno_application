@@ -7,7 +7,7 @@ class DatingProfile {
   final String bio;
   final String location;
   final List<String> interests;
-  final String profileImageUrl; 
+  final String profileImageUrl;
   final bool isActiveNow;
   final String distance;
   final List<String> imageUrls;

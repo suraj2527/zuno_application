@@ -9,9 +9,7 @@ class HomeApi {
   Future<List<dynamic>> getDiscoveryFeed(String token) async {
     final res = await http.get(
       Uri.parse("$baseUrl/discovery/feed"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {
@@ -48,12 +46,8 @@ class HomeApi {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       },
-      body: jsonEncode({
-        "targetUserId": targetUserId,
-        "action": action,
-      }),
+      body: jsonEncode({"targetUserId": targetUserId, "action": action}),
     );
-
     log(
       "sendDiscoveryAction <- status=${res.statusCode}, body=${res.body}",
       name: "HomeApi",

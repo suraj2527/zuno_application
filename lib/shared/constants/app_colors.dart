@@ -9,14 +9,16 @@ class AppColors {
   static const Color primary5 = Color(0xFFF3F2FD);
 
   // ── Secondary accent ───────────────────────────
-  static const Color roseGold = Color(0xFFE8857A); // Warm rose gold (CTAs / highlights)
+  static const Color roseGold = Color(
+    0xFFE8857A,
+  ); // Warm rose gold (CTAs / highlights)
 
   // For CHAT
 
   static const Color chatHeaderSurfaceLight = Color(0xFFFFFFFF);
   static const Color chatHeaderSurfaceDark = Color(0xFF171A22);
   static const Color profileAvatarBackground = Color(0xFFF0EDFF);
-  
+
   static const Color chatSectionSurfaceLight = Color(0xFFFFFFFF);
   static const Color chatSectionSurfaceDark = Color(0xFF1B1F2A);
 
@@ -38,7 +40,9 @@ class AppColors {
   static const Color error = Color(0xFFE74C3C);
 
   // ── Light theme ────────────────────────────────
-  static const Color scaffoldLight = Color(0xFFF8F8FB); // Clean off-white (redesign)
+  static const Color scaffoldLight = Color(
+    0xFFF8F8FB,
+  ); // Clean off-white (redesign)
   static const Color cardLight = Colors.white;
   static const Color textPrimary = Color(0xFF0F0A1E);
   static const Color textSecondary = Color(0xFF5B4C8A);

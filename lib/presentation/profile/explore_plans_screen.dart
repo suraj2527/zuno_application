@@ -12,7 +12,9 @@ class ExplorePlansScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldDark
+          : AppColors.scaffoldLight,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -85,19 +87,23 @@ class ExplorePlansScreen extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.scaffoldLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldDark
+          : AppColors.scaffoldLight,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.close_rounded, color: isDark ? Colors.white : Colors.black87),
+        icon: Icon(
+          Icons.close_rounded,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
         onPressed: () => Get.back(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           "Premium Plans",
-          style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
+          style: AppTextStyles.headingMedium(
+            isDark: isDark,
+          ).copyWith(fontSize: 18, fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
       ),
@@ -112,10 +118,9 @@ class ExplorePlansScreen extends StatelessWidget {
           shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
           child: Text(
             "Elevate Your Experience",
-            style: AppTextStyles.headingLarge(isDark: isDark).copyWith(
-              fontSize: 28,
-              color: Colors.white,
-            ),
+            style: AppTextStyles.headingLarge(
+              isDark: isDark,
+            ).copyWith(fontSize: 28, color: Colors.white),
           ),
         ),
         const SizedBox(height: 12),
@@ -144,7 +149,9 @@ class ExplorePlansScreen extends StatelessWidget {
         color: isDark ? AppColors.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isPopular ? AppColors.roseGold.withOpacity(0.5) : Colors.transparent,
+          color: isPopular
+              ? AppColors.roseGold.withOpacity(0.5)
+              : Colors.transparent,
           width: 2,
         ),
         boxShadow: [
@@ -187,10 +194,9 @@ class ExplorePlansScreen extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: AppTextStyles.headingMedium(
+                        isDark: isDark,
+                      ).copyWith(fontSize: 22, fontWeight: FontWeight.w800),
                     ),
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -198,7 +204,11 @@ class ExplorePlansScreen extends StatelessWidget {
                         gradient: gradient,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -219,40 +229,57 @@ class ExplorePlansScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
-                ...features.map((f) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle_rounded, size: 18, color: isPopular ? AppColors.roseGold : AppColors.primary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          f,
-                          style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                            fontWeight: FontWeight.w500,
+                ...features.map(
+                  (f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 18,
+                          color: isPopular
+                              ? AppColors.roseGold
+                              : AppColors.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            f,
+                            style: AppTextStyles.bodySmall(
+                              isDark: isDark,
+                            ).copyWith(fontWeight: FontWeight.w500),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )),
+                ),
                 const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () {
-                    Get.snackbar("Success", "Welcome to $title!", snackPosition: SnackPosition.BOTTOM);
+                    Get.snackbar(
+                      "Success",
+                      "Welcome to $title!",
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
                     Get.back();
                   },
                   child: Container(
                     height: 54,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      gradient: isPopular ? AppGradients.gold : AppGradients.primary,
+                      gradient: isPopular
+                          ? AppGradients.gold
+                          : AppGradients.primary,
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: const Center(
                       child: Text(
                         "Choose Plan",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),

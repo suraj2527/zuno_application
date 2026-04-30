@@ -98,9 +98,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           : null;
                       final isSenderChanged =
                           olderMessage == null || olderMessage.isMe != isMe;
-                      final isDateChanged = olderMessage == null ||
+                      final isDateChanged =
+                          olderMessage == null ||
                           !_isSameDay(
-                              message.createdAt, olderMessage.createdAt);
+                            message.createdAt,
+                            olderMessage.createdAt,
+                          );
 
                       return _buildMessageItem(
                         context: context,
@@ -177,7 +180,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         children: [
           // Back button
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
             onPressed: () => Get.back(),
           ),
 
@@ -199,10 +206,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     height: 46,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.green,
-                        width: 2.5,
-                      ),
+                      border: Border.all(color: AppColors.green, width: 2.5),
                     ),
                   ),
                 Padding(
@@ -304,8 +308,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 child: const Text('Clear Chat'),
               ),
               MenuItemButton(
-                leadingIcon:
-                    const Icon(Icons.notifications_off_outlined, size: 20),
+                leadingIcon: const Icon(
+                  Icons.notifications_off_outlined,
+                  size: 20,
+                ),
                 onPressed: () {},
                 child: const Text('Mute Notifications'),
               ),
@@ -345,8 +351,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.inputFillDark
@@ -383,8 +391,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
         // Bubble row
         Row(
-          mainAxisAlignment:
-              isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isMe
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Their avatar shown for first message in a group
@@ -401,7 +410,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                         child: chat.imageUrl.isEmpty
                             ? Text(
                                 controller.getInitials(
-                                    controller.normalizeDisplayName(chat.name)),
+                                  controller.normalizeDisplayName(chat.name),
+                                ),
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
@@ -429,8 +439,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                     color: isMe
                         ? null
                         : (isDark
-                            ? AppColors.inputFillDark
-                            : AppColors.cardLight),
+                              ? AppColors.inputFillDark
+                              : AppColors.cardLight),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -463,14 +473,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       children: [
                         Text(
                           message.text,
-                          style: AppTextStyles.bodyMedium(isDark: isMe ? false : isDark).copyWith(
-                            color: isMe
-                                ? Colors.white
-                                : (isDark
-                                    ? Colors.white.withOpacity(0.93)
-                                    : Colors.black.withOpacity(0.85)),
-                            height: 1.4,
-                          ),
+                          style:
+                              AppTextStyles.bodyMedium(
+                                isDark: isMe ? false : isDark,
+                              ).copyWith(
+                                color: isMe
+                                    ? Colors.white
+                                    : (isDark
+                                          ? Colors.white.withOpacity(0.93)
+                                          : Colors.black.withOpacity(0.85)),
+                                height: 1.4,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -479,14 +492,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                           children: [
                             Text(
                               controller.formatMessageTime(message.createdAt),
-                              style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                                color: isMe
-                                    ? Colors.white.withOpacity(0.75)
-                                    : (isDark
-                                        ? AppColors.textHintDark
-                                        : AppColors.textHint),
-                                fontSize: 10,
-                              ),
+                              style: AppTextStyles.bodySmall(isDark: isDark)
+                                  .copyWith(
+                                    color: isMe
+                                        ? Colors.white.withOpacity(0.75)
+                                        : (isDark
+                                              ? AppColors.textHintDark
+                                              : AppColors.textHint),
+                                    fontSize: 10,
+                                  ),
                             ),
                             if (isMe) ...[
                               const SizedBox(width: 4),
@@ -543,10 +557,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
             shaderCallback: (b) => AppGradients.primary.createShader(b),
             child: Text(
               "Say hi to $name!",
-              style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
-                color: Colors.white,
-                fontSize: 18,
-              ),
+              style: AppTextStyles.headingMedium(
+                isDark: isDark,
+              ).copyWith(color: Colors.white, fontSize: 18),
             ),
           ),
           const SizedBox(height: 8),
@@ -568,9 +581,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.chatHeaderSurfaceDark
-              : Colors.white,
+          color: isDark ? AppColors.chatHeaderSurfaceDark : Colors.white,
           border: Border(
             top: BorderSide(
               color: isDark
@@ -648,8 +659,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               onTap: _isSending
                   ? null
                   : () async {
-                      if (_isSending ||
-                          messageController.text.trim().isEmpty) {
+                      if (_isSending || messageController.text.trim().isEmpty) {
                         return;
                       }
                       final text = messageController.text.trim();
@@ -669,6 +679,59 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   DatingProfile _buildProfileFromChat(ChatPreviewModel chat) {
+    if (chat.rawProfileData != null && chat.rawProfileData is Map) {
+      final pMap = Map<String, dynamic>.from(chat.rawProfileData);
+      final imagesData = pMap["images"] as List<dynamic>? ?? [];
+      String primaryImage = chat.imageUrl;
+      List<String> allImages = primaryImage.isNotEmpty ? [primaryImage] : [];
+      if (imagesData.isNotEmpty) {
+        allImages = imagesData
+            .map(
+              (img) =>
+                  img is Map ? img["url"]?.toString() ?? "" : img.toString(),
+            )
+            .where((url) => url.isNotEmpty)
+            .toSet()
+            .toList();
+        final primaryObj = imagesData.firstWhere(
+          (img) => img is Map && img["isPrimary"] == true,
+          orElse: () => imagesData.first,
+        );
+        primaryImage = primaryObj is Map
+            ? primaryObj["url"]?.toString() ?? ""
+            : primaryObj.toString();
+        if (allImages.contains(primaryImage)) {
+          allImages.remove(primaryImage);
+          allImages.insert(0, primaryImage);
+        } else if (primaryImage.isNotEmpty) {
+          allImages.insert(0, primaryImage);
+        }
+      }
+
+      return DatingProfile(
+        id: pMap["_id"]?.toString() ?? pMap["userId"]?.toString() ?? chat.id,
+        userName:
+            pMap["name"]?.toString() ??
+            controller.normalizeDisplayName(chat.name),
+        age: (pMap["age"] ?? "").toString(),
+        bio:
+            pMap["bio"]?.toString() ??
+            (chat.lastMessage.trim().isNotEmpty
+                ? chat.lastMessage
+                : "No bio added yet"),
+        location: "",
+        interests: pMap["interests"] is List
+            ? List<String>.from(pMap["interests"].map((e) => e.toString()))
+            : const <String>[],
+        profileImageUrl: primaryImage.isNotEmpty ? primaryImage : chat.imageUrl,
+        isActiveNow: chat.isOnline,
+        distance: "",
+        imageUrls: allImages,
+        gender: pMap["gender"]?.toString(),
+        lookingFor: pMap["lookingFor"]?.toString(),
+      );
+    }
+
     return DatingProfile(
       id: chat.id,
       userName: controller.normalizeDisplayName(chat.name),
@@ -729,9 +792,10 @@ class _AnimatedSendButtonState extends State<_AnimatedSendButton>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -769,8 +833,9 @@ class _AnimatedSendButtonState extends State<_AnimatedSendButton>
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.2,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.white,
+                      ),
                     ),
                   )
                 : const Icon(

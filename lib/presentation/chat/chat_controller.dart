@@ -45,6 +45,8 @@ class ChatController extends GetxController {
       await _connectSocket(token);
 
       final conversations = await _chatApi.getConversations(token);
+      print("===== GET CONVERSATIONS API RESPONSE =====");
+      print(conversations);
       for (final raw in conversations) {
         _extractAndRegisterMyIdsFromConversation(raw);
       }
@@ -65,7 +67,7 @@ class ChatController extends GetxController {
             .toList(),
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      print("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -98,26 +100,16 @@ class ChatController extends GetxController {
         messagesByConversation[chat.id] = removedMessages;
       }
       chatList.refresh();
-      Get.snackbar("Error", e.toString());
+      print("Error: $e");
     }
   }
 
   void openChat(ChatPreviewModel chat) {
-    Get.snackbar(
-      'Open Chat',
-      'Opening chat with ${chat.name}',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+    print('Opening chat with ${chat.name}');
   }
 
   void openSearch() {
-    Get.snackbar(
-      'Search',
-      'Search chats clicked',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+    print('Search chats clicked');
   }
 
   String normalizeDisplayName(String? name) {
@@ -164,11 +156,13 @@ class ChatController extends GetxController {
       _registerMyId(_myUserId);
 
       final data = await _chatApi.getMessages(token, conversationId);
+      print("===== GET MESSAGES API RESPONSE =====");
+      print(data);
       final mapped = data.map(_mapMessage).toList();
       getConversationMessages(conversationId).assignAll(mapped);
       _joinConversation(conversationId);
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      print("Error: $e");
     } finally {
       isMessagesLoading.value = false;
     }
@@ -181,7 +175,7 @@ class ChatController extends GetxController {
     final user = _authService.currentUser;
     final token = await user?.getIdToken(true);
     if (token == null) {
-      Get.snackbar("Error", "Token not found");
+      print("Error: Token not found");
       return;
     }
 
@@ -243,7 +237,7 @@ class ChatController extends GetxController {
         isSeen: message.isSeen,
       );
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      print("Error: $e");
     }
   }
 
@@ -275,7 +269,8 @@ class ChatController extends GetxController {
       _updateConversationPreview(
         conversationId,
         message.text,
-        increaseUnread: !message.isMe && conversationId != _activeConversationId,
+        increaseUnread:
+            !message.isMe && conversationId != _activeConversationId,
       );
     });
     _socket?.on("message_status", (payload) {
@@ -316,12 +311,13 @@ class ChatController extends GetxController {
     }
 
     final item = Map<String, dynamic>.from(raw);
-    final id = item["_id"]?.toString() ??
+    final id =
+        item["_id"]?.toString() ??
         item["conversationId"]?.toString() ??
         item["id"]?.toString() ??
         "";
-    final user =
-        item["user"] is Map ? Map<String, dynamic>.from(item["user"]) : null;
+    final otherUser = item["otherUserProfile"] ?? item["user"];
+    final user = otherUser is Map ? Map<String, dynamic>.from(otherUser) : null;
     final candidateNames = <String?>[
       user?["name"]?.toString(),
       user?["fullName"]?.toString(),
@@ -335,33 +331,51 @@ class ChatController extends GetxController {
       orElse: () => null,
     );
     final name = normalizeDisplayName(rawName);
-    final image = user?["image"]?.toString() ??
-        user?["profileImage"]?.toString() ??
-        item["image"]?.toString() ??
-        "";
-    final lastMessage = item["lastMessage"]?.toString() ??
+    String image = "";
+    final imagesData = user?["images"] as List<dynamic>? ?? [];
+    if (imagesData.isNotEmpty) {
+      final primaryObj = imagesData.firstWhere(
+        (img) => img is Map && img["isPrimary"] == true,
+        orElse: () => imagesData.first,
+      );
+      image = primaryObj is Map
+          ? primaryObj["url"]?.toString() ?? ""
+          : primaryObj.toString();
+    }
+    if (image.isEmpty) {
+      image =
+          user?["image"]?.toString() ??
+          user?["profileImage"]?.toString() ??
+          item["image"]?.toString() ??
+          "";
+    }
+    final lastMessage =
+        item["lastMessage"]?.toString() ??
         item["lastMessageText"]?.toString() ??
         "";
     final unread = int.tryParse(item["unreadCount"]?.toString() ?? "0") ?? 0;
     final createdAt = _parseDate(item["updatedAt"] ?? item["lastMessageAt"]);
     final status = item["status"]?.toString().toLowerCase();
-    final isSeen = _readBool(item, const ["isSeen", "seen", "read"]) ||
+    final isSeen =
+        _readBool(item, const ["isSeen", "seen", "read"]) ||
         status == "seen" ||
         status == "read";
     final isDelivered =
         _readBool(item, const ["isDelivered", "delivered"]) ||
-            status == "delivered" ||
-            isSeen;
+        status == "delivered" ||
+        isSeen;
 
     // The backend may send one of these fields. We interpret "inactive/archived"
     // as anything explicitly marked archived/inactive, or explicitly not active.
-    final isArchived = _readBool(item, const ["isArchived", "archived"]) ||
+    final isArchived =
+        _readBool(item, const ["isArchived", "archived"]) ||
         (status == "archived" || status == "inactive") ||
         (_readBool(item, const ["isActive", "active"]) == false &&
             _hasKey(item, const ["isActive", "active"]));
 
     return ChatPreviewModel(
       id: id,
+      matchId: item["matchId"]?.toString() ?? "",
       name: name,
       imageUrl: image,
       lastMessage: lastMessage,
@@ -372,6 +386,7 @@ class ChatController extends GetxController {
       isSeen: unread > 0 ? false : isSeen,
       isDelivered: isDelivered,
       isArchived: isArchived,
+      rawProfileData: otherUser,
     );
   }
 
@@ -391,21 +406,25 @@ class ChatController extends GetxController {
     }
 
     final item = Map<String, dynamic>.from(raw);
-    final conversationId = item["conversationId"]?.toString() ??
+    final conversationId =
+        item["conversationId"]?.toString() ??
         item["chatId"]?.toString() ??
         item["roomId"]?.toString() ??
         "";
     final senderMap = item["sender"] is Map
         ? Map<String, dynamic>.from(item["sender"])
         : null;
-    final senderId = item["senderId"]?.toString() ??
+    final senderId =
+        item["senderId"]?.toString() ??
         senderMap?["_id"]?.toString() ??
         item["sender"]?.toString() ??
         "";
-    final explicitIsMe = _readBool(
-      item,
-      const ["isMe", "isMine", "fromMe", "isSender"],
-    );
+    final explicitIsMe = _readBool(item, const [
+      "isMe",
+      "isMine",
+      "fromMe",
+      "isSender",
+    ]);
     final senderCandidates = <String>{
       senderId.trim(),
       senderMap?["_id"]?.toString().trim() ?? "",
@@ -419,15 +438,16 @@ class ChatController extends GetxController {
     }..removeWhere((e) => e.isEmpty);
     // Ensure we always have the current user ID for proper comparison
     final currentUserId = _myUserId ?? _authService.currentUser?.uid ?? "";
-    final myCandidates = <String>{
-      currentUserId.trim(),
-      ..._myKnownIds,
-    }..removeWhere((e) => e.isEmpty);
-    final isMe = explicitIsMe ||
+    final myCandidates = <String>{currentUserId.trim(), ..._myKnownIds}
+      ..removeWhere((e) => e.isEmpty);
+    final isMe =
+        explicitIsMe ||
         senderCandidates.any((sender) => myCandidates.contains(sender));
     // Debug logging to verify the comparison
     if (senderId.isNotEmpty) {
-      print('DEBUG: senderId="$senderId", currentUserId="$currentUserId", isMe=$isMe');
+      print(
+        'DEBUG: senderId="$senderId", currentUserId="$currentUserId", isMe=$isMe',
+      );
     }
     if (isMe) {
       _registerMyId(senderId);
@@ -438,14 +458,16 @@ class ChatController extends GetxController {
       _registerMyId(senderMap?["firebaseUid"]?.toString());
     }
     final status = item["status"]?.toString().toLowerCase();
-    final isSeen = _readBool(item, const ["isSeen", "seen", "read"]) ||
+    final isSeen =
+        _readBool(item, const ["isSeen", "seen", "read"]) ||
         status == "seen" ||
         status == "read";
     final isDelivered =
         _readBool(item, const ["isDelivered", "delivered"]) ||
-            status == "delivered" ||
-            isSeen;
-    final isSent = _readBool(item, const ["isSent", "sent"]) ||
+        status == "delivered" ||
+        isSeen;
+    final isSent =
+        _readBool(item, const ["isSent", "sent"]) ||
         status == "sent" ||
         isDelivered ||
         isSeen ||
@@ -508,7 +530,8 @@ class ChatController extends GetxController {
   }
 
   void _applyMessageStatusUpdate(Map<String, dynamic> payload) {
-    final conversationId = payload["conversationId"]?.toString() ??
+    final conversationId =
+        payload["conversationId"]?.toString() ??
         payload["chatId"]?.toString() ??
         payload["roomId"]?.toString() ??
         "";
@@ -517,14 +540,17 @@ class ChatController extends GetxController {
     final list = messagesByConversation[conversationId];
     if (list == null || list.isEmpty) return;
 
-    final messageId = payload["messageId"]?.toString() ??
+    final messageId =
+        payload["messageId"]?.toString() ??
         payload["_id"]?.toString() ??
         payload["id"]?.toString() ??
         "";
     final status = payload["status"]?.toString().toLowerCase();
     final seenFlag = _readBool(payload, const ["isSeen", "seen", "read"]);
-    final deliveredFlag =
-        _readBool(payload, const ["isDelivered", "delivered"]);
+    final deliveredFlag = _readBool(payload, const [
+      "isDelivered",
+      "delivered",
+    ]);
     final sentFlag = _readBool(payload, const ["isSent", "sent"]);
 
     final isSeen = seenFlag || status == "seen" || status == "read";
@@ -610,6 +636,7 @@ class ChatController extends GetxController {
     final old = chatList[idx];
     chatList[idx] = ChatPreviewModel(
       id: old.id,
+      matchId: old.matchId,
       name: old.name,
       imageUrl: old.imageUrl,
       lastMessage: text,
@@ -620,6 +647,7 @@ class ChatController extends GetxController {
       isSeen: increaseUnread ? false : (isSeen ?? old.isSeen),
       isDelivered: isDelivered ?? old.isDelivered,
       isArchived: old.isArchived,
+      rawProfileData: old.rawProfileData,
     );
     chatList.refresh();
   }
@@ -643,6 +671,7 @@ class ChatController extends GetxController {
 
     chatList[idx] = ChatPreviewModel(
       id: old.id,
+      matchId: old.matchId,
       name: old.name,
       imageUrl: old.imageUrl,
       lastMessage: old.lastMessage,
@@ -653,6 +682,7 @@ class ChatController extends GetxController {
       isSeen: true,
       isDelivered: old.isDelivered,
       isArchived: old.isArchived,
+      rawProfileData: old.rawProfileData,
     );
     chatList.refresh();
   }

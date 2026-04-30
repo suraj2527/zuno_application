@@ -25,7 +25,9 @@ class ProfileTab extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
+        backgroundColor: isDark
+            ? AppColors.scaffoldDark
+            : const Color(0xFFF8F8FB),
         body: Obx(() {
           final profile = controller.profile.value;
 
@@ -45,9 +47,9 @@ class ProfileTab extends StatelessWidget {
                 children: [
                   // 1. Elegant Header
                   _buildElegantHeader(context, isDark, profile),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // 2. Content Sections
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -56,24 +58,26 @@ class ProfileTab extends StatelessWidget {
                       children: [
                         _buildElegantSectionTitle('About Me'),
                         _buildAboutMeCard(isDark, profile),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         _buildElegantSectionTitle('Bio'),
                         _buildBioCard(isDark, profile.bio),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         _buildElegantSectionTitle('Interests'),
                         _buildInterestsCard(isDark, profile.interests),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         _buildElegantSectionTitle('Gallery'),
                         _buildGallerySection(isDark, profile.imageUrls),
-                        
+
                         // Extra space for Bottom Nav + Safe Area
-                        SizedBox(height: 120 + MediaQuery.of(context).padding.bottom),
+                        SizedBox(
+                          height: 120 + MediaQuery.of(context).padding.bottom,
+                        ),
                       ],
                     ),
                   ),
@@ -86,7 +90,11 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildElegantHeader(BuildContext context, bool isDark, dynamic profile) {
+  Widget _buildElegantHeader(
+    BuildContext context,
+    bool isDark,
+    dynamic profile,
+  ) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -113,14 +121,16 @@ class ProfileTab extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isDark 
+                    colors: isDark
                         ? [const Color(0xFF1A1730), const Color(0xFF110F1E)]
                         : [const Color(0xFFF0EFFF), const Color(0xFFE5E2FF)],
                   ),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(32),
+                  ),
                 ),
               ),
-              
+
               // Settings Button
               Positioned(
                 top: MediaQuery.of(context).padding.top + 10,
@@ -181,7 +191,7 @@ class ProfileTab extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 60),
 
           Text(
@@ -194,13 +204,17 @@ class ProfileTab extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-          
+
           const SizedBox(height: 6),
-          
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+              const Icon(
+                Icons.location_on_rounded,
+                size: 14,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 4),
               Text(
                 profile.location ?? "Location not set",
@@ -271,18 +285,30 @@ class ProfileTab extends StatelessWidget {
                   color: const Color(0xFFFFEAEA),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.logout_rounded, color: Color(0xFFFF4D4D), size: 28),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFFFF4D4D),
+                  size: 28,
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
                 "Sign Out?",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
                 "Are you sure you want to sign out of your account?",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black54, height: 1.4),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 28),
               Row(
@@ -297,7 +323,13 @@ class ProfileTab extends StatelessWidget {
                           color: const Color(0xFFF5F5F5),
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -315,7 +347,13 @@ class ProfileTab extends StatelessWidget {
                           color: const Color(0xFFFF4D4D),
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: const Text("Logout", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                        child: const Text(
+                          "Logout",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -353,13 +391,25 @@ class ProfileTab extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildInfoRow(Icons.person_outline_rounded, "Gender", profile.gender ?? "Not set"),
+          _buildInfoRow(
+            Icons.person_outline_rounded,
+            "Gender",
+            profile.gender ?? "Not set",
+          ),
           const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
-          _buildInfoRow(Icons.favorite_border_rounded, "Looking for", profile.lookingFor ?? "Not set"),
+          _buildInfoRow(
+            Icons.favorite_border_rounded,
+            "Looking for",
+            profile.lookingFor ?? "Not set",
+          ),
           const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
           _buildInfoRow(Icons.cake_outlined, "Age", "${profile.age} years"),
           const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
-          _buildInfoRow(Icons.location_on_outlined, "Location", profile.location ?? "Not set"),
+          _buildInfoRow(
+            Icons.location_on_outlined,
+            "Location",
+            profile.location ?? "Not set",
+          ),
         ],
       ),
     );
@@ -372,9 +422,23 @@ class ProfileTab extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: Colors.black54),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Colors.black87,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
           const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 15, color: Colors.black54, fontWeight: FontWeight.w500)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -432,10 +496,16 @@ class ProfileTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFF8F8F8),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEEEEEE), style: BorderStyle.solid),
+          border: Border.all(
+            color: const Color(0xFFEEEEEE),
+            style: BorderStyle.solid,
+          ),
         ),
         child: const Center(
-          child: Text("No gallery photos", style: TextStyle(color: Colors.black38)),
+          child: Text(
+            "No gallery photos",
+            style: TextStyle(color: Colors.black38),
+          ),
         ),
       );
     }
@@ -450,7 +520,8 @@ class ProfileTab extends StatelessWidget {
             enlargeCenterPage: true,
             enableInfiniteScroll: images.length > 1,
             autoPlay: images.length > 1,
-            onPageChanged: (index, reason) => controller.updateCarouselIndex(index),
+            onPageChanged: (index, reason) =>
+                controller.updateCarouselIndex(index),
           ),
           itemBuilder: (context, index, realIndex) {
             return ClipRRect(
@@ -499,7 +570,11 @@ class ProfileTab extends StatelessWidget {
             color: Colors.white,
             child: Column(
               children: [
-                const ShimmerBox(width: double.infinity, height: 140, radius: 0),
+                const ShimmerBox(
+                  width: double.infinity,
+                  height: 140,
+                  radius: 0,
+                ),
                 const SizedBox(height: 60),
                 const ShimmerBox(width: 200, height: 24),
                 const SizedBox(height: 12),
@@ -507,7 +582,11 @@ class ProfileTab extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: ShimmerBox(width: double.infinity, height: 50, radius: 100),
+                  child: ShimmerBox(
+                    width: double.infinity,
+                    height: 50,
+                    radius: 100,
+                  ),
                 ),
               ],
             ),
@@ -517,9 +596,17 @@ class ProfileTab extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                const ShimmerBox(width: double.infinity, height: 200, radius: 16),
+                const ShimmerBox(
+                  width: double.infinity,
+                  height: 200,
+                  radius: 16,
+                ),
                 const SizedBox(height: 24),
-                const ShimmerBox(width: double.infinity, height: 100, radius: 16),
+                const ShimmerBox(
+                  width: double.infinity,
+                  height: 100,
+                  radius: 16,
+                ),
               ],
             ),
           ),

@@ -174,7 +174,7 @@ class _SignUpForm extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-                 Get.toNamed(Routes.SIGNIN);
+                Get.toNamed(Routes.SIGNIN);
               },
               child: Text(
                 'Sign In',

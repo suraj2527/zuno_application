@@ -59,17 +59,20 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (controller.isLoading.value) {
                     return const ChatSkeleton();
                   }
-                  
+
                   // Filter based on tab and search
                   final chats = _getFilteredChats();
-                  
+
                   if (chats.isEmpty) {
                     return const EmptyChatView();
                   }
 
                   return AppRefreshWrapper(
                     onRefresh: controller.refreshChats,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     child: Column(
                       children: [
                         _buildPremiumSearchBar(isDark),
@@ -79,7 +82,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: isDark ? AppColors.cardDark : Colors.white,
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                              color: isDark
+                                  ? Colors.white10
+                                  : const Color(0xFFEEEEEE),
                             ),
                           ),
                           child: _buildMessagesList(chats, isDark),
@@ -110,21 +115,28 @@ class _ChatScreenState extends State<ChatScreen> {
               onTap: () => _selectedTab.value = tab,
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? (isDark ? AppColors.primary.withOpacity(0.2) : const Color(0xFFE6F0FF))
+                  color: isSelected
+                      ? (isDark
+                            ? AppColors.primary.withOpacity(0.2)
+                            : const Color(0xFFE6F0FF))
                       : (isDark ? AppColors.cardDark : const Color(0xFFF6F6F6)),
                   borderRadius: BorderRadius.circular(100),
-                  border: isSelected && isDark 
+                  border: isSelected && isDark
                       ? Border.all(color: AppColors.primary.withOpacity(0.5))
                       : null,
                 ),
                 child: Text(
                   tab,
                   style: TextStyle(
-                    color: isSelected 
-                        ? (isDark ? AppColors.primaryDark : const Color(0xFF3B82F6))
+                    color: isSelected
+                        ? (isDark
+                              ? AppColors.primaryDark
+                              : const Color(0xFF3B82F6))
                         : (isDark ? Colors.white54 : Colors.black54),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     fontSize: 14,
@@ -143,18 +155,22 @@ class _ChatScreenState extends State<ChatScreen> {
     // In a real app, 'Mutual' vs 'Requests' would be a field in the model.
     // For now we'll just show the same list or filter based on a dummy condition.
     final allChats = controller.activeChats;
-    
+
     // Logic: Mutual = chats with messages/matches, Requests = chats from non-matches (placeholder logic)
     var filtered = allChats;
     if (_selectedTab.value == 'Chat requests') {
       // Mock: show nothing or special requests
-      filtered = []; 
+      filtered = [];
     }
-    
+
     if (query.isNotEmpty) {
-      filtered = filtered.where((c) => 
-          c.name.toLowerCase().contains(query) || 
-          c.lastMessage.toLowerCase().contains(query)).toList();
+      filtered = filtered
+          .where(
+            (c) =>
+                c.name.toLowerCase().contains(query) ||
+                c.lastMessage.toLowerCase().contains(query),
+          )
+          .toList();
     }
     return filtered;
   }
@@ -169,7 +185,10 @@ class _ChatScreenState extends State<ChatScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (val) => _searchQuery.value = val.toLowerCase().trim(),
-        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+          fontSize: 14,
+        ),
         decoration: InputDecoration(
           hintText: 'Search people or messages',
           hintStyle: TextStyle(
@@ -200,14 +219,17 @@ class _ChatScreenState extends State<ChatScreen> {
       separatorBuilder: (_, __) => Divider(
         height: 1,
         thickness: 0.8,
-        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF5F5F5),
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : const Color(0xFFF5F5F5),
         indent: 88,
       ),
       itemBuilder: (context, index) {
         final chat = chats[index];
         return ChatTile(
           chat: chat,
-          onLongPress: () => _showChatActionsSheet(context: context, chat: chat),
+          onLongPress: () =>
+              _showChatActionsSheet(context: context, chat: chat),
         );
       },
     );
@@ -219,11 +241,18 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.only(top: 40),
         child: Column(
           children: [
-            const Icon(Icons.search_off_rounded, size: 48, color: Colors.black12),
+            const Icon(
+              Icons.search_off_rounded,
+              size: 48,
+              color: Colors.black12,
+            ),
             const SizedBox(height: 16),
             Text(
               'No results for "$query"',
-              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black45),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.black45,
+              ),
             ),
           ],
         ),
@@ -256,7 +285,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 18,
+                    ),
                   ),
                   title: const Text(
                     "Delete Chat",

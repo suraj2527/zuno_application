@@ -24,9 +24,7 @@ class ChatTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: const BoxDecoration(
-          color: Colors.transparent,
-        ),
+        decoration: const BoxDecoration(color: Colors.transparent),
         child: Row(
           children: [
             Stack(
@@ -67,7 +65,9 @@ class ChatTile extends StatelessWidget {
                         chat.name,
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: isUnread ? FontWeight.w800 : FontWeight.w700,
+                          fontWeight: isUnread
+                              ? FontWeight.w800
+                              : FontWeight.w700,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
@@ -75,8 +75,12 @@ class ChatTile extends StatelessWidget {
                         chat.time,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isUnread ? AppColors.primary : (isDark ? Colors.white38 : Colors.black38),
-                          fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
+                          color: isUnread
+                              ? AppColors.primary
+                              : (isDark ? Colors.white38 : Colors.black38),
+                          fontWeight: isUnread
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                         ),
                       ),
                     ],
@@ -91,10 +95,12 @@ class ChatTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isUnread 
-                                ? (isDark ? Colors.white70 : Colors.black87) 
+                            color: isUnread
+                                ? (isDark ? Colors.white70 : Colors.black87)
                                 : (isDark ? Colors.white38 : Colors.black45),
-                            fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+                            fontWeight: isUnread
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       ),
@@ -141,9 +147,10 @@ class _OnlinePulseState extends State<_OnlinePulse>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
-    _pulse = Tween(begin: 0.85, end: 1.15).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _pulse = Tween(
+      begin: 0.85,
+      end: 1.15,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override

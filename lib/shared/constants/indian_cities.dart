@@ -106,6 +106,6 @@ class IndianCities {
     "Varanasi, Uttar Pradesh",
     "Vijayawada, Andhra Pradesh",
     "Visakhapatnam, Andhra Pradesh",
-    "Warangal, Telangana"
+    "Warangal, Telangana",
   ];
 }

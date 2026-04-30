@@ -37,10 +37,10 @@ class AppPages {
       binding: DashboardBinding(),
     ),
     GetPage(
-      name: Routes.CHAT_DETAIL,                  
-      page: () => ChatDetailScreen(),            
-      transition: Transition.rightToLeft,      
-      transitionDuration: const Duration(milliseconds: 300), 
+      name: Routes.CHAT_DETAIL,
+      page: () => ChatDetailScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
       name: Routes.PERMISSION,

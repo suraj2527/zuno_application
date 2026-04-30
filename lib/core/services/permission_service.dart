@@ -8,7 +8,8 @@ class PermissionServiceScreen extends StatefulWidget {
   const PermissionServiceScreen({super.key});
 
   @override
-  State<PermissionServiceScreen> createState() => _PermissionServiceScreenState();
+  State<PermissionServiceScreen> createState() =>
+      _PermissionServiceScreenState();
 }
 
 class _PermissionServiceScreenState extends State<PermissionServiceScreen> {
@@ -32,8 +33,7 @@ class _PermissionServiceScreenState extends State<PermissionServiceScreen> {
 
     if (requestedStatus.isGranted) {
       _goToSplash();
-    } else {
-    }
+    } else {}
   }
 
   void _goToSplash() {

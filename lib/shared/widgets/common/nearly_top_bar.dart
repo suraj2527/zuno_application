@@ -26,11 +26,13 @@ class NearlyTopBar extends StatelessWidget {
           children: [
             /// 🔥 LOGO
             ShaderMask(
-              shaderCallback: (bounds) => AppGradients.primary.createShader(bounds),
+              shaderCallback: (bounds) =>
+                  AppGradients.primary.createShader(bounds),
               child: Text(
                 'Nearly',
-                style: AppTextStyles.logo(isDark: false)
-                    .copyWith(color: AppColors.white, fontSize: 30, height: 1),
+                style: AppTextStyles.logo(
+                  isDark: false,
+                ).copyWith(color: AppColors.white, fontSize: 30, height: 1),
               ),
             ),
 
@@ -51,10 +53,7 @@ class NearlyTopBar extends StatelessWidget {
   }
 
   /// 🔥 UNIVERSAL ICON WITH OPTIONAL BADGE
-  Widget _headerIcon({
-    required IconData icon,
-    String? badge,
-  }) {
+  Widget _headerIcon({required IconData icon, String? badge}) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -85,8 +84,9 @@ class NearlyTopBar extends StatelessWidget {
               alignment: Alignment.center,
               child: Text(
                 badge,
-                style: AppTextStyles.label(isDark: true)
-                    .copyWith(color: AppColors.white, fontSize: 7, height: 1),
+                style: AppTextStyles.label(
+                  isDark: true,
+                ).copyWith(color: AppColors.white, fontSize: 7, height: 1),
               ),
             ),
           ),

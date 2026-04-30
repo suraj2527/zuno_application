@@ -23,11 +23,6 @@ class ChatUserModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'imageUrl': imageUrl,
-      'isOnline': isOnline,
-    };
+    return {'id': id, 'name': name, 'imageUrl': imageUrl, 'isOnline': isOnline};
   }
 }

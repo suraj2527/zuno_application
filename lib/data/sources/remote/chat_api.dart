@@ -7,9 +7,7 @@ class ChatApi {
   Future<List<dynamic>> getConversations(String token) async {
     final res = await http.get(
       Uri.parse("$baseUrl/chats/conversations"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {
@@ -23,9 +21,7 @@ class ChatApi {
   Future<List<dynamic>> getMessages(String token, String conversationId) async {
     final res = await http.get(
       Uri.parse("$baseUrl/chats/$conversationId/messages"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {
@@ -47,10 +43,7 @@ class ChatApi {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       },
-      body: jsonEncode({
-        "conversationId": conversationId,
-        "text": text,
-      }),
+      body: jsonEncode({"conversationId": conversationId, "text": text}),
     );
 
     if (res.statusCode == 200 || res.statusCode == 201) {

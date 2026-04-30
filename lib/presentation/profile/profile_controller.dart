@@ -14,8 +14,7 @@ class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
   final ImagePicker _picker = ImagePicker();
   final AuthService _authService = AuthService();
-  final UserApi _userApi = UserApi(); 
-  
+  final UserApi _userApi = UserApi();
 
   // ================= PROFILE STATE =================
 
@@ -98,7 +97,7 @@ class ProfileController extends GetxController {
     'Sikh',
     'Jain',
     'Atheist',
-    'Other'
+    'Other',
   ];
 
   DatingProfile? get myProfile => homeController.allProfiles.isNotEmpty
@@ -128,7 +127,7 @@ class ProfileController extends GetxController {
       if (token == null) throw "Token not found";
 
       final data = await _userApi.getProfile(token);
-      debugPrint("📄 FULL PROFILE RESPONSE: ${jsonEncode(data)}");
+      print("📄 FULL PROFILE RESPONSE: ${jsonEncode(data)}");
 
       /// 🔥 Extract lat lng
       final lat = data["location"]?["lat"];
@@ -208,7 +207,7 @@ class ProfileController extends GetxController {
       selectedInterests.assignAll(List<String>.from(data["interests"] ?? []));
       selectedGalleryImages.assignAll(galleryUrls);
       selectedProfileImage.value = profileUrl;
-      
+
       _photosToDelete.clear(); // Reset deletions
     } catch (e) {
       Get.snackbar("Error", e.toString());
@@ -269,7 +268,8 @@ class ProfileController extends GetxController {
 
     final removedUrl = selectedGalleryImages[index];
     // If it's a remote image, track it for deletion
-    if (removedUrl.startsWith('http') && _urlToPublicId.containsKey(removedUrl)) {
+    if (removedUrl.startsWith('http') &&
+        _urlToPublicId.containsKey(removedUrl)) {
       _photosToDelete.add(_urlToPublicId[removedUrl]!);
     }
 
@@ -285,6 +285,48 @@ class ProfileController extends GetxController {
 
   void updateCarouselIndex(int index) {
     currentGalleryIndex.value = index;
+  }
+
+  void swapImages(int fromIndex, int toIndex) {
+    if (fromIndex == toIndex) return;
+
+    String fromPath = fromIndex == -1 
+        ? selectedProfileImage.value 
+        : (fromIndex < selectedGalleryImages.length ? selectedGalleryImages[fromIndex] : '');
+    
+    if (fromPath.isEmpty) return; // Cannot drag an empty slot
+
+    String toPath = toIndex == -1 
+        ? selectedProfileImage.value 
+        : (toIndex < selectedGalleryImages.length ? selectedGalleryImages[toIndex] : '');
+
+    List<String> newGallery = List.from(selectedGalleryImages);
+
+    // Update fromIndex slot
+    if (fromIndex == -1) {
+      selectedProfileImage.value = toPath;
+    } else {
+      if (fromIndex < newGallery.length) {
+        newGallery[fromIndex] = toPath;
+      }
+    }
+
+    // Update toIndex slot
+    if (toIndex == -1) {
+      selectedProfileImage.value = fromPath;
+    } else {
+      if (toIndex < newGallery.length) {
+        newGallery[toIndex] = fromPath;
+      } else {
+        while (newGallery.length < toIndex) {
+          newGallery.add('');
+        }
+        newGallery.add(fromPath);
+      }
+    }
+
+    newGallery.removeWhere((item) => item.isEmpty);
+    selectedGalleryImages.assignAll(newGallery);
   }
 
   // ================= FORM ACTIONS =================
@@ -353,14 +395,18 @@ class ProfileController extends GetxController {
         try {
           await _userApi.deletePhoto(token, publicId);
         } catch (e) {
-          debugPrint("Failed to delete photo $publicId: $e");
+          print("Failed to delete photo $publicId: $e");
         }
       }
       _photosToDelete.clear();
 
       // 2. Handle Profile Image Upload
-      if (selectedProfileImage.value.isNotEmpty && !selectedProfileImage.value.startsWith('http')) {
-        final result = await _userApi.uploadPhoto(token, selectedProfileImage.value);
+      if (selectedProfileImage.value.isNotEmpty &&
+          !selectedProfileImage.value.startsWith('http')) {
+        final result = await _userApi.uploadPhoto(
+          token,
+          selectedProfileImage.value,
+        );
         final publicId = result['data']?['publicId'];
         if (publicId != null) {
           await _userApi.setPrimaryPhoto(token, publicId);

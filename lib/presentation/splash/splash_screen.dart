@@ -4,7 +4,7 @@ import '../../shared/constants/app_text_styles.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,9 +16,11 @@ class SplashScreen extends StatelessWidget {
           children: [
             // ── blob top-right ──────────────────────────
             Positioned(
-              top: -100, right: -90,
+              top: -100,
+              right: -90,
               child: Container(
-                width: 340, height: 340,
+                width: 340,
+                height: 340,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.10),
@@ -27,9 +29,11 @@ class SplashScreen extends StatelessWidget {
             ),
             // ── blob bottom-left ────────────────────────
             Positioned(
-              bottom: 60, left: -80,
+              bottom: 60,
+              left: -80,
               child: Container(
-                width: 240, height: 240,
+                width: 240,
+                height: 240,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.07),
@@ -38,9 +42,11 @@ class SplashScreen extends StatelessWidget {
             ),
             // ── splash-blob (bottom-right mid) ──────────
             Positioned(
-              bottom: 180, right: 20,
+              bottom: 180,
+              right: 20,
               child: Container(
-                width: 160, height: 160,
+                width: 160,
+                height: 160,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.06),
@@ -50,27 +56,45 @@ class SplashScreen extends StatelessWidget {
 
             // ── floating decorative characters ──────────
             const Positioned(
-              top: 55, left: 28,
-              child: Opacity(opacity: 0.30,
-                child: Text('💜', style: TextStyle(fontSize: 32))),
+              top: 55,
+              left: 28,
+              child: Opacity(
+                opacity: 0.30,
+                child: Text('💜', style: TextStyle(fontSize: 32)),
+              ),
             ),
             const Positioned(
-              top: 110, right: 38,
-              child: Opacity(opacity: 0.20,
-                child: Text('✦',
-                  style: TextStyle(fontSize: 28, color: Colors.white))),
+              top: 110,
+              right: 38,
+              child: Opacity(
+                opacity: 0.20,
+                child: Text(
+                  '✦',
+                  style: TextStyle(fontSize: 28, color: Colors.white),
+                ),
+              ),
             ),
             const Positioned(
-              bottom: 170, left: 38,
-              child: Opacity(opacity: 0.20,
-                child: Text('⬡',
-                  style: TextStyle(fontSize: 24, color: Colors.white))),
+              bottom: 170,
+              left: 38,
+              child: Opacity(
+                opacity: 0.20,
+                child: Text(
+                  '⬡',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
+                ),
+              ),
             ),
             const Positioned(
-              bottom: 210, right: 28,
-              child: Opacity(opacity: 0.15,
-                child: Text('◈',
-                  style: TextStyle(fontSize: 40, color: Colors.white))),
+              bottom: 210,
+              right: 28,
+              child: Opacity(
+                opacity: 0.15,
+                child: Text(
+                  '◈',
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
+              ),
             ),
 
             // ── main centred content ─────────────────────
@@ -110,11 +134,12 @@ class SplashScreen extends StatelessWidget {
                   // Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 8),
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.20),
-                      border: Border.all(
-                          color: Colors.white.withOpacity(0.40)),
+                      border: Border.all(color: Colors.white.withOpacity(0.40)),
                       borderRadius: BorderRadius.circular(50),
                     ),
                     child: Text(
@@ -130,7 +155,8 @@ class SplashScreen extends StatelessWidget {
 
                   // Spinner
                   SizedBox(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       color: Colors.white,

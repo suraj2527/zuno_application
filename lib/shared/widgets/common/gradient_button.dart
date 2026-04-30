@@ -94,8 +94,7 @@ class _GradientButtonState extends State<GradientButton> {
               : Text(
                   widget.label,
                   style: AppTextStyles.button.copyWith(
-                    color:
-                        isDisabled ? AppColors.textHint : Colors.white,
+                    color: isDisabled ? AppColors.textHint : Colors.white,
                   ),
                 ),
         ),

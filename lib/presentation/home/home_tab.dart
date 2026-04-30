@@ -871,7 +871,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40), // More horizontal padding to make it smaller
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 40,
+        ), // More horizontal padding to make it smaller
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.cardDark : Colors.white,
@@ -895,7 +897,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     height: 80, // Smaller header
                     decoration: const BoxDecoration(
                       gradient: AppGradients.gold,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
                     ),
                   ),
                   Positioned(
@@ -918,29 +922,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 ],
               ),
               const SizedBox(height: 35),
-              
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
                     Text(
                       "Message ${profile.userName}",
-                      style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: AppTextStyles.headingMedium(
+                        isDark: isDark,
+                      ).copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     TextField(
                       controller: msgController,
                       maxLines: 3,
-                      style: AppTextStyles.body(isDark: isDark).copyWith(fontSize: 14),
+                      style: AppTextStyles.body(
+                        isDark: isDark,
+                      ).copyWith(fontSize: 14),
                       decoration: InputDecoration(
                         hintText: "Write a message...",
                         hintStyle: AppTextStyles.bodySmall(isDark: isDark),
                         filled: true,
-                        fillColor: isDark ? AppColors.inputFillDark : const Color(0xFFF6F7FB),
+                        fillColor: isDark
+                            ? AppColors.inputFillDark
+                            : const Color(0xFFF6F7FB),
                         contentPadding: const EdgeInsets.all(16),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -949,17 +956,21 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide(
-                            color: isDark ? AppColors.inputBorderDark : const Color(0xFFEEEEEE),
+                            color: isDark
+                                ? AppColors.inputBorderDark
+                                : const Color(0xFFEEEEEE),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     Obx(() {
-                      final remaining = controller.directMessageLimit.value - controller.messagesSentCount.value;
+                      final remaining =
+                          controller.directMessageLimit.value -
+                          controller.messagesSentCount.value;
                       final isOutOfLimit = remaining <= 0;
-                      
+
                       return Column(
                         children: [
                           GestureDetector(
@@ -971,12 +982,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                               }
                               final text = msgController.text.trim();
                               if (text.isEmpty) return;
-                              
-                              final success = await controller.sendDirectMessage(profile.id, text);
+
+                              final success = await controller
+                                  .sendDirectMessage(profile.id, text);
                               if (success) {
                                 Get.back();
                                 Get.snackbar(
-                                  "Sent!", 
+                                  "Sent!",
                                   "Your message is on its way ✨",
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: AppColors.primary,
@@ -989,13 +1001,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                               height: 50,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                gradient: isOutOfLimit ? null : AppGradients.gold,
-                                color: isOutOfLimit ? Colors.grey.shade400 : null,
+                                gradient: isOutOfLimit
+                                    ? null
+                                    : AppGradients.gold,
+                                color: isOutOfLimit
+                                    ? Colors.grey.shade400
+                                    : null,
                                 borderRadius: BorderRadius.circular(100),
                               ),
                               child: Center(
                                 child: Text(
-                                  isOutOfLimit ? "Upgrade to Nearly Premium" : "Send Premium Message",
+                                  isOutOfLimit
+                                      ? "Upgrade to Nearly Premium"
+                                      : "Send Premium Message",
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w700,
@@ -1046,11 +1064,17 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.stars_rounded, size: 60, color: AppColors.roseGold),
+              const Icon(
+                Icons.stars_rounded,
+                size: 60,
+                color: AppColors.roseGold,
+              ),
               const SizedBox(height: 16),
               Text(
                 "Nearly Premium",
-                style: AppTextStyles.headingLarge(isDark: isDark).copyWith(fontSize: 20),
+                style: AppTextStyles.headingLarge(
+                  isDark: isDark,
+                ).copyWith(fontSize: 20),
               ),
               const SizedBox(height: 10),
               Text(
@@ -1074,7 +1098,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   child: const Center(
                     child: Text(
                       "Explore Plans",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -1084,7 +1111,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 onPressed: () => Get.back(),
                 child: Text(
                   "Not Now",
-                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 13),
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -1116,5 +1146,3 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 }
-
-

@@ -8,9 +8,7 @@ class AuthApi {
   Future<bool> checkBackendHealth(String token) async {
     final res = await http.get(
       Uri.parse("$baseUrl/health"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (res.statusCode == 200) {
