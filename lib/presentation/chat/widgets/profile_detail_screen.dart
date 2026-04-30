@@ -7,9 +7,11 @@ import 'package:Nearly/data/model/chat/chat_preview_model.dart';
 import 'package:Nearly/data/sources/remote/home_api.dart';
 import 'package:Nearly/presentation/chat/chat_controller.dart';
 import 'package:Nearly/presentation/home/home_controller.dart';
+import 'package:Nearly/presentation/activity/activity_controller.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/utils/app_notifications.dart';
 
 class ProfileDetailsScreen extends StatefulWidget {
   final dynamic profile;
@@ -534,28 +536,57 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   Future<void> _likeProfile() async {
     final targetUserId = (widget.profile?.id ?? "").toString().trim();
     if (targetUserId.isEmpty) {
-      Get.snackbar("Error", "Invalid profile");
+      AppNotifications.showError("Invalid profile");
       return;
     }
 
     setState(() => isLikeLoading = true);
     try {
+      // ✅ Use ActivityController if registered to handle logic and refresh
+      if (Get.isRegistered<ActivityController>() && widget.profile is DatingProfile) {
+        await Get.find<ActivityController>().likeProfile(widget.profile as DatingProfile);
+        setState(() => isLikeLoading = false);
+        return;
+      }
+
       final token = await _authService.currentUser?.getIdToken(true);
       if (token == null || token.isEmpty) throw "Token not found";
 
-      await _homeApi.sendDiscoveryAction(
+      // 1. Perform the like action
+      final response = await _homeApi.sendDiscoveryAction(
         token: token,
         targetUserId: targetUserId,
         action: "like",
       );
 
-      Get.snackbar("Liked", "You liked this profile");
+      if (response != null) {
+        // 2. Refresh activity data if possible
+        if (Get.isRegistered<ActivityController>()) {
+          final activityController = Get.find<ActivityController>();
+          await activityController.loadActivityData();
+          
+          // 3. Check if it's now a match
+          final matchedProfile = activityController.matchedProfiles.firstWhereOrNull(
+            (p) => p.id == targetUserId,
+          );
+
+          if (matchedProfile != null) {
+            // Match dialog is handled by ActivityController.likeProfile usually,
+            // but if we got here, we can show a simple notification or the dialog
+            AppNotifications.showSuccess("Match Found! You and ${matchedProfile.userName} matched!");
+            return;
+          }
+        }
+        
+        AppNotifications.showSuccess("You liked this profile");
+      }
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      AppNotifications.showError(e.toString());
     } finally {
       if (mounted) setState(() => isLikeLoading = false);
     }
   }
+
 
   Widget _buildImage(String imagePath) {
     if (imagePath.isEmpty) return _placeholderImage();

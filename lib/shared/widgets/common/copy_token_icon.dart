@@ -29,7 +29,6 @@ class CopyTokenIcon extends StatelessWidget {
           }
 
           await Clipboard.setData(ClipboardData(text: token));
-          print("🔥 TOKEN: $token");
 
           Get.snackbar('Copied', 'Token copied');
         } catch (e) {

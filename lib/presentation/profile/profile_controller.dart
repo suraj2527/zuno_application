@@ -8,7 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:Nearly/core/routes/app_routes.dart';
 import 'package:Nearly/core/services/auth_service.dart';
 import 'package:Nearly/presentation/home/home_controller.dart';
-import 'package:Nearly/data/sources/remote/user_api.dart'; // ✅ ADD
+import 'package:Nearly/data/sources/remote/user_api.dart';
+import 'package:Nearly/shared/utils/app_notifications.dart';
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
@@ -127,7 +128,6 @@ class ProfileController extends GetxController {
       if (token == null) throw "Token not found";
 
       final data = await _userApi.getProfile(token);
-      print("📄 FULL PROFILE RESPONSE: ${jsonEncode(data)}");
 
       /// 🔥 Extract lat lng
       final lat = data["location"]?["lat"];
@@ -210,7 +210,7 @@ class ProfileController extends GetxController {
 
       _photosToDelete.clear(); // Reset deletions
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      AppNotifications.showError(e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -237,7 +237,10 @@ class ProfileController extends GetxController {
   // ================= IMAGE ACTIONS =================
 
   Future<void> pickProfileImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (image != null) {
       final oldUrl = selectedProfileImage.value;
       if (oldUrl.startsWith('http') && _urlToPublicId.containsKey(oldUrl)) {
@@ -249,15 +252,14 @@ class ProfileController extends GetxController {
 
   Future<void> pickGalleryImage() async {
     if (selectedGalleryImages.length >= 2) {
-      Get.snackbar(
-        "Limit Reached",
-        "You can upload maximum 2 gallery photos.",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AppNotifications.showError("You can upload maximum 2 gallery photos.");
       return;
     }
 
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (image != null) {
       selectedGalleryImages.add(image.path);
     }
@@ -362,11 +364,7 @@ class ProfileController extends GetxController {
 
       Get.offAllNamed(Routes.SIGNIN);
     } catch (e) {
-      Get.snackbar(
-        "Logout Failed",
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AppNotifications.showError(e.toString());
     }
   }
 
@@ -395,7 +393,7 @@ class ProfileController extends GetxController {
         try {
           await _userApi.deletePhoto(token, publicId);
         } catch (e) {
-          print("Failed to delete photo $publicId: $e");
+          // Photo deletion failed silently or handle as needed
         }
       }
       _photosToDelete.clear();
@@ -466,9 +464,9 @@ class ProfileController extends GetxController {
 
       await loadProfileData(); // Refresh data
       Get.back();
-      Get.snackbar("Success", "Profile updated successfully");
+      AppNotifications.showSuccess("Profile updated successfully");
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      AppNotifications.showError(e.toString());
     } finally {
       isSaving.value = false;
     }

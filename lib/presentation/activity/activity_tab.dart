@@ -353,7 +353,7 @@ class _ActivityTabState extends State<ActivityTab> {
                       isLiked: isLiked,
                       onTap: isLiked
                           ? null
-                          : () => controller.likeProfile(profile.id),
+                          : () => controller.likeProfile(profile),
                     );
                   }),
                 ),

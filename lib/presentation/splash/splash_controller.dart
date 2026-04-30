@@ -55,7 +55,6 @@ class SplashController extends GetxController {
         Get.offAllNamed(Routes.ONBOARDING);
       }
     } catch (e) {
-      print("Splash navigation error: $e");
       await minimumWait;
       Get.offAllNamed(Routes.SIGNIN);
     }

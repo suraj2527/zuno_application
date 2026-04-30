@@ -45,8 +45,6 @@ class ChatController extends GetxController {
       await _connectSocket(token);
 
       final conversations = await _chatApi.getConversations(token);
-      print("===== GET CONVERSATIONS API RESPONSE =====");
-      print(conversations);
       for (final raw in conversations) {
         _extractAndRegisterMyIdsFromConversation(raw);
       }
@@ -67,7 +65,6 @@ class ChatController extends GetxController {
             .toList(),
       );
     } catch (e) {
-      print("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -100,16 +97,13 @@ class ChatController extends GetxController {
         messagesByConversation[chat.id] = removedMessages;
       }
       chatList.refresh();
-      print("Error: $e");
     }
   }
 
   void openChat(ChatPreviewModel chat) {
-    print('Opening chat with ${chat.name}');
   }
 
   void openSearch() {
-    print('Search chats clicked');
   }
 
   String normalizeDisplayName(String? name) {
@@ -156,13 +150,10 @@ class ChatController extends GetxController {
       _registerMyId(_myUserId);
 
       final data = await _chatApi.getMessages(token, conversationId);
-      print("===== GET MESSAGES API RESPONSE =====");
-      print(data);
       final mapped = data.map(_mapMessage).toList();
       getConversationMessages(conversationId).assignAll(mapped);
       _joinConversation(conversationId);
     } catch (e) {
-      print("Error: $e");
     } finally {
       isMessagesLoading.value = false;
     }
@@ -175,7 +166,6 @@ class ChatController extends GetxController {
     final user = _authService.currentUser;
     final token = await user?.getIdToken(true);
     if (token == null) {
-      print("Error: Token not found");
       return;
     }
 
@@ -236,9 +226,7 @@ class ChatController extends GetxController {
         isDelivered: message.isDelivered,
         isSeen: message.isSeen,
       );
-    } catch (e) {
-      print("Error: $e");
-    }
+    } catch (e) {}
   }
 
   Future<void> _connectSocket(String token) async {
@@ -445,9 +433,6 @@ class ChatController extends GetxController {
         senderCandidates.any((sender) => myCandidates.contains(sender));
     // Debug logging to verify the comparison
     if (senderId.isNotEmpty) {
-      print(
-        'DEBUG: senderId="$senderId", currentUserId="$currentUserId", isMe=$isMe',
-      );
     }
     if (isMe) {
       _registerMyId(senderId);

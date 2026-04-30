@@ -132,19 +132,18 @@ class HomeController extends GetxController {
 
       // Mocking API call for now or using a generic endpoint
       // Assuming a direct chat creation or similar
-      final success = await _homeApi.sendDiscoveryAction(
+      final response = await _homeApi.sendDiscoveryAction(
         token: token,
         targetUserId: targetUserId,
         action: 'like', // Often a direct message counts as a like too
       );
 
-      if (success) {
+      if (response != null) {
         messagesSentCount.value++;
         return true;
       }
       return false;
     } catch (e) {
-      print("Error sending direct message: $e");
       return false;
     }
   }
@@ -240,7 +239,6 @@ class HomeController extends GetxController {
   }
 
   void onSwipeLeft(int index) {
-    _sendActionForIndex(index, "dislike");
     _syncAfterSwipe();
   }
 
@@ -316,20 +314,10 @@ class HomeController extends GetxController {
       if (index < 0 || index >= profiles.length) return;
       final targetUserId = profiles[index].id;
       if (targetUserId.isEmpty) return;
-      print("HomeController: swipe action -> $action for userId=$targetUserId");
-      log(
-        "Triggering $action for index=$index targetUserId=$targetUserId",
-        name: "HomeController",
-      );
 
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
       if (token == null) {
-        print("HomeController: token is null, API not called for $action");
-        log(
-          "Skipping $action: Firebase token is null",
-          name: "HomeController",
-        );
         return;
       }
 
@@ -338,14 +326,7 @@ class HomeController extends GetxController {
         targetUserId: targetUserId,
         action: action,
       );
-      print("HomeController: $action API call completed for $targetUserId");
-      log(
-        "$action action submitted successfully for $targetUserId",
-        name: "HomeController",
-      );
     } catch (e) {
-      print("HomeController: $action API error -> $e");
-      log("Failed to submit $action action: $e", name: "HomeController");
       // Keep swipe flow smooth even if action API fails.
     }
   }

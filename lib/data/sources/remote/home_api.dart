@@ -13,10 +13,6 @@ class HomeApi {
     );
 
     if (res.statusCode == 200) {
-      print("========== DISCOVERY FEED RESPONSE ==========");
-      print("Status: ${res.statusCode}");
-      print("Body: ${res.body}");
-      print("=============================================");
       final data = jsonDecode(res.body);
       return List<dynamic>.from(data["data"] ?? []);
     }
@@ -25,21 +21,11 @@ class HomeApi {
   }
 
   /// ✅ LIKE / DISLIKE ACTION ON DISCOVERY PROFILE
-  Future<bool> sendDiscoveryAction({
+  Future<Map<String, dynamic>?> sendDiscoveryAction({
     required String token,
     required String targetUserId,
     required String action,
   }) async {
-    print("========== DISCOVERY ACTION API ==========");
-    print("API: POST $baseUrl/likes/action");
-    print(
-      "Payload: {\"targetUserId\":\"$targetUserId\",\"action\":\"$action\"}",
-    );
-    log(
-      "sendDiscoveryAction -> action=$action, targetUserId=$targetUserId",
-      name: "HomeApi",
-    );
-
     final res = await http.post(
       Uri.parse("$baseUrl/likes/action"),
       headers: {
@@ -48,16 +34,10 @@ class HomeApi {
       },
       body: jsonEncode({"targetUserId": targetUserId, "action": action}),
     );
-    log(
-      "sendDiscoveryAction <- status=${res.statusCode}, body=${res.body}",
-      name: "HomeApi",
-    );
-    print("Response Status: ${res.statusCode}");
-    print("Response Body: ${res.body}");
-    print("=========================================");
 
     if (res.statusCode == 200 || res.statusCode == 201) {
-      return true;
+      final data = jsonDecode(res.body);
+      return Map<String, dynamic>.from(data);
     }
 
     throw "Failed to submit $action: ${res.body}";

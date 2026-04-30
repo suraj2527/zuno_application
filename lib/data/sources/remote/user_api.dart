@@ -7,7 +7,6 @@ class UserApi {
 
   /// ✅ CREATE PROFILE (already hai)
   Future<bool> createProfile(String token, Map<String, dynamic> body) async {
-    print("📡 API POST: $baseUrl/profile");
     final res = await http.post(
       Uri.parse("$baseUrl/profile"),
       headers: {
@@ -20,7 +19,7 @@ class UserApi {
     if (res.statusCode == 200 || res.statusCode == 201) {
       return true;
     }
-    print("🚫 API ERROR: ${res.statusCode} - ${res.body}");
+
     throw "Profile creation failed: ${res.body}";
   }
 
@@ -41,7 +40,6 @@ class UserApi {
 
   /// ✅ UPDATE PROFILE (PATCH)
   Future<bool> updateProfile(String token, Map<String, dynamic> body) async {
-    print("📡 API PATCH: $baseUrl/profile");
     final res = await http.patch(
       Uri.parse("$baseUrl/profile"),
       headers: {
@@ -54,7 +52,7 @@ class UserApi {
     if (res.statusCode == 200) {
       return true;
     }
-    print("🚫 API ERROR: ${res.statusCode} - ${res.body}");
+
     throw "Profile update failed";
   }
 
@@ -63,7 +61,6 @@ class UserApi {
     String token,
     String imagePath,
   ) async {
-    print("📡 API MULTIPART POST: $baseUrl/profile/upload-photo");
     final request = http.MultipartRequest(
       'POST',
       Uri.parse("$baseUrl/profile/upload-photo"),
@@ -77,16 +74,14 @@ class UserApi {
 
     if (res.statusCode == 200 || res.statusCode == 201) {
       final data = jsonDecode(res.body);
-      print("✅ UPLOAD SUCCESS: ${res.body}");
       return data; // Usually contains publicId and url
     }
-    print("🚫 API ERROR: ${res.statusCode} - ${res.body}");
+
     throw "Photo upload failed: ${res.body}";
   }
 
   /// ✅ SET PRIMARY PHOTO
   Future<bool> setPrimaryPhoto(String token, String publicId) async {
-    print("📡 API PUT: $baseUrl/profile/photo/set-primary");
     final res = await http.put(
       Uri.parse("$baseUrl/profile/photo/set-primary"),
       headers: {
@@ -99,14 +94,13 @@ class UserApi {
     if (res.statusCode == 200) {
       return true;
     }
-    print("🚫 API ERROR: ${res.statusCode} - ${res.body}");
+
     throw "Setting primary photo failed: ${res.body}";
   }
 
   /// ✅ DELETE PHOTO
   Future<bool> deletePhoto(String token, String publicId) async {
     final encodedId = Uri.encodeComponent(publicId);
-    print("📡 API DELETE: $baseUrl/profile/photo/$encodedId");
     final res = await http.delete(
       Uri.parse("$baseUrl/profile/photo/$encodedId"),
       headers: {"Authorization": "Bearer $token"},
@@ -115,7 +109,7 @@ class UserApi {
     if (res.statusCode == 200) {
       return true;
     }
-    print("🚫 API ERROR: ${res.statusCode} - ${res.body}");
+
     throw "Photo deletion failed: ${res.body}";
   }
 }

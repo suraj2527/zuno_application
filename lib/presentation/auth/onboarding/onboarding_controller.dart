@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:Nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/sources/remote/user_api.dart';
+import '../../../shared/utils/app_notifications.dart';
 
 class OnboardingController extends GetxController {
   // ================= STATE =================
@@ -279,20 +280,22 @@ class OnboardingController extends GetxController {
   }
 
   Future<void> pickProfileImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (image != null) _selectedProfileImage.value = image.path;
   }
 
   Future<void> pickGalleryImage() async {
     if (selectedGalleryImages.length >= 2) {
-      Get.snackbar(
-        "Limit Reached",
-        "You can upload maximum 2 gallery photos.",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AppNotifications.showError("You can upload maximum 2 gallery photos.");
       return;
     }
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (image != null) selectedGalleryImages.add(image.path);
   }
 
@@ -350,7 +353,6 @@ class OnboardingController extends GetxController {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
       if (token == null) throw "Token not found";
-      print("🚀 STARTING PROFILE CREATION...");
 
       double lat = 0.0;
       double lng = 0.0;
@@ -361,7 +363,7 @@ class OnboardingController extends GetxController {
         lat = position.latitude;
         lng = position.longitude;
       } catch (e) {
-        print("⚠️ Could not get location: $e");
+        // Location capture failed silently or handle as needed
       }
 
       final body = {
@@ -380,36 +382,24 @@ class OnboardingController extends GetxController {
       };
 
       await _userApi.createProfile(token, body);
-      print("✅ PROFILE CREATED SUCCESSFULLY");
 
       // 1. Upload Main Photo
       if (selectedProfileImage.isNotEmpty) {
-        print("📸 UPLOADING MAIN PHOTO: ${selectedProfileImage}");
         final result = await _userApi.uploadPhoto(token, selectedProfileImage);
         final publicId = result['data']?['publicId'];
-        print("✅ MAIN PHOTO UPLOADED. PublicID: $publicId");
 
         if (publicId != null) {
-          print("🌟 SETTING MAIN PHOTO AS PRIMARY...");
           await _userApi.setPrimaryPhoto(token, publicId);
-          print("✅ PRIMARY PHOTO SET");
         }
       }
 
-      // 2. Upload Gallery Photos
       for (int i = 0; i < selectedGalleryImages.length; i++) {
         final imgPath = selectedGalleryImages[i];
-        print(
-          "🖼️ UPLOADING GALLERY PHOTO [${i + 1}/${selectedGalleryImages.length}]: $imgPath",
-        );
         await _userApi.uploadPhoto(token, imgPath);
-        print("✅ GALLERY PHOTO [${i + 1}] UPLOADED");
       }
-      print("🎉 ALL STEPS COMPLETED. NAVIGATING TO DASHBOARD...");
       Get.offAllNamed("/dashboard");
     } catch (e) {
-      print("❌ ERROR DURING ONBOARDING: $e");
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      AppNotifications.showError(e.toString());
     } finally {
       isLoading.value = false;
     }
