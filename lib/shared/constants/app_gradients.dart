@@ -24,11 +24,11 @@ class AppGradients {
     colors: [AppColors.primary4, AppColors.primary5],
   );
 
-  /// Gold accent
+  /// Premium accent (Indigo to Rose Gold)
   static const LinearGradient gold = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.accent, AppColors.accent2],
+    colors: [Color(0xFF5B4CDB), Color(0xFFE8857A)], // Indigo to Rose Gold
   );
 
   /// Page background (body gradient)

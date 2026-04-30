@@ -6,251 +6,114 @@ import '../../../core/routes/app_routes.dart';
 import '../../../data/model/chat/chat_preview_model.dart';
 import '../chat_controller.dart';
 
-class ChatTile extends StatefulWidget {
+class ChatTile extends StatelessWidget {
   final ChatPreviewModel chat;
   final VoidCallback? onLongPress;
 
   const ChatTile({super.key, required this.chat, this.onLongPress});
 
   @override
-  State<ChatTile> createState() => _ChatTileState();
-}
-
-class _ChatTileState extends State<ChatTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _pulseAnim = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
-
-    // Pulse badge once on load if unread
-    if (widget.chat.unreadCount > 0) {
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) _pulseController.forward(from: 0);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final chatController = Get.find<ChatController>();
-    final isUnread = widget.chat.unreadCount > 0;
+    final isUnread = chat.unreadCount > 0;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        Get.toNamed(Routes.CHAT_DETAIL, arguments: widget.chat);
-      },
-      onLongPress: widget.onLongPress,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-        constraints: const BoxConstraints(minHeight: 56),
-        decoration: BoxDecoration(
-          color: isUnread
-              ? (isDark
-                  ? const Color(0xFF1E1B30)
-                  : const Color(0xFFF0EEFF))
-              : (isDark ? AppColors.inputFillDark : Colors.white),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: isUnread
-                  ? AppColors.primary.withOpacity(0.12)
-                  : Colors.black.withOpacity(isDark ? 0.12 : 0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ],
+      onTap: () => Get.toNamed(Routes.CHAT_DETAIL, arguments: chat),
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              // Left accent bar for unread
-              if (isUnread)
-                Container(
-                  width: 3,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                    ),
-                  ),
-                ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isUnread ? 10 : 14,
-                    10,
-                    14,
-                    10,
-                  ),
-                  child: Row(
-                    children: [
-                      // Avatar with online indicator
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: isDark
-                                ? AppColors.chatHeaderSurfaceDark
-                                : AppColors.profileAvatarBackground,
-                            backgroundImage: widget.chat.imageUrl.isNotEmpty
-                                ? NetworkImage(widget.chat.imageUrl)
-                                : null,
-                            child: widget.chat.imageUrl.isEmpty
-                                ? Text(
-                                    chatController.getInitials(widget.chat.name),
-                                    style: AppTextStyles.body(
-                                      isDark: isDark,
-                                    ).copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                      color: AppColors.primary,
-                                    ),
-                                  )
-                                : null,
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: const Color(0xFFF2F4FF),
+                  backgroundImage: chat.imageUrl.isNotEmpty
+                      ? NetworkImage(chat.imageUrl)
+                      : null,
+                  child: chat.imageUrl.isEmpty
+                      ? Text(
+                          chatController.getInitials(chat.name),
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
                           ),
-                          // Online dot with subtle outer glow ring
-                          if (widget.chat.isOnline)
-                            Positioned(
-                              right: 1,
-                              bottom: 1,
-                              child: _OnlinePulse(isDark: isDark),
-                            ),
-                        ],
+                        )
+                      : null,
+                ),
+                if (chat.isOnline)
+                  Positioned(
+                    right: 2,
+                    bottom: 2,
+                    child: _OnlinePulse(isDark: isDark),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        chat.name,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isUnread ? FontWeight.w800 : FontWeight.w700,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      // Name + last message
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    chatController.normalizeDisplayName(widget.chat.name),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.body(isDark: isDark).copyWith(
-                                      fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
-                                      fontSize: 14,
-                                      color: isUnread
-                                          ? (isDark ? Colors.white : AppColors.textPrimary)
-                                          : (isDark
-                                              ? AppColors.textPrimaryDark
-                                              : AppColors.textSecondary),
-                                    ),
-                                  ),
-                                ),
-                                // Time
-                                Text(
-                                  widget.chat.time,
-                                  style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                                    fontSize: 11,
-                                    fontWeight: isUnread ? FontWeight.w700 : FontWeight.w400,
-                                    color: isUnread
-                                        ? AppColors.primary
-                                        : (isDark
-                                            ? AppColors.textHintDark
-                                            : AppColors.textHint),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                // Tick icons for sent messages
-                                if (!isUnread)
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: Icon(
-                                      widget.chat.isDelivered || widget.chat.isSeen
-                                          ? Icons.done_all_rounded
-                                          : Icons.done_rounded,
-                                      size: 13,
-                                      color: widget.chat.isSeen
-                                          ? const Color(0xFF42A5F5)
-                                          : (isDark
-                                              ? AppColors.textHintDark
-                                              : AppColors.textHint),
-                                    ),
-                                  ),
-                                Expanded(
-                                  child: Text(
-                                    widget.chat.lastMessage,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                                      fontSize: 12,
-                                      color: isUnread
-                                          ? (isDark
-                                              ? AppColors.textSecondaryDark
-                                              : AppColors.textPrimary)
-                                          : (isDark
-                                              ? AppColors.textHintDark
-                                              : AppColors.textHint),
-                                      fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                 // Pulsing unread badge
-                                if (isUnread)
-                                  ScaleTransition(
-                                    scale: _pulseAnim,
-                                    child: Container(
-                                      height: 22,
-                                      width: 22,
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        widget.chat.unreadCount > 9
-                                            ? '9+'
-                                            : widget.chat.unreadCount.toString(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
+                      Text(
+                        chat.time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isUnread ? AppColors.primary : (isDark ? Colors.white38 : Colors.black38),
+                          fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chat.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isUnread 
+                                ? (isDark ? Colors.white70 : Colors.black87) 
+                                : (isDark ? Colors.white38 : Colors.black45),
+                            fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      if (isUnread)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -187,6 +187,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               () => ProfileDetailsScreen(
                 profile: profile,
                 heroTag: "profile_${profile.id}",
+                isFromChat: true,
               ),
             ),
             child: Stack(
@@ -237,6 +238,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 () => ProfileDetailsScreen(
                   profile: profile,
                   heroTag: "profile_${profile.id}",
+                  isFromChat: true,
                 ),
               ),
               behavior: HitTestBehavior.opaque,

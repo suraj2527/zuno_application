@@ -11,6 +11,7 @@ import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:Nearly/presentation/profile/settings_screen.dart';
 
 class ProfileTab extends StatelessWidget {
   ProfileTab({super.key});
@@ -37,32 +38,47 @@ class ProfileTab extends StatelessWidget {
 
           return AppRefreshWrapper(
             onRefresh: () async => controller.loadProfileData(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header (Scrolls away / 'Wraps up')
-                _buildProfileHeader(isDark, profile),
-                
-                const SizedBox(height: 24),
-                
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildGallerySection(isDark, profile.imageUrls),
-                      const SizedBox(height: 24),
-                      _buildBioCard(isDark, profile.bio),
-                      const SizedBox(height: 20),
-                      _buildPersonalInfoGrid(isDark, profile),
-                      const SizedBox(height: 20),
-                      _buildInterestsCard(isDark, profile.interests),
-                      // Extra space for Bottom Nav + Safe Area
-                      SizedBox(height: 120 + MediaQuery.of(context).padding.bottom),
-                    ],
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Elegant Header
+                  _buildElegantHeader(context, isDark, profile),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // 2. Content Sections
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildElegantSectionTitle('About Me'),
+                        _buildAboutMeCard(isDark, profile),
+                        
+                        const SizedBox(height: 32),
+                        
+                        _buildElegantSectionTitle('Bio'),
+                        _buildBioCard(isDark, profile.bio),
+                        
+                        const SizedBox(height: 32),
+                        
+                        _buildElegantSectionTitle('Interests'),
+                        _buildInterestsCard(isDark, profile.interests),
+                        
+                        const SizedBox(height: 32),
+                        
+                        _buildElegantSectionTitle('Gallery'),
+                        _buildGallerySection(isDark, profile.imageUrls),
+                        
+                        // Extra space for Bottom Nav + Safe Area
+                        SizedBox(height: 120 + MediaQuery.of(context).padding.bottom),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }),
@@ -70,7 +86,7 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(bool isDark, dynamic profile) {
+  Widget _buildElegantHeader(BuildContext context, bool isDark, dynamic profile) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -78,9 +94,9 @@ class ProfileTab extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -91,30 +107,37 @@ class ProfileTab extends StatelessWidget {
             children: [
               // Header Background
               Container(
-                height: 160,
+                height: 140,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A1730) : const Color(0xFFEEEBFB),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark 
+                        ? [const Color(0xFF1A1730), const Color(0xFF110F1E)]
+                        : [const Color(0xFFF0EFFF), const Color(0xFFE5E2FF)],
+                  ),
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
                 ),
               ),
               
               // Settings Button
               Positioned(
-                top: MediaQuery.of(Get.context!).padding.top + 10,
+                top: MediaQuery.of(context).padding.top + 10,
                 right: 20,
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () => Get.to(() => const SettingsScreen()),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withOpacity(isDark ? 0.05 : 0.8),
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.1)),
                     ),
-                    child: const Icon(
-                      Icons.settings_outlined,
+                    child: Icon(
+                      Icons.settings_rounded,
                       size: 20,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppColors.primary,
                     ),
                   ),
                 ),
@@ -134,12 +157,12 @@ class ProfileTab extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                          color: isDark ? AppColors.scaffoldDark : Colors.white,
                           width: 4,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withOpacity(0.2),
                             blurRadius: 15,
                             spreadRadius: 2,
                           ),
@@ -164,521 +187,342 @@ class ProfileTab extends StatelessWidget {
           Text(
             "${controller.nameController.text.isNotEmpty ? controller.nameController.text : profile.userName}, ${profile.age}",
             textAlign: TextAlign.center,
-            style: AppTextStyles.headingLarge(
-              isDark: isDark,
-            ).copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
-          ),
-          
-          const SizedBox(height: 4),
-          
-          Text(
-            profile.location ?? "Location not set",
-            style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              color: Colors.black87,
             ),
           ),
+          
+          const SizedBox(height: 6),
+          
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Text(
+                profile.location ?? "Location not set",
+                style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => Get.to(() => EditProfileScreen()),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(100),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.28),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.edit_outlined, size: 16, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            "Edit Profile",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: GestureDetector(
+              onTap: () => Get.to(() => EditProfileScreen()),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    "Edit Profile",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () {
-                    Get.dialog(
-                      Dialog(
-                        backgroundColor: Colors.transparent,
-                        insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.logout_rounded,
-                                  color: AppColors.primary,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                "Logout?",
-                                style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Are you sure you want to sign out?",
-                                textAlign: TextAlign.center,
-                                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => Get.back(),
-                                      child: Container(
-                                        height: 44,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          "No",
-                                          style: TextStyle(
-                                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Get.back();
-                                        controller.logout();
-                                      },
-                                      child: Container(
-                                        height: 44,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          gradient: AppGradients.primary,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Text(
-                                          "Logout",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.logout_rounded,
-                      size: 20,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildPersonalInfoGrid(bool isDark, dynamic profile) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "About Me",
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 2.2,
-        children: [
-          _buildInfoItem(
-            isDark: isDark,
-            label: "Gender",
-            value: (profile.gender ?? '').isNotEmpty ? profile.gender! : "Not set",
-            icon: Icons.person_outline_rounded,
+  void _showLogoutDialog(bool isDark) {
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(28),
           ),
-          _buildInfoItem(
-            isDark: isDark,
-            label: "Looking For",
-            value: (profile.lookingFor ?? '').isNotEmpty ? profile.lookingFor! : "Not set",
-            icon: Icons.favorite_border_rounded,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEAEA),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.logout_rounded, color: Color(0xFFFF4D4D), size: 28),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Sign Out?",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Are you sure you want to sign out of your account?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.black54, height: 1.4),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.back();
+                        controller.logout();
+                      },
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF4D4D),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: const Text("Logout", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          _buildInfoItem(
-            isDark: isDark,
-            label: "Age",
-            value: "${profile.age} years",
-            icon: Icons.cake_outlined,
-          ),
-          _buildInfoItem(
-            isDark: isDark,
-            label: "Location",
-            value: profile.location ?? "Not set",
-            icon: Icons.location_on_outlined,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem({
-    required bool isDark,
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.inputBorderDark : AppColors.inputBorderLight,
-          width: 1,
         ),
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildElegantSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutMeCard(bool isDark, dynamic profile) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Column(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: AppColors.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.textHintDark : AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _buildInfoRow(Icons.person_outline_rounded, "Gender", profile.gender ?? "Not set"),
+          const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+          _buildInfoRow(Icons.favorite_border_rounded, "Looking for", profile.lookingFor ?? "Not set"),
+          const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+          _buildInfoRow(Icons.cake_outlined, "Age", "${profile.age} years"),
+          const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+          _buildInfoRow(Icons.location_on_outlined, "Location", profile.location ?? "Not set"),
         ],
       ),
     );
   }
 
-  Widget _buildGallerySection(bool isDark, List<String> images) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Photos",
-      child: images.isEmpty
-          ? Container(
-              width: double.infinity,
-              height: 180,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Center(
-                child: Text(
-                  "No gallery photos added yet",
-                  style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                    color: isDark ? AppColors.textHintDark : AppColors.textHint,
-                  ),
-                ),
-              ),
-            )
-          : Column(
-              children: [
-                CarouselSlider.builder(
-                  itemCount: images.length,
-                  options: CarouselOptions(
-                    height: 240,
-                    viewportFraction: 1,
-                    enlargeCenterPage: false,
-                    enableInfiniteScroll: images.length > 1,
-                    autoPlay: images.length > 1,
-                    onPageChanged: (index, reason) {
-                      controller.updateCarouselIndex(index);
-                    },
-                  ),
-                  itemBuilder: (context, index, realIndex) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: _buildImage(images[index]),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Obx(() {
-                  final current = controller.currentGalleryIndex.value;
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(images.length, (index) {
-                      final isActive = current == index;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isActive ? 20 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          gradient: isActive ? AppGradients.primary : null,
-                          color: isActive
-                              ? null
-                              : (isDark
-                                    ? AppColors.inputFillDark
-                                    : AppColors.primary5),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      );
-                    }),
-                  );
-                }),
-              ],
-            ),
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.black54),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 15, color: Colors.black54, fontWeight: FontWeight.w500)),
+        ],
+      ),
     );
   }
 
   Widget _buildBioCard(bool isDark, String bio) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Bio",
-      child: Stack(
-        children: [
-          Positioned(
-            right: -10,
-            bottom: -10,
-            child: Icon(
-              Icons.format_quote_rounded,
-              size: 60,
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
-            ),
-          ),
-          Text(
-            bio.isNotEmpty ? bio : "Write something interesting about yourself to attract more matches!",
-            style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-              height: 1.6,
-              letterSpacing: 0.2,
-              fontStyle: bio.isEmpty ? FontStyle.italic : null,
-              color: bio.isEmpty 
-                  ? (isDark ? AppColors.textHintDark : AppColors.textHint)
-                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
-            ),
-          ),
-        ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Text(
+        bio.isNotEmpty ? bio : "No bio added yet.",
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.black54,
+          height: 1.6,
+        ),
       ),
     );
   }
 
   Widget _buildInterestsCard(bool isDark, List<String> interests) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Interests",
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: interests.map((interest) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-              borderRadius: BorderRadius.circular(50),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: interests.map((interest) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Text(
+            interest,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-            child: Text(
-              interest,
-              style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+          ),
+        );
+      }).toList(),
     );
   }
 
-  Widget _sectionCard({
-    required bool isDark,
-    required String title,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
+  Widget _buildGallerySection(bool isDark, List<String> images) {
+    if (images.isEmpty) {
+      return Container(
+        height: 120,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEEEEE), style: BorderStyle.solid),
+        ),
+        child: const Center(
+          child: Text("No gallery photos", style: TextStyle(color: Colors.black38)),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        CarouselSlider.builder(
+          itemCount: images.length,
+          options: CarouselOptions(
+            height: 240,
+            viewportFraction: 0.85,
+            enlargeCenterPage: true,
+            enableInfiniteScroll: images.length > 1,
+            autoPlay: images.length > 1,
+            onPageChanged: (index, reason) => controller.updateCarouselIndex(index),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 3,
-                height: 18,
+          itemBuilder: (context, index, realIndex) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: _buildImage(images[index]),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        Obx(() {
+          final current = controller.currentGalleryIndex.value;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(images.length, (index) {
+              final isActive = current == index;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: isActive ? 16 : 6,
+                height: 6,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
+                  color: isActive ? AppColors.primary : const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(100),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: AppTextStyles.headingMedium(
-                  isDark: isDark,
-                ).copyWith(fontWeight: FontWeight.w800, fontSize: 18),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          child,
-        ],
-      ),
+              );
+            }),
+          );
+        }),
+      ],
     );
   }
 
-  // ===================== SHIMMER (USES YOUR WIDGET) =====================
+  // ===================== SHIMMER =====================
 
   Widget _buildProfileShimmer(bool isDark) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       child: Column(
         children: [
-          /// Profile Header shimmer
-          ShimmerWrapper(
-            isLoading: true,
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: Column(
-                children: [
-                  const ShimmerBox(width: 118, height: 118, radius: 100),
-                  const SizedBox(height: 14),
-                  const ShimmerBox(width: 180, height: 16),
-                  const SizedBox(height: 12),
-                  const ShimmerBox(width: 120, height: 34, radius: 50),
-                  const SizedBox(height: 10),
-                  const ShimmerBox(width: 120, height: 34, radius: 50),
-                ],
-              ),
+          Container(
+            height: 340,
+            width: double.infinity,
+            color: Colors.white,
+            child: Column(
+              children: [
+                const ShimmerBox(width: double.infinity, height: 140, radius: 0),
+                const SizedBox(height: 60),
+                const ShimmerBox(width: 200, height: 24),
+                const SizedBox(height: 12),
+                const ShimmerBox(width: 150, height: 16),
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: ShimmerBox(width: double.infinity, height: 50, radius: 100),
+                ),
+              ],
             ),
           ),
-
-          const SizedBox(height: 18),
-
-          /// Gallery shimmer
-          ShimmerWrapper(
-            isLoading: true,
-            child: Container(
-              height: 240,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const ShimmerBox(radius: 22),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                const ShimmerBox(width: double.infinity, height: 200, radius: 16),
+                const SizedBox(height: 24),
+                const ShimmerBox(width: double.infinity, height: 100, radius: 16),
+              ],
             ),
           ),
-
-          const SizedBox(height: 18),
-
-          /// Cards shimmer
-          _shimmerCard(isDark),
-          const SizedBox(height: 14),
-          _shimmerCard(isDark),
-          const SizedBox(height: 14),
-          _shimmerCard(isDark),
-          const SizedBox(height: 14),
-          _shimmerCard(isDark),
         ],
       ),
     );

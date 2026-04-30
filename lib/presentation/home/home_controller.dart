@@ -19,6 +19,8 @@ class DatingProfile {
   final List<String> imageUrls; 
   final String? gender;
   final String? lookingFor;
+  final String? religion;
+  final String? matchId;
 
   DatingProfile({
     required this.id,
@@ -33,6 +35,8 @@ class DatingProfile {
     required this.imageUrls,
     this.gender,
     this.lookingFor,
+    this.religion,
+    this.matchId,
   });
 
   DatingProfile copyWith({
@@ -48,6 +52,8 @@ class DatingProfile {
     List<String>? imageUrls,
     String? gender,
     String? lookingFor,
+    String? religion,
+    String? matchId,
   }) {
     return DatingProfile(
       id: id ?? this.id,
@@ -62,6 +68,8 @@ class DatingProfile {
       imageUrls: imageUrls ?? this.imageUrls,
       gender: gender ?? this.gender,
       lookingFor: lookingFor ?? this.lookingFor,
+      religion: religion ?? this.religion,
+      matchId: matchId ?? this.matchId,
     );
   }
 }
@@ -84,6 +92,11 @@ class HomeController extends GetxController {
   final isStarPressed = false.obs;
   final isLikePressed = false.obs;
   final isBoostPressed = false.obs;
+  final isGoldenChatPressed = false.obs;
+
+  /// Subscription/Limit logic
+  final directMessageLimit = 3.obs; 
+  final messagesSentCount = 0.obs;
 
   DatingProfile? get currentProfile =>
       profiles.isNotEmpty ? profiles.first : null;
@@ -94,6 +107,43 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     loadHomeData();
+  }
+
+  void pressGoldenChat(DatingProfile profile, Function(DatingProfile) onShowDialog) {
+    isGoldenChatPressed.value = true;
+    Future.delayed(const Duration(milliseconds: 150), () {
+      isGoldenChatPressed.value = false;
+      onShowDialog(profile);
+    });
+  }
+
+  Future<bool> sendDirectMessage(String targetUserId, String message) async {
+    if (messagesSentCount.value >= directMessageLimit.value) {
+      return false; // Limit exceeded
+    }
+
+    try {
+      final user = _authService.currentUser;
+      final token = await user?.getIdToken(true);
+      if (token == null) throw "Token not found";
+
+      // Mocking API call for now or using a generic endpoint
+      // Assuming a direct chat creation or similar
+      final success = await _homeApi.sendDiscoveryAction(
+        token: token,
+        targetUserId: targetUserId,
+        action: 'like', // Often a direct message counts as a like too
+      );
+
+      if (success) {
+        messagesSentCount.value++;
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Error sending direct message: $e");
+      return false;
+    }
   }
 
   @override
@@ -123,7 +173,41 @@ class HomeController extends GetxController {
 
       final mappedProfiles = feedData.map((item) {
         final distanceKm = (item["distanceKm"] ?? 0).toString();
-        final image = item["image"]?.toString() ?? "";
+        final imagesData = item["images"] as List<dynamic>? ?? [];
+        
+        String primaryImage = "";
+        List<String> allImages = [];
+        
+        if (imagesData.isNotEmpty) {
+          // Extract unique non-empty URLs
+          allImages = imagesData
+              .map((img) => img["url"]?.toString() ?? "")
+              .where((url) => url.isNotEmpty)
+              .toSet()
+              .toList();
+
+          final primaryObj = imagesData.firstWhere(
+            (img) => img["isPrimary"] == true,
+            orElse: () => imagesData.first,
+          );
+          primaryImage = primaryObj["url"]?.toString() ?? "";
+          
+          // Move primary image to the front if it's not already
+          if (allImages.contains(primaryImage)) {
+            allImages.remove(primaryImage);
+            allImages.insert(0, primaryImage);
+          } else if (primaryImage.isNotEmpty) {
+            allImages.insert(0, primaryImage);
+          }
+          
+          // Limit to 3 images as requested
+          allImages = allImages.take(3).toList();
+        } else {
+          // Fallback to legacy 'image' field if 'images' is empty
+          final legacyImage = item["image"]?.toString() ?? "";
+          primaryImage = legacyImage;
+          allImages = legacyImage.isNotEmpty ? [legacyImage] : [];
+        }
 
         return DatingProfile(
           id: item["userId"]?.toString() ?? "",
@@ -132,12 +216,14 @@ class HomeController extends GetxController {
           bio: item["bio"]?.toString() ?? "",
           location: "",
           interests: List<String>.from(item["interests"] ?? []),
-          profileImageUrl: image,
+          profileImageUrl: primaryImage,
           isActiveNow: true,
           distance: "📍 $distanceKm km",
-          imageUrls: image.isNotEmpty ? [image] : [],
-          gender: null,
-          lookingFor: null,
+          imageUrls: allImages,
+          gender: item["gender"]?.toString(),
+          lookingFor: item["lookingFor"]?.toString(),
+          religion: item["religion"]?.toString(),
+          matchId: item["matchId"]?.toString(),
         );
       }).toList();
 

@@ -10,6 +10,7 @@ import 'package:Nearly/presentation/splash/splash_binding.dart';
 import 'package:Nearly/presentation/splash/splash_screen.dart';
 import '../../presentation/auth/signup/signup_binding.dart';
 import '../../presentation/chat/chat_detail_screen.dart';
+import 'package:Nearly/presentation/profile/explore_plans_screen.dart';
 import '../services/permission_service.dart';
 import 'app_routes.dart';
 
@@ -34,12 +35,8 @@ class AppPages {
       name: Routes.DASHBOARD,
       page: () => const DashboardScreen(),
       binding: DashboardBinding(),
-    ),GetPage(
-      name: Routes.DASHBOARD,
-      page: () => const DashboardScreen(),
-      binding: DashboardBinding(),
     ),
-      GetPage(
+    GetPage(
       name: Routes.CHAT_DETAIL,                  
       page: () => ChatDetailScreen(),            
       transition: Transition.rightToLeft,      
@@ -53,6 +50,11 @@ class AppPages {
       name: Routes.SIGNUP,
       page: () => const SignUpScreen(),
       binding: SignUpBinding(),
+    ),
+    GetPage(
+      name: Routes.EXPLORE_PLANS,
+      page: () => const ExplorePlansScreen(),
+      transition: Transition.downToUp,
     ),
   ];
 }

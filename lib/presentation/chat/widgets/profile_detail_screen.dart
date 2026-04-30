@@ -3,8 +3,11 @@ import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:Nearly/core/routes/app_routes.dart';
 import 'package:Nearly/core/services/auth_service.dart';
+import 'package:Nearly/data/model/chat/chat_preview_model.dart';
 import 'package:Nearly/data/sources/remote/home_api.dart';
+import 'package:Nearly/presentation/home/home_controller.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
@@ -12,11 +15,15 @@ import 'package:Nearly/shared/constants/app_text_styles.dart';
 class ProfileDetailsScreen extends StatefulWidget {
   final dynamic profile;
   final String heroTag;
+  final bool isFromMatches;
+  final bool isFromChat;
 
   const ProfileDetailsScreen({
     super.key,
     required this.profile,
     required this.heroTag,
+    this.isFromMatches = false,
+    this.isFromChat = false,
   });
 
   @override
@@ -28,21 +35,8 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   final HomeApi _homeApi = HomeApi();
   final AuthService _authService = AuthService();
 
-  double imageOffset = 0;
-  bool showHeart = false;
   int currentGalleryIndex = 0;
   bool isLikeLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController.addListener(() {
-      setState(() {
-        // imageOffset = _scrollController.offset * 0.4;
-      });
-    });
-  }
 
   @override
   void dispose() {
@@ -57,138 +51,389 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
 
     if (p == null) {
       return Scaffold(
-        backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
-        appBar: AppBar(
-          backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-            ),
-            onPressed: () => Get.back(),
-          ),
-          title: Text(
-            "Profile",
-            style: AppTextStyles.headingMedium(isDark: isDark),
-          ),
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              "This profile is not available right now.",
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium(isDark: isDark),
-            ),
-          ),
-        ),
+        backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
+        body: const Center(child: Text("Profile not found")),
       );
     }
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+      backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
       body: Stack(
         children: [
           CustomScrollView(
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
-            slivers: [_buildAppBar(p), _buildContent(isDark, p)],
-          ),
-
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 14,
-            child: SafeArea(
-              top: false,
-              child: _buildLikeButton(),
-            ),
-          ),
-
-          /// ❤️ double tap animation
-          if (showHeart)
-            Center(
-              child: TweenAnimationBuilder(
-                tween: Tween(begin: 0.6, end: 1.4),
-                duration: const Duration(milliseconds: 400),
-                builder: (_, scale, child) {
-                  return Transform.scale(
-                    scale: scale,
-                    child: Opacity(
-                      opacity: (1.4 - scale).clamp(0.0, 1.0),
-                      child: const Icon(
-                        Icons.favorite,
-                        color: Colors.white,
-                        size: 120,
-                      ),
-                    ),
-                  );
-                },
+            slivers: [
+              _buildModernAppBar(p),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileInfo(isDark, p),
+                      const SizedBox(height: 32),
+                      
+                      _buildElegantSectionTitle('About Me'),
+                      _buildAboutMeCard(isDark, p),
+                      
+                      const SizedBox(height: 32),
+                      
+                      _buildElegantSectionTitle('Bio'),
+                      _buildBioCard(isDark, p.bio ?? ""),
+                      
+                      const SizedBox(height: 32),
+                      
+                      _buildElegantSectionTitle('Interests'),
+                      _buildInterestsCard(isDark, (p.interests as List<dynamic>?)?.map((e) => e.toString()).toList() ?? []),
+                      
+                      const SizedBox(height: 120),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+          Positioned(
+            bottom: 24,
+            left: 24,
+            right: 24,
+            child: _buildConditionalButton(isDark, p),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLikeButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: AppGradients.primary,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.35),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+  Widget _buildModernAppBar(dynamic p) {
+    List<String> images = [];
+    if (p.imageUrls is List) {
+      images = (p.imageUrls as List).map((e) => e.toString()).toList();
+    }
+    
+    if (images.isEmpty && p.profileImageUrl != null) {
+      images.add(p.profileImageUrl.toString());
+    }
+
+    return SliverAppBar(
+      expandedHeight: 450,
+      pinned: true,
+      stretch: true,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: _appBarCircleButton(Icons.arrow_back_ios_new_rounded, Get.back),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: isLikeLoading ? null : _likeProfile,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 180),
-                  child: isLikeLoading
-                      ? const SizedBox(
-                          key: ValueKey("like_loader"),
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.favorite_rounded,
-                          key: ValueKey("like_icon"),
-                          color: Colors.white,
-                          size: 20,
-                        ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: _appBarCircleButton(Icons.more_horiz_rounded, () {}),
+        ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground],
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (images.length <= 1)
+              Hero(
+                tag: widget.heroTag,
+                child: _buildImage(images.isNotEmpty ? images.first : p.profileImageUrl),
+              )
+            else
+              CarouselSlider.builder(
+                itemCount: images.length,
+                options: CarouselOptions(
+                  height: 450,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: false,
+                  enableInfiniteScroll: false,
+                  autoPlay: false,
+                  onPageChanged: (index, _) => setState(() => currentGalleryIndex = index),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  isLikeLoading ? "Liking..." : "Like Profile",
-                  style: AppTextStyles.bodyMedium(isDark: false).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
+                itemBuilder: (context, index, _) {
+                  return Hero(
+                    tag: index == 0 ? widget.heroTag : "gallery_${widget.heroTag}_$index",
+                    child: _buildImage(images[index]),
+                  );
+                },
+              ),
+            
+            // Indicators
+            if (images.length > 1)
+              Positioned(
+                top: MediaQuery.of(Get.context!).padding.top + 20,
+                left: 60,
+                right: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(images.length, (index) {
+                    final isActive = currentGalleryIndex == index;
+                    return Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: isActive ? Colors.white : Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black12, Colors.black54],
+                      stops: [0.6, 0.8, 1.0],
+                    ),
                   ),
                 ),
-              ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _appBarCircleButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfo(bool isDark, dynamic p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "${p.userName}, ${p.age}",
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (p.isActiveNow == true)
+              Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: AppColors.green,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Text(
+              p.location != null && p.location.isNotEmpty ? p.location : "Nearby",
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildElegantSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutMeCard(bool isDark, dynamic p) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(Icons.person_outline_rounded, "Gender", p.gender ?? "Not specified"),
+          const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+          _buildInfoRow(Icons.favorite_border_rounded, "Looking for", p.lookingFor ?? "Not specified"),
+          if (p is DatingProfile && p.religion != null) ...[
+            const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+            _buildInfoRow(Icons.auto_awesome_rounded, "Religion", p.religion!),
+          ],
+          const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 48),
+          _buildInfoRow(Icons.location_on_outlined, "Location", p.location ?? "Nearby"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.black54),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontSize: 15, color: Colors.black54, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBioCard(bool isDark, String bio) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Text(
+        bio.isNotEmpty ? bio : "No bio added yet.",
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.black54,
+          height: 1.6,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInterestsCard(bool isDark, List<String> interests) {
+    if (interests.isEmpty) {
+      return const Text("No interests added yet", style: TextStyle(color: Colors.black38, fontSize: 14));
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: interests.map((interest) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Text(
+            interest,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ),
+        );
+      }).toList(),
+    );
+  }
+
+
+  Widget _buildConditionalButton(bool isDark, dynamic p) {
+    if (widget.isFromChat) return const SizedBox.shrink();
+    final bool isChat = widget.isFromMatches;
+    
+    return GestureDetector(
+      onTap: isLikeLoading ? null : () {
+        if (isChat) {
+          final String? matchId = p is DatingProfile ? p.matchId : null;
+          if (matchId != null && matchId.isNotEmpty) {
+            final chatPreview = ChatPreviewModel(
+              id: matchId,
+              name: p.userName,
+              imageUrl: p.profileImageUrl,
+              lastMessage: "",
+              time: "Now",
+              isOnline: p.isActiveNow,
+              isTyping: false,
+              unreadCount: 0,
+              isSeen: false,
+              isDelivered: false,
+              isArchived: false,
+            );
+            Get.toNamed(Routes.CHAT_DETAIL, arguments: chatPreview);
+          } else {
+            Get.back();
+          }
+        } else {
+          _likeProfile();
+        }
+      },
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          gradient: AppGradients.primary,
+          borderRadius: BorderRadius.circular(100),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Center(
+          child: isLikeLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(isChat ? Icons.chat_bubble_rounded : Icons.favorite_rounded, color: Colors.white, size: 22),
+                    const SizedBox(width: 12),
+                    Text(
+                      isChat ? "Start Chat" : "Like Profile",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -220,422 +465,8 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
     }
   }
 
-  // ================= APP BAR =================
-
-  Widget _buildAppBar(dynamic profile) {
-    return SliverAppBar(
-      expandedHeight: 360,
-      pinned: true,
-      stretch: true,
-      backgroundColor: AppColors.black,
-      leading: _iconBtn(Icons.arrow_back_ios_new_rounded, Get.back),
-      actions: [
-        _iconBtn(Icons.more_horiz_rounded, () {}),
-        const SizedBox(width: 10),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: GestureDetector(
-          onDoubleTap: () {
-            setState(() => showHeart = true);
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) setState(() => showHeart = false);
-            });
-          },
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Transform.translate(
-                offset: Offset(0, imageOffset),
-                child: Hero(
-                  tag: widget.heroTag,
-                  child: _buildImage(profile.profileImageUrl),
-                ),
-              ),
-
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                  child: Container(color: Colors.transparent),
-                ),
-              ),
-
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.transparent, AppColors.swipeOverlayDark],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _iconBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.all(8),
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.28),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
-
-  // ================= CONTENT =================
-
-  Widget _buildContent(bool isDark, dynamic p) {
-    final List<String> galleryImages = (p.imageUrls is List<String>)
-        ? p.imageUrls
-        : <String>[];
-    final hasLocation = _hasText((p.location ?? '').toString());
-    final hasGender = _hasText((p.gender ?? '').toString());
-    final hasLookingFor = _hasText((p.lookingFor ?? '').toString());
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// NAME / AGE / STATUS
-            _buildProfileHeader(isDark, p),
-
-            const SizedBox(height: 18),
-
-            /// ABOUT
-            _buildSection(
-              title: "About 👋",
-              isDark: isDark,
-              child: Text(
-                (p.bio ?? '').toString().trim().isNotEmpty
-                    ? p.bio
-                    : "No bio added yet",
-                style: AppTextStyles.bodyMedium(
-                  isDark: isDark,
-                ).copyWith(height: 1.55),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            /// INFO
-            if (hasLocation) ...[
-              _buildInfoCard(
-                isDark: isDark,
-                title: "Location",
-                value: p.location,
-                icon: Icons.location_on_rounded,
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            if (hasGender) ...[
-              _buildInfoCard(
-                isDark: isDark,
-                title: "Gender",
-                value: p.gender,
-                icon: Icons.person_outline_rounded,
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            if (hasLookingFor) ...[
-              _buildInfoCard(
-                isDark: isDark,
-                title: "Looking For",
-                value: p.lookingFor,
-                icon: Icons.favorite_border_rounded,
-              ),
-              const SizedBox(height: 16),
-            ] else
-              const SizedBox(height: 2),
-
-            /// INTERESTS
-            _buildSection(
-              title: "Interests",
-              isDark: isDark,
-              child: (p.interests != null && p.interests.isNotEmpty)
-                  ? Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: p.interests
-                          .map<Widget>((e) => _chip(e, isDark))
-                          .toList(),
-                    )
-                  : Text(
-                      "No interests added yet",
-                      style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                        color: isDark
-                            ? AppColors.textHintDark
-                            : AppColors.textHint,
-                      ),
-                    ),
-            ),
-
-            const SizedBox(height: 16),
-
-            /// GALLERY
-            _buildGallerySection(isDark, galleryImages),
-            const SizedBox(height: 86),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(bool isDark, dynamic p) {
-    final hasLocation = _hasText((p.location ?? '').toString());
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "${p.userName}, ${p.age}",
-            style: AppTextStyles.headingLarge(
-              isDark: isDark,
-            ).copyWith(fontWeight: FontWeight.w700),
-          ),
-          if (hasLocation) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on_rounded,
-                  size: 17,
-                  color: isDark ? AppColors.textHintDark : AppColors.textHint,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    p.location,
-                    style: AppTextStyles.bodySmall(isDark: isDark),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ] else
-            const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Text(
-              p.isActiveNow == true ? "🟢 Active now" : "⚪ Offline",
-              style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                fontWeight: FontWeight.w600,
-                color: p.isActiveNow == true
-                    ? AppColors.green
-                    : (isDark ? AppColors.textHintDark : AppColors.textHint),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= GALLERY =================
-
-  Widget _buildGallerySection(bool isDark, List<String> images) {
-    return _buildSection(
-      title: "Photos",
-      isDark: isDark,
-      child: images.isEmpty
-          ? Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Center(
-                child: Text(
-                  "No gallery photos added yet",
-                  style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                    color: isDark ? AppColors.textHintDark : AppColors.textHint,
-                  ),
-                ),
-              ),
-            )
-          : Column(
-              children: [
-                CarouselSlider.builder(
-                  itemCount: images.length,
-                  options: CarouselOptions(
-                    height: 250,
-                    viewportFraction: 1,
-                    enlargeCenterPage: false,
-                    enableInfiniteScroll: images.length > 1,
-                    autoPlay: images.length > 1,
-                    autoPlayInterval: const Duration(seconds: 3),
-                    onPageChanged: (index, reason) {
-                      setState(() {
-                        currentGalleryIndex = index;
-                      });
-                    },
-                  ),
-                  itemBuilder: (context, index, realIndex) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: _buildImage(images[index]),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(images.length, (index) {
-                    final isActive = currentGalleryIndex == index;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: isActive ? 20 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        gradient: isActive ? AppGradients.primary : null,
-                        color: isActive
-                            ? null
-                            : (isDark
-                                  ? AppColors.inputFillDark
-                                  : AppColors.primary5),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-    );
-  }
-  // ================= COMMON UI =================
-
-  Widget _buildInfoCard({
-    required bool isDark,
-    required String title,
-    required String value,
-    required IconData icon,
-  }) {
-    return _buildSection(
-      title: title,
-      isDark: isDark,
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              gradient: AppGradients.primary,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: AppColors.white, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: AppTextStyles.bodyMedium(
-                isDark: isDark,
-              ).copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required String title,
-    required Widget child,
-    required bool isDark,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.headingMedium(
-              isDark: isDark,
-            ).copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String text, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.inputFillDark : AppColors.primary5,
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Text(
-        text,
-        style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-          color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  // ================= IMAGE =================
-
   Widget _buildImage(String imagePath) {
     if (imagePath.isEmpty) return _placeholderImage();
-
     if (imagePath.startsWith("http")) {
       return Image.network(
         imagePath,

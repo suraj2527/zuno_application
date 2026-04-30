@@ -9,7 +9,10 @@ import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
 
 import '../../shared/widgets/common/app_refresh_wrapper.dart';
 import '../../shared/widgets/common/Nearly_base_screen.dart';
+import 'package:Nearly/core/routes/app_routes.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import '../chat/widgets/profile_detail_screen.dart';
+import '../profile/explore_plans_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -30,6 +33,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       vsync: this,
     );
     _controller.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -327,68 +336,23 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   Widget _buildImageSection() {
     final profile = controller.currentProfile;
-
-    if (profile == null) {
-      return Container();
-    }
+    if (profile == null) return Container();
 
     return Stack(
       children: [
         Positioned.fill(
-          child: profile.profileImageUrl.isNotEmpty
-              ? Image.network(
-                  profile.profileImageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _profilePlaceholder(),
-                )
-              : Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.profilePlaceholderStart,
-                        AppColors.profilePlaceholderEnd,
-                      ],
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.person, size: 90, color: AppColors.white),
-                  ),
-                ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: IgnorePointer(
-            child: Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.transparent, AppColors.swipeOverlayDark],
-                ),
-              ),
-            ),
+          child: Hero(
+            tag: "profile_${profile.id}",
+            child: profile.profileImageUrl.isNotEmpty
+                ? Image.network(
+                    profile.profileImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _profilePlaceholder(),
+                  )
+                : _profilePlaceholder(),
           ),
         ),
-        Positioned(
-          top: 14,
-          left: 14,
-          child: _chip(
-            text: profile.isActiveNow ? '🟢 Active now' : '⚪ Offline',
-            textColor: profile.isActiveNow
-                ? AppColors.green
-                : AppColors.textHint,
-          ),
-        ),
-        Positioned(
-          top: 14,
-          right: 14,
-          child: _chip(text: profile.distance, textColor: AppColors.primary),
-        ),
+        _buildImageOverlay(profile),
       ],
     );
   }
@@ -408,6 +372,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 : _profilePlaceholder(),
           ),
         ),
+        _buildImageOverlay(profile),
+      ],
+    );
+  }
+
+  Widget _buildImageOverlay(DatingProfile profile) {
+    return Stack(
+      children: [
         Positioned(
           left: 0,
           right: 0,
@@ -772,7 +744,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             pressed: controller.isStarPressed.value,
             disabled: disabled,
             child: _actionButton(
-              icon: Icons.star_rounded,
+              icon: Icons.keyboard_double_arrow_up_rounded,
               isDark: isDark,
               size: 46,
               gradient: null,
@@ -794,17 +766,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 16),
-          _interactiveActionButton(
-            onTap: controller.pressBoost,
-            pressed: controller.isBoostPressed.value,
-            disabled: disabled,
-            child: _actionButton(
-              icon: Icons.flash_on_rounded,
-              isDark: isDark,
-              size: 46,
-              gradient: AppGradients.gold,
-              bordered: false,
-              iconColor: AppColors.goldIcon,
+          ScaleTransition(
+            scale: Tween<double>(begin: 1.0, end: 1.1).animate(
+              CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+            ),
+            child: _interactiveActionButton(
+              onTap: () {
+                final profile = controller.currentProfile;
+                if (profile != null) {
+                  if (controller.messagesSentCount.value >=
+                      controller.directMessageLimit.value) {
+                    _showSubscriptionDialog();
+                  } else {
+                    controller.pressGoldenChat(profile, _showGoldenChatDialog);
+                  }
+                }
+              },
+              pressed: controller.isGoldenChatPressed.value,
+              disabled: disabled,
+              child: _actionButton(
+                icon: Icons.chat_bubble_rounded,
+                isDark: isDark,
+                size: 46,
+                gradient: AppGradients.gold,
+                bordered: false,
+                iconColor: Colors.white,
+              ),
             ),
           ),
         ],
@@ -877,6 +864,238 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
+  void _showGoldenChatDialog(DatingProfile profile) {
+    final TextEditingController msgController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40), // More horizontal padding to make it smaller
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 80, // Smaller header
+                    decoration: const BoxDecoration(
+                      gradient: AppGradients.gold,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    ),
+                  ),
+                  Positioned(
+                    top: 25,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircleAvatar(
+                        radius: 32, // Smaller avatar
+                        backgroundImage: profile.profileImageUrl.isNotEmpty
+                            ? NetworkImage(profile.profileImageUrl)
+                            : null,
+                        backgroundColor: AppColors.primary5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 35),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    Text(
+                      "Message ${profile.userName}",
+                      style: AppTextStyles.headingMedium(isDark: isDark).copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    TextField(
+                      controller: msgController,
+                      maxLines: 3,
+                      style: AppTextStyles.body(isDark: isDark).copyWith(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: "Write a message...",
+                        hintStyle: AppTextStyles.bodySmall(isDark: isDark),
+                        filled: true,
+                        fillColor: isDark ? AppColors.inputFillDark : const Color(0xFFF6F7FB),
+                        contentPadding: const EdgeInsets.all(16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                            color: isDark ? AppColors.inputBorderDark : const Color(0xFFEEEEEE),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    Obx(() {
+                      final remaining = controller.directMessageLimit.value - controller.messagesSentCount.value;
+                      final isOutOfLimit = remaining <= 0;
+                      
+                      return Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              if (isOutOfLimit) {
+                                Get.back();
+                                _showSubscriptionDialog();
+                                return;
+                              }
+                              final text = msgController.text.trim();
+                              if (text.isEmpty) return;
+                              
+                              final success = await controller.sendDirectMessage(profile.id, text);
+                              if (success) {
+                                Get.back();
+                                Get.snackbar(
+                                  "Sent!", 
+                                  "Your message is on its way ✨",
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: AppColors.primary,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
+                            },
+                            child: Container(
+                              height: 50,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: isOutOfLimit ? null : AppGradients.gold,
+                                color: isOutOfLimit ? Colors.grey.shade400 : null,
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  isOutOfLimit ? "Upgrade to Nearly Premium" : "Send Premium Message",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          if (!isOutOfLimit)
+                            Text(
+                              "$remaining free messages left",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.roseGold.withOpacity(0.9),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      transitionDuration: const Duration(milliseconds: 200),
+      transitionCurve: Curves.easeOutCubic,
+    );
+  }
+
+  void _showSubscriptionDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.stars_rounded, size: 60, color: AppColors.roseGold),
+              const SizedBox(height: 16),
+              Text(
+                "Nearly Premium",
+                style: AppTextStyles.headingLarge(isDark: isDark).copyWith(fontSize: 20),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Upgrade to send unlimited direct messages and boost your visibility!",
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall(isDark: isDark),
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () {
+                  Get.back();
+                  Get.to(() => const ExplorePlansScreen());
+                },
+                child: Container(
+                  height: 50,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.primary,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Explore Plans",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  "Not Now",
+                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      transitionDuration: const Duration(milliseconds: 200),
+      transitionCurve: Curves.easeOutCubic,
+    );
+  }
+
   bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
 
   Widget _profilePlaceholder() {
@@ -897,3 +1116,5 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 }
+
+

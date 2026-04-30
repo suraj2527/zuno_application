@@ -145,18 +145,38 @@ class ActivityController extends GetxController {
       item["targetUser"],
     ]) ?? item;
 
-    // Image priority: 1. image 2. profile.images[0] 3. fallback placeholder
-    String imageUrl = "";
-    if (item["image"] != null && item["image"].toString().isNotEmpty) {
-      imageUrl = item["image"].toString();
-    } else if (profile["image"] != null && profile["image"].toString().isNotEmpty) {
-      imageUrl = profile["image"].toString();
-    } else if (profile["images"] is List && (profile["images"] as List).isNotEmpty) {
-      imageUrl = profile["images"][0].toString();
-    } else if (item["images"] is List && (item["images"] as List).isNotEmpty) {
-      imageUrl = item["images"][0].toString();
-    } else if (profile["profileImage"] != null) {
-      imageUrl = profile["profileImage"].toString();
+    // Extract Images
+    final List<dynamic> imagesData = (profile["images"] ?? item["images"]) is List 
+        ? List<dynamic>.from(profile["images"] ?? item["images"]) 
+        : [];
+    
+    String primaryImage = "";
+    List<String> allImages = [];
+
+    if (imagesData.isNotEmpty) {
+      allImages = imagesData
+          .map((img) => img is Map ? (img["url"]?.toString() ?? "") : img.toString())
+          .where((url) => url.isNotEmpty)
+          .toSet()
+          .toList();
+      
+      final primaryObj = imagesData.firstWhere(
+        (img) => img is Map && img["isPrimary"] == true,
+        orElse: () => imagesData.first,
+      );
+      primaryImage = (primaryObj is Map ? (primaryObj["url"]?.toString() ?? "") : primaryObj.toString());
+      
+      if (allImages.contains(primaryImage)) {
+        allImages.remove(primaryImage);
+        allImages.insert(0, primaryImage);
+      } else if (primaryImage.isNotEmpty) {
+        allImages.insert(0, primaryImage);
+      }
+      allImages = allImages.take(3).toList();
+    } else {
+      // Fallback
+      primaryImage = item["image"]?.toString() ?? profile["image"]?.toString() ?? profile["profileImage"]?.toString() ?? "";
+      allImages = primaryImage.isNotEmpty ? [primaryImage] : [];
     }
 
     final interestsRaw = profile["interests"] ?? item["interests"];
@@ -188,12 +208,13 @@ class ActivityController extends GetxController {
       bio: profile["bio"]?.toString() ?? item["bio"]?.toString() ?? "",
       location: locationName,
       interests: interests,
-      profileImageUrl: imageUrl,
+      profileImageUrl: primaryImage,
       isActiveNow: true,
       distance: "",
-      imageUrls: imageUrl.isNotEmpty ? [imageUrl] : [],
+      imageUrls: allImages,
       gender: profile["gender"]?.toString() ?? item["gender"]?.toString(),
       lookingFor: profile["lookingFor"]?.toString() ?? item["lookingFor"]?.toString(),
+      matchId: item["chatId"]?.toString() ?? item["_id"]?.toString(),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -32,10 +33,16 @@ class ProfileController extends GetxController {
   final RxString selectedGender = ''.obs;
   final RxDouble selectedAge = 24.0.obs;
   final RxString selectedLookingFor = ''.obs;
+  final RxString selectedReligion = ''.obs; // ✅ ADD
   final RxList<String> selectedInterests = <String>[].obs;
 
   final RxString selectedProfileImage = ''.obs;
   final RxList<String> selectedGalleryImages = <String>[].obs;
+
+  // Track public IDs for remote images
+  final Map<String, String> _urlToPublicId = {};
+  // Track images to be deleted on save
+  final List<String> _photosToDelete = [];
 
   // ================= MASTER INTERESTS =================
 
@@ -82,6 +89,18 @@ class ProfileController extends GetxController {
     },
   ];
 
+  final List<String> religionOptions = [
+    'Hindu',
+    'Muslim',
+    'Christian',
+    'Buddhist',
+    'Parsi',
+    'Sikh',
+    'Jain',
+    'Atheist',
+    'Other'
+  ];
+
   DatingProfile? get myProfile => homeController.allProfiles.isNotEmpty
       ? homeController.allProfiles.first
       : null;
@@ -109,6 +128,7 @@ class ProfileController extends GetxController {
       if (token == null) throw "Token not found";
 
       final data = await _userApi.getProfile(token);
+      debugPrint("📄 FULL PROFILE RESPONSE: ${jsonEncode(data)}");
 
       /// 🔥 Extract lat lng
       final lat = data["location"]?["lat"];
@@ -132,33 +152,64 @@ class ProfileController extends GetxController {
         }
       }
 
+      // Handle images and find primary
+      final List<dynamic> galleryData = data["images"] ?? [];
+      final List<String> galleryUrls = [];
+      String profileUrl = "";
+
+      for (var item in galleryData) {
+        if (item is Map) {
+          final url = item["url"] ?? "";
+          final bool isPrimary = item["isPrimary"] ?? false;
+          final String? publicId = item["publicId"];
+
+          if (publicId != null) {
+            _urlToPublicId[url] = publicId;
+          }
+
+          if (isPrimary) {
+            profileUrl = url;
+          } else {
+            galleryUrls.add(url);
+          }
+        }
+      }
+
+      // If no image was marked primary, use the first one if available
+      if (profileUrl.isEmpty && galleryUrls.isNotEmpty) {
+        profileUrl = galleryUrls.removeAt(0);
+      }
+
       profile.value = DatingProfile(
-        id: data["_id"] ?? "",
+        id: data["userId"] ?? "",
         userName: data["name"] ?? "",
-        age: (data["age"] ?? 24).toString(),
+        age: (data["age"] ?? "").toString(),
         bio: data["bio"] ?? "",
-        location: locationName, // ✅ FIXED
+        location: locationName,
         interests: List<String>.from(data["interests"] ?? []),
-        profileImageUrl:
-            data["profileImage"] ?? _authService.currentUser?.photoURL ?? "",
+        profileImageUrl: profileUrl,
         isActiveNow: true,
         distance: "",
-        imageUrls: List<String>.from(data["images"] ?? []),
+        imageUrls: galleryUrls,
         gender: data["gender"],
         lookingFor: data["lookingFor"],
+        religion: data["religion"],
       );
 
       nameController.text = data["name"] ?? "";
       bioController.text = data["bio"] ?? "";
-      locationController.text = locationName; // ✅ IMPORTANT
+      locationController.text = locationName;
 
       selectedGender.value = data["gender"] ?? "";
       selectedAge.value = (data["age"] ?? 24).toDouble();
       selectedLookingFor.value = data["lookingFor"] ?? "";
+      selectedReligion.value = data["religion"] ?? "";
 
       selectedInterests.assignAll(List<String>.from(data["interests"] ?? []));
-      selectedGalleryImages.assignAll(List<String>.from(data["images"] ?? []));
-      selectedProfileImage.value = data["profileImage"] ?? _authService.currentUser?.photoURL ?? "";
+      selectedGalleryImages.assignAll(galleryUrls);
+      selectedProfileImage.value = profileUrl;
+      
+      _photosToDelete.clear(); // Reset deletions
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
@@ -178,6 +229,7 @@ class ProfileController extends GetxController {
     selectedGender.value = p.gender ?? "";
     selectedAge.value = double.tryParse(p.age) ?? 24.0;
     selectedLookingFor.value = p.lookingFor ?? "";
+    selectedReligion.value = p.religion ?? "";
 
     selectedInterests.assignAll(p.interests);
     selectedGalleryImages.assignAll(p.imageUrls);
@@ -188,15 +240,19 @@ class ProfileController extends GetxController {
   Future<void> pickProfileImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final oldUrl = selectedProfileImage.value;
+      if (oldUrl.startsWith('http') && _urlToPublicId.containsKey(oldUrl)) {
+        _photosToDelete.add(_urlToPublicId[oldUrl]!);
+      }
       selectedProfileImage.value = image.path;
     }
   }
 
   Future<void> pickGalleryImage() async {
-    if (selectedGalleryImages.length >= 3) {
+    if (selectedGalleryImages.length >= 2) {
       Get.snackbar(
         "Limit Reached",
-        "You can upload maximum 3 gallery photos.",
+        "You can upload maximum 2 gallery photos.",
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
@@ -210,6 +266,12 @@ class ProfileController extends GetxController {
 
   void removeGalleryImage(int index) {
     if (index < 0 || index >= selectedGalleryImages.length) return;
+
+    final removedUrl = selectedGalleryImages[index];
+    // If it's a remote image, track it for deletion
+    if (removedUrl.startsWith('http') && _urlToPublicId.containsKey(removedUrl)) {
+      _photosToDelete.add(_urlToPublicId[removedUrl]!);
+    }
 
     selectedGalleryImages.removeAt(index);
 
@@ -278,7 +340,7 @@ class ProfileController extends GetxController {
 
   // ================= 🔥 UPDATED PATCH API =================
   Future<void> saveProfile() async {
-    isSaving.value = true; // 🔥 START LOADER
+    isSaving.value = true;
 
     try {
       final user = _authService.currentUser;
@@ -286,49 +348,64 @@ class ProfileController extends GetxController {
 
       if (token == null) throw "Token not found";
 
+      // 1. Handle Deletions
+      for (var publicId in _photosToDelete) {
+        try {
+          await _userApi.deletePhoto(token, publicId);
+        } catch (e) {
+          debugPrint("Failed to delete photo $publicId: $e");
+        }
+      }
+      _photosToDelete.clear();
+
+      // 2. Handle Profile Image Upload
+      if (selectedProfileImage.value.isNotEmpty && !selectedProfileImage.value.startsWith('http')) {
+        final result = await _userApi.uploadPhoto(token, selectedProfileImage.value);
+        final publicId = result['data']?['publicId'];
+        if (publicId != null) {
+          await _userApi.setPrimaryPhoto(token, publicId);
+        }
+      }
+
+      // 3. Handle Gallery Uploads
+      for (var imgPath in selectedGalleryImages) {
+        if (!imgPath.startsWith('http')) {
+          await _userApi.uploadPhoto(token, imgPath);
+        }
+      }
+
+      // 4. Update Other Profile Data
       final Map<String, dynamic> body = {};
 
       if (nameController.text.trim().isNotEmpty) {
         body["name"] = nameController.text.trim();
       }
-
       if (bioController.text.trim().isNotEmpty) {
         body["bio"] = bioController.text.trim();
       }
-
       if (locationController.text.trim().isNotEmpty) {
         body["locationName"] = locationController.text.trim();
       }
-
       if (selectedGender.value.isNotEmpty) {
         body["gender"] = selectedGender.value;
       }
-
       if (selectedAge.value > 0) {
         body["age"] = selectedAge.value.toInt();
       }
-
       if (selectedLookingFor.value.isNotEmpty) {
         body["lookingFor"] = selectedLookingFor.value;
       }
-
+      if (selectedReligion.value.isNotEmpty) {
+        body["religion"] = selectedReligion.value;
+      }
       if (selectedInterests.isNotEmpty) {
         body["interests"] = selectedInterests.toList();
-      }
-
-      if (selectedProfileImage.value.isNotEmpty) {
-        body["profileImage"] = selectedProfileImage.value;
-      }
-
-      if (selectedGalleryImages.isNotEmpty) {
-        body["gallery"] = selectedGalleryImages.toList();
       }
 
       try {
         final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-
         body["location"] = {
           "lat": position.latitude,
           "lng": position.longitude,
@@ -337,23 +414,17 @@ class ProfileController extends GetxController {
         body["location"] = {"lat": 0.0, "lng": 0.0};
       }
 
-      if (body.isEmpty) {
-        Get.snackbar("No Changes", "Nothing to update");
-        return;
+      if (body.isNotEmpty) {
+        await _userApi.updateProfile(token, body);
       }
 
-      await _userApi.updateProfile(token, body);
-
+      await loadProfileData(); // Refresh data
       Get.back();
-
-      Get.snackbar(
-        "Profile Updated",
-        "Your profile has been updated successfully.",
-      );
+      Get.snackbar("Success", "Profile updated successfully");
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
-      isSaving.value = false; // 🔥 STOP LOADER
+      isSaving.value = false;
     }
   }
 

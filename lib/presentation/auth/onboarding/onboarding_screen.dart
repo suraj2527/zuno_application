@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -5,6 +6,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_gradients.dart';
 import '../../../shared/constants/app_text_styles.dart';
 import '../../../shared/widgets/common/gradient_button.dart';
+import '../../../shared/widgets/common/Nearly_loader.dart';
 import 'onboarding_controller.dart';
 
 class OnboardingScreen extends GetView<OnboardingController> {
@@ -14,18 +16,19 @@ class OnboardingScreen extends GetView<OnboardingController> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppGradients.scaffold,
-        ),
-        child: SafeArea(
-          child: Obx(
-            () => AnimatedSwitcher(
-              duration: const Duration(milliseconds: 280),
-              child: controller.currentStep <= 2
-                  ? _IntroFlow(controller: controller)
-                  : _ProfileFlow(controller: controller),
-            ),
+      backgroundColor: Colors.white, // Match profile screen white background
+      body: SafeArea(
+        child: Obx(
+          () => Stack(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                child: controller.currentStep <= 2
+                    ? _IntroFlow(controller: controller)
+                    : _ProfileFlow(controller: controller),
+              ),
+              NearlyLoader(isVisible: controller.isLoading.value),
+            ],
           ),
         ),
       ),
@@ -39,8 +42,10 @@ class _IntroFlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      key: const ValueKey('intro-flow'),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppGradients.scaffold,
+      ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +144,6 @@ class _ProfileFlow extends StatelessWidget {
           ),
           const SizedBox(height: 18),
 
-          /// ONLY button rebuild
           Obx(() => GradientButton(
                 label: controller.getButtonText(),
                 onTap: controller.canContinue() ? controller.nextStep : null,
@@ -156,13 +160,23 @@ class _ProfileFlow extends StatelessWidget {
       case 4:
         return _buildBioStep();
       case 5:
-        return _buildGenderStep();
+        return Obx(() => _buildListSelectionStep('Gender 💫', controller.genderOptions.map((e) => "${e['emoji']} ${e['label']}").toList(), controller.selectedGender, controller.selectGender));
       case 6:
         return _buildAgeStep();
       case 7:
-        return _buildLookingForStep();
+        return Obx(() => _buildListSelectionStep('Looking for 💜', controller.lookingForOptions.map((e) => "${e['emoji']} ${e['title']}").toList(), controller.lookingFor, controller.selectLookingFor));
       case 8:
-        return _buildInterestStep();
+        return Obx(() => _buildListSelectionStep('Interests 🎯', controller.interests, null, controller.toggleInterest, isMulti: true, selectedItems: controller.selectedInterests.toList()));
+      case 9:
+        return Obx(() => _buildListSelectionStep('Religion or faith 🕊️', controller.religionOptions, controller.selectedReligion, controller.selectReligion));
+      case 10:
+        return Obx(() => _buildListSelectionStep('Height 📏', controller.heightOptions, controller.selectedHeight, controller.selectHeight));
+      case 11:
+        return Obx(() => _buildListSelectionStep('Zodiac Sign 🌟', controller.zodiacOptions, controller.selectedZodiac, controller.selectZodiac));
+      case 12:
+        return _buildCityStep();
+      case 13:
+        return _buildImagesStep();
       default:
         return const SizedBox.shrink();
     }
@@ -250,65 +264,48 @@ class _ProfileFlow extends StatelessWidget {
   }
 
   // =========================
-  // GENDER STEP
+  // LIST SELECTION WIDGET
   // =========================
-  Widget _buildGenderStep() {
-    return Obx(() {
-      final selectedGender = controller.selectedGender;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _StepTitleBlock(
-            title: 'How do you identify? 💫',
-            subtitle: 'Choose the option that feels most like you.',
-          ),
-          const SizedBox(height: 24),
-          GridView.builder(
-            itemCount: controller.genderOptions.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 1.02,
-            ),
-            itemBuilder: (_, i) {
-              final item = controller.genderOptions[i];
-              final selected = selectedGender == item['label'];
-
-              return GestureDetector(
-                onTap: () => controller.selectGender(item['label']!),
-                child: _SelectableCard(
-                  selected: selected,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        item['emoji'] ?? '✨',
-                        style: const TextStyle(fontSize: 34),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        item['label'] ?? '',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium().copyWith(
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+  Widget _buildListSelectionStep(String title, List<String> items, String? currentVal, Function(String) onSelect, {bool isMulti = false, List<String>? selectedItems}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StepTitleBlock(title: title, subtitle: 'Select your choice.'),
+        const SizedBox(height: 24),
+        ListView.separated(
+          itemCount: items.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            bool isSelected = false;
+            if (isMulti) {
+              isSelected = selectedItems?.contains(item) ?? false;
+            } else {
+              final cleanedItem = item.startsWith(RegExp(r'^\S+\s')) ? item.substring(2).trim() : item;
+              isSelected = currentVal == cleanedItem;
+            }
+            return InkWell(
+              onTap: () {
+                 if (isMulti) onSelect(item); 
+                 else onSelect(item.startsWith(RegExp(r'^\S+\s')) ? item.substring(2).trim() : item);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(item, style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                    if (isSelected) const Icon(Icons.check, color: Color(0xFF4285F4), size: 20),
+                  ],
                 ),
-              );
-            },
-          ),
-        ],
-      );
-    });
+              ),
+            );
+          }
+        ),
+      ]
+    );
   }
 
   // =========================
@@ -435,176 +432,148 @@ class _ProfileFlow extends StatelessWidget {
   }
 
   // =========================
-  // LOOKING FOR STEP
+  // CITY STEP
   // =========================
-  Widget _buildLookingForStep() {
-    return Obx(() {
-      final selectedLookingFor = controller.lookingFor;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _StepTitleBlock(
-            title: 'What are you looking for? 💜',
-            subtitle: 'Choose what feels right for you right now.',
+  Widget _buildCityStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _StepTitleBlock(title: 'Where do you live? 📍', subtitle: 'Search your city.'),
+        const SizedBox(height: 16),
+        TextField(
+          controller: controller.citySearchController,
+          decoration: InputDecoration(
+            hintText: "Search city",
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEEEEEE))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEEEEEE))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF4285F4))),
           ),
-          const SizedBox(height: 22),
-          ListView.separated(
-            itemCount: controller.lookingForOptions.length,
+        ),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (controller.isLoadingCities.value) return const Center(child: CircularProgressIndicator());
+          
+          final displayList = controller.filteredCities.length > 50 
+              ? controller.filteredCities.sublist(0, 50) 
+              : controller.filteredCities;
+
+          return ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (_, __) => const SizedBox(height: 14),
-            itemBuilder: (_, i) {
-              final item = controller.lookingForOptions[i];
-              final selected = selectedLookingFor == item['title'];
-
-              return GestureDetector(
-                onTap: () => controller.selectLookingFor(item['title']!),
-                child: _SelectableCard(
-                  selected: selected,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  radius: 18,
+            itemCount: displayList.length,
+            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            itemBuilder: (context, index) {
+              final city = displayList[index];
+              final isSelected = controller.selectedCity == city;
+              return InkWell(
+                onTap: () => controller.selectCity(city),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? Colors.white.withOpacity(0.18)
-                              : AppColors.inputFillLight,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Center(
-                          child: Text(
-                            item['emoji'] ?? '✨',
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title'] ?? '',
-                              style: AppTextStyles.bodyMedium().copyWith(
-                                color: selected
-                                    ? Colors.white
-                                    : AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item['subtitle'] ?? '',
-                              style: AppTextStyles.bodySmall().copyWith(
-                                color: selected
-                                    ? Colors.white.withOpacity(0.88)
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (selected)
-                        const Icon(
-                          Icons.check_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      Expanded(child: Text(city, style: const TextStyle(fontSize: 15, color: Colors.black87))),
+                      if (isSelected) const Icon(Icons.check, color: Color(0xFF4285F4), size: 20),
                     ],
                   ),
                 ),
               );
-            },
-          ),
-        ],
-      );
-    });
+            }
+          );
+        }),
+      ]
+    );
   }
 
   // =========================
-  // INTEREST STEP
+  // IMAGES STEP
   // =========================
-  Widget _buildInterestStep() {
-    return Obx(() {
-      final selectedInterests = controller.selectedInterests;
+  Widget _buildImagesStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _StepTitleBlock(title: 'Upload your photos 📸', subtitle: 'Upload at least 1 main photo to continue.'),
+        const SizedBox(height: 24),
+        Obx(() {
+           return Column(
+             children: [
+               Row(children: [ Expanded(child: _buildPhotoSlot(index: -1, isMain: true, height: 280)) ]),
+               const SizedBox(height: 12),
+               Row(children: [
+                 Expanded(child: _buildPhotoSlot(index: 0, height: 160)),
+                 const SizedBox(width: 12),
+                 Expanded(child: _buildPhotoSlot(index: 1, height: 160)),
+               ]),
+             ]
+           );
+        }),
+      ]
+    );
+  }
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _StepTitleBlock(
-            title: 'Pick your interests 🎯',
-            subtitle: 'Select at least 3 so we can match your vibe better.',
-          ),
-          const SizedBox(height: 24),
+  Widget _buildPhotoSlot({required int index, bool isMain = false, required double height}) {
+    String imagePath = '';
+    if (isMain) {
+      imagePath = controller.selectedProfileImage;
+    } else {
+      if (index < controller.selectedGalleryImages.length) {
+        imagePath = controller.selectedGalleryImages[index];
+      }
+    }
 
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: controller.interests.map((tag) {
-              final sel = selectedInterests.contains(tag);
+    final bool hasImage = imagePath.isNotEmpty;
 
-              return GestureDetector(
-                onTap: () => controller.toggleInterest(tag),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 13,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: sel ? AppGradients.primary : null,
-                    color: sel ? null : AppColors.cardLight,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: sel
-                          ? Colors.transparent
-                          : AppColors.inputBorderLight,
-                      width: 1.3,
-                    ),
-                    boxShadow: sel
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.18),
-                              blurRadius: 18,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Text(
-                    tag,
-                    style: AppTextStyles.bodyMedium().copyWith(
-                      color: sel ? Colors.white : AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
+    return GestureDetector(
+      onTap: () {
+        if (!hasImage) {
+          if (isMain) controller.pickProfileImage();
+          else controller.pickGalleryImage();
+        }
+      },
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          border: hasImage ? null : Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+        ),
+        child: Stack(
+          children: [
+            if (hasImage)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(File(imagePath), fit: BoxFit.cover),
+                ),
+              ),
+            if (isMain && hasImage)
+              Positioned(
+                top: 12, left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(100)),
+                  child: const Text('Main', style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500)),
+                ),
+              ),
+            if (!hasImage)
+              const Center(child: Icon(Icons.add, color: Color(0xFFBBBBBB), size: 32)),
+            if (hasImage && !isMain)
+              Positioned(
+                top: 8, right: 8,
+                child: GestureDetector(
+                  onTap: () => controller.removeGalleryImage(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 14),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 22),
-
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              '${selectedInterests.length} selected',
-              style: AppTextStyles.bodySmall().copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
               ),
-            ),
-          ),
-        ],
-      );
-    });
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -625,7 +594,10 @@ class _StepTitleBlock extends StatelessWidget {
         Text(
           title,
           style: AppTextStyles.headingLarge().copyWith(
-            height: 1.15,
+            color: Colors.black,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            height: 1.2,
           ),
         ),
         const SizedBox(height: 8),
@@ -649,53 +621,12 @@ class _SoftInputContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.inputFillLight,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF8F8FB),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.inputBorderLight,
-          width: 1.4,
+          color: const Color(0xFFEEEEEE),
+          width: 1.0,
         ),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _SelectableCard extends StatelessWidget {
-  final bool selected;
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final double radius;
-
-  const _SelectableCard({
-    required this.selected,
-    required this.child,
-    this.padding,
-    this.radius = 22,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      padding: padding ?? const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: selected ? AppGradients.primary : null,
-        color: selected ? null : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: selected ? Colors.transparent : AppColors.inputBorderLight,
-          width: 1.4,
-        ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.18),
-                  blurRadius: 22,
-                  spreadRadius: 1,
-                ),
-              ]
-            : [],
       ),
       child: child,
     );
@@ -734,7 +665,7 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int profileIndex = controller.currentStep - 2;
-    const int totalProfileSteps = 6;
+    const int totalProfileSteps = 11;
     final double progress = profileIndex / totalProfileSteps;
 
     return Column(
@@ -800,12 +731,12 @@ class _SecondaryButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 54,
+        height: 56,
         decoration: BoxDecoration(
-          color: AppColors.cardLight,
-          borderRadius: BorderRadius.circular(18),
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(100),
           border: Border.all(
-            color: AppColors.inputBorderLight,
+            color: AppColors.primary.withOpacity(0.3),
             width: 1.5,
           ),
         ),
@@ -813,8 +744,9 @@ class _SecondaryButton extends StatelessWidget {
           child: Text(
             label,
             style: AppTextStyles.bodyMedium().copyWith(
-              color: AppColors.textPrimary,
+              color: AppColors.primary,
               fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
             ),
           ),
         ),

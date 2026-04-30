@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:country_state_city/country_state_city.dart' hide State;
+import 'package:geolocator/geolocator.dart';
 import 'package:Nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/sources/remote/user_api.dart';
-import 'package:geolocator/geolocator.dart';
 
 class OnboardingController extends GetxController {
   // ================= STATE =================
@@ -13,6 +15,7 @@ class OnboardingController extends GetxController {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
+  final TextEditingController citySearchController = TextEditingController();
 
   final RxString _selectedGender = ''.obs;
   String get selectedGender => _selectedGender.value;
@@ -23,17 +26,39 @@ class OnboardingController extends GetxController {
   final RxString _lookingFor = ''.obs;
   String get lookingFor => _lookingFor.value;
 
+  final RxString _selectedReligion = ''.obs;
+  String get selectedReligion => _selectedReligion.value;
+
+  final RxString _selectedHeight = ''.obs;
+  String get selectedHeight => _selectedHeight.value;
+
+  final RxString _selectedZodiac = ''.obs;
+  String get selectedZodiac => _selectedZodiac.value;
+
+  final RxString _selectedCity = ''.obs;
+  String get selectedCity => _selectedCity.value;
+
   final RxList<String> selectedInterests = <String>[].obs;
 
-  /// Used only for name field button refresh
+  final RxString _selectedProfileImage = ''.obs;
+  String get selectedProfileImage => _selectedProfileImage.value;
+
+  final RxList<String> selectedGalleryImages = <String>[].obs;
+
+  final RxList<String> allCitiesRaw = <String>[].obs;
+  final RxList<String> filteredCities = <String>[].obs;
+  final RxBool isLoadingCities = true.obs;
+  final RxBool isLoading = false.obs;
+
+  /// Used only for name/bio field button refresh
   final RxString _nameValue = ''.obs;
   String get nameValue => _nameValue.value;
-
   final RxString _bioValue = ''.obs;
   String get bioValue => _bioValue.value;
 
   final AuthService _authService = AuthService();
   final UserApi _userApi = UserApi();
+  final ImagePicker _picker = ImagePicker();
 
   // ================= DATA =================
 
@@ -41,14 +66,12 @@ class OnboardingController extends GetxController {
     {
       'emoji': '💫',
       'title': 'Find People Nearby 📍',
-      'description':
-          'Discover amazing people around you. Connect with those who share your vibe and interests.',
+      'description': 'Discover amazing people around you. Connect with those who share your vibe and interests.',
     },
     {
       'emoji': '✨',
       'title': 'Real Connections Only 💜',
-      'description':
-          'Match with people who truly align with your personality and lifestyle.',
+      'description': 'Match with people who truly align with your personality and lifestyle.',
     },
     {
       'emoji': '⚡',
@@ -65,47 +88,74 @@ class OnboardingController extends GetxController {
   ];
 
   final List<Map<String, String>> lookingForOptions = [
-    {
-      'emoji': '❤️',
-      'title': 'Long-term Relationship',
-      'subtitle': 'Looking for something serious',
-    },
+    {'emoji': '❤️', 'title': 'Long-term Relationship', 'subtitle': 'Looking for something serious'},
     {'emoji': '☕', 'title': 'Casual Dating', 'subtitle': 'Go with the flow'},
-    {
-      'emoji': '🤝',
-      'title': 'Friendship',
-      'subtitle': 'Just making new friends',
-    },
-    {
-      'emoji': '🌟',
-      'title': 'Not sure yet',
-      'subtitle': 'Let’s see what happens',
-    },
+    {'emoji': '🤝', 'title': 'Friendship', 'subtitle': 'Just making new friends'},
+    {'emoji': '🌟', 'title': 'Not sure yet', 'subtitle': 'Let’s see what happens'},
   ];
 
   final List<String> interests = [
-    '🎵 Music',
-    '🏔️ Hiking',
-    '📚 Reading',
-    '☕ Coffee',
-    '🎮 Gaming',
-    '🍕 Foodie',
-    '🐶 Dogs',
-    '🧘 Yoga',
-    '✈️ Travel',
-    '🎨 Art',
-    '🎬 Movies',
-    '🏋️ Fitness',
-    '📸 Photography',
-    '🍳 Cooking',
+    '🎵 Music', '🏔️ Hiking', '📚 Reading', '☕ Coffee', '🎮 Gaming', '🍕 Foodie',
+    '🐶 Dogs', '🧘 Yoga', '✈️ Travel', '🎨 Art', '🎬 Movies', '🏋️ Fitness',
+    '📸 Photography', '🍳 Cooking',
   ];
+
+  final List<String> religionOptions = ['Hindu', 'Muslim', 'Christian', 'Buddhist', 'Parsi', 'Sikh', 'Jain', 'Atheist', 'Other'];
+
+  final List<String> zodiacOptions = [
+    '♈ Aries', '♉ Taurus', '♊ Gemini', '♋ Cancer', '♌ Leo', '♍ Virgo',
+    '♎ Libra', '♏ Scorpio', '♐ Sagittarius', '♑ Capricorn', '♒ Aquarius', '♓ Pisces'
+  ];
+
+  final List<String> heightOptions = List.generate(81, (index) => "${140 + index} cm");
 
   // ================= ACTIONS =================
 
+  @override
+  void onInit() {
+    super.onInit();
+    nameController.text = LocalStorage.name ?? '';
+    _nameValue.value = nameController.text;
+    
+    citySearchController.addListener(() {
+      filterCities(citySearchController.text);
+    });
+    loadCities();
+  }
+
+  Future<void> loadCities() async {
+    try {
+      final cities = await getCountryCities('IN');
+      final states = await getStatesOfCountry('IN');
+      final stateCodeToName = <String, String>{};
+      for (var state in states) {
+        stateCodeToName[state.isoCode] = state.name;
+      }
+      final formattedCities = cities.map((c) {
+        final stateName = stateCodeToName[c.stateCode] ?? c.stateCode;
+        return "${c.name}, $stateName";
+      }).toList();
+      final uniqueCities = formattedCities.toSet().toList();
+      uniqueCities.sort();
+      allCitiesRaw.assignAll(uniqueCities);
+      filteredCities.assignAll(uniqueCities);
+      isLoadingCities.value = false;
+    } catch (e) {
+      isLoadingCities.value = false;
+    }
+  }
+
+  void filterCities(String query) {
+    if (query.isEmpty) {
+      filteredCities.assignAll(allCitiesRaw);
+    } else {
+      filteredCities.assignAll(allCitiesRaw.where((city) => city.toLowerCase().contains(query.toLowerCase())).toList());
+    }
+  }
+
   void nextStep() {
     if (!canContinue()) return;
-
-    if (_currentStep.value < 8) {
+    if (_currentStep.value < 13) {
       _currentStep.value++;
     } else {
       submitProfile();
@@ -138,6 +188,26 @@ class OnboardingController extends GetxController {
     _lookingFor.value = value;
   }
 
+  void selectReligion(String value) {
+    if (_selectedReligion.value == value) return;
+    _selectedReligion.value = value;
+  }
+
+  void selectHeight(String value) {
+    if (_selectedHeight.value == value) return;
+    _selectedHeight.value = value;
+  }
+
+  void selectZodiac(String value) {
+    if (_selectedZodiac.value == value) return;
+    _selectedZodiac.value = value;
+  }
+
+  void selectCity(String value) {
+    if (_selectedCity.value == value) return;
+    _selectedCity.value = value;
+  }
+
   void toggleInterest(String value) {
     if (selectedInterests.contains(value)) {
       selectedInterests.remove(value);
@@ -156,19 +226,45 @@ class OnboardingController extends GetxController {
     _bioValue.value = value.trim();
   }
 
+  Future<void> pickProfileImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) _selectedProfileImage.value = image.path;
+  }
+
+  Future<void> pickGalleryImage() async {
+    if (selectedGalleryImages.length >= 2) {
+      Get.snackbar("Limit Reached", "You can upload maximum 2 gallery photos.", snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) selectedGalleryImages.add(image.path);
+  }
+
+  void removeGalleryImage(int index) {
+    selectedGalleryImages.removeAt(index);
+  }
+
   Future<void> submitProfile() async {
+    if (isLoading.value) return;
+    isLoading.value = true;
+    
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
-
       if (token == null) throw "Token not found";
 
-      Map<String, double> location;
-
+      debugPrint("🚀 STARTING PROFILE CREATION...");
+      
+      double lat = 0.0;
+      double lng = 0.0;
       try {
-        location = await getCurrentLocation();
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        lat = position.latitude;
+        lng = position.longitude;
       } catch (e) {
-        location = {"lat": 28.6139, "lng": 77.2090}; // fallback Delhi
+        debugPrint("⚠️ Could not get location: $e");
       }
 
       final body = {
@@ -177,87 +273,73 @@ class OnboardingController extends GetxController {
         "age": selectedAge.toInt(),
         "bio": bioController.text.trim().isEmpty ? "Hello" : bioController.text.trim(),
         "interests": selectedInterests.toList(),
-        "location": {"lat": location["lat"], "lng": location["lng"]},
+        "lookingFor": lookingFor,
+        "religion": selectedReligion,
+        "height": selectedHeight,
+        "zodiac": selectedZodiac,
+        "location": {
+          "city": selectedCity,
+          "lat": lat,
+          "lng": lng,
+        },
       };
 
       await _userApi.createProfile(token, body);
+      debugPrint("✅ PROFILE CREATED SUCCESSFULLY");
 
+      // 1. Upload Main Photo
+      if (selectedProfileImage.isNotEmpty) {
+        debugPrint("📸 UPLOADING MAIN PHOTO: ${selectedProfileImage}");
+        final result = await _userApi.uploadPhoto(token, selectedProfileImage);
+        final publicId = result['data']?['publicId'];
+        debugPrint("✅ MAIN PHOTO UPLOADED. PublicID: $publicId");
+
+        if (publicId != null) {
+          debugPrint("🌟 SETTING MAIN PHOTO AS PRIMARY...");
+          await _userApi.setPrimaryPhoto(token, publicId);
+          debugPrint("✅ PRIMARY PHOTO SET");
+        }
+      }
+
+      // 2. Upload Gallery Photos
+      for (int i = 0; i < selectedGalleryImages.length; i++) {
+        final imgPath = selectedGalleryImages[i];
+        debugPrint("🖼️ UPLOADING GALLERY PHOTO [${i+1}/${selectedGalleryImages.length}]: $imgPath");
+        await _userApi.uploadPhoto(token, imgPath);
+        debugPrint("✅ GALLERY PHOTO [${i+1}] UPLOADED");
+      }
+
+      debugPrint("🎉 ALL STEPS COMPLETED. NAVIGATING TO DASHBOARD...");
       Get.offAllNamed("/dashboard");
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      debugPrint("❌ ERROR DURING ONBOARDING: $e");
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading.value = false;
     }
-  }
-  // ================= HELPERS =================
-
-  Future<Map<String, double>> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // 🔥 Check location service
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw "Location services are disabled";
-    }
-
-    // 🔥 Check permission
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-
-      if (permission == LocationPermission.denied) {
-        throw "Location permission denied";
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw "Location permission permanently denied";
-    }
-
-    // 🔥 Get position
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    return {"lat": position.latitude, "lng": position.longitude};
   }
 
   bool canContinue() {
     switch (currentStep) {
       case 0:
       case 1:
-      case 2:
-        return true;
-      case 3:
-        return nameValue.trim().isNotEmpty;
-      case 4:
-        return bioValue.trim().isNotEmpty;
-      case 5:
-        return selectedGender.isNotEmpty;
-      case 6:
-        return true;
-      case 7:
-        return lookingFor.isNotEmpty;
-      case 8:
-        return selectedInterests.length >= 3;
-      default:
-        return false;
+      case 2: return true;
+      case 3: return nameValue.trim().isNotEmpty;
+      case 4: return bioValue.trim().isNotEmpty;
+      case 5: return selectedGender.isNotEmpty;
+      case 6: return true; // Age has slider
+      case 7: return lookingFor.isNotEmpty;
+      case 8: return selectedInterests.length >= 3;
+      case 9: return selectedReligion.isNotEmpty;
+      case 10: return selectedHeight.isNotEmpty;
+      case 11: return selectedZodiac.isNotEmpty;
+      case 12: return selectedCity.isNotEmpty;
+      case 13: return selectedProfileImage.isNotEmpty; // must have at least main image
+      default: return false;
     }
   }
 
   String getButtonText() {
-    return currentStep == 8 ? 'Continue →' : 'Next →';
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-
-    nameController.text = LocalStorage.name ?? '';
-    _nameValue.value = nameController.text;
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
+    return currentStep == 13 ? 'Continue →' : 'Next →';
   }
 }

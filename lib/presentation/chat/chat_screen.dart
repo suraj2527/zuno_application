@@ -20,6 +20,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ChatController controller = Get.find<ChatController>();
   final TextEditingController _searchController = TextEditingController();
+  final RxString _selectedTab = 'Mutual'.obs;
   final RxString _searchQuery = ''.obs;
 
   @override
@@ -35,106 +36,59 @@ class _ChatScreenState extends State<ChatScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
-        body: Column(
-          children: [
-            _buildHeader(isDark),
-            Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const ChatSkeleton();
-                }
-                return AppRefreshWrapper(
-                  onRefresh: controller.refreshChats,
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                  child: _buildBody(isDark),
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // CLEAN WHITE HEADER
-  // ═══════════════════════════════════════════════════════
-  Widget _buildHeader(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? AppColors.inputBorderDark : const Color(0xFFEEEEEE),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+        backgroundColor: isDark ? AppColors.scaffoldDark : Colors.white,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Messages',
-                      style: AppTextStyles.headingLarge(isDark: isDark).copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Obx(() {
-                      final total = controller.activeChats.length;
-                      final unread = controller.activeChats
-                          .where((c) => c.unreadCount > 0)
-                          .length;
-                      final label = total == 0
-                          ? 'No conversations yet'
-                          : unread > 0
-                              ? '$total chats · $unread unread'
-                              : '$total conversations';
-                      return Text(
-                        label,
-                        style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                          fontSize: 12,
-                          color: unread > 0
-                              ? AppColors.primary
-                              : (isDark ? AppColors.textHintDark : AppColors.textHint),
-                          fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w400,
-                        ),
-                      );
-                    }),
-                  ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                child: Text(
+                  'Messages',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
-              // Compose button
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.edit_rounded,
-                  size: 18,
-                  color: AppColors.primary,
-                ),
+              _buildTabSelector(isDark),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return const ChatSkeleton();
+                  }
+                  
+                  // Filter based on tab and search
+                  final chats = _getFilteredChats();
+                  
+                  if (chats.isEmpty) {
+                    return const EmptyChatView();
+                  }
+
+                  return AppRefreshWrapper(
+                    onRefresh: controller.refreshChats,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Column(
+                      children: [
+                        _buildPremiumSearchBar(isDark),
+                        const SizedBox(height: 24),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.cardDark : Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                            ),
+                          ),
+                          child: _buildMessagesList(chats, isDark),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  );
+                }),
               ),
             ],
           ),
@@ -143,162 +97,138 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  // BODY
-  // ═══════════════════════════════════════════════════════
-  Widget _buildBody(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSearchBar(isDark),
-        const SizedBox(height: 20),
-        _buildMessagesSection(isDark),
-      ],
+  Widget _buildTabSelector(bool isDark) {
+    final tabs = ['Mutual', 'Chat requests'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        children: tabs.map((tab) {
+          return Obx(() {
+            final isSelected = _selectedTab.value == tab;
+            return GestureDetector(
+              onTap: () => _selectedTab.value = tab,
+              child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? (isDark ? AppColors.primary.withOpacity(0.2) : const Color(0xFFE6F0FF))
+                      : (isDark ? AppColors.cardDark : const Color(0xFFF6F6F6)),
+                  borderRadius: BorderRadius.circular(100),
+                  border: isSelected && isDark 
+                      ? Border.all(color: AppColors.primary.withOpacity(0.5))
+                      : null,
+                ),
+                child: Text(
+                  tab,
+                  style: TextStyle(
+                    color: isSelected 
+                        ? (isDark ? AppColors.primaryDark : const Color(0xFF3B82F6))
+                        : (isDark ? Colors.white54 : Colors.black54),
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            );
+          });
+        }).toList(),
+      ),
     );
   }
 
-  Widget _buildSearchBar(bool isDark) {
+  List<ChatPreviewModel> _getFilteredChats() {
+    final query = _searchQuery.value;
+    // In a real app, 'Mutual' vs 'Requests' would be a field in the model.
+    // For now we'll just show the same list or filter based on a dummy condition.
+    final allChats = controller.activeChats;
+    
+    // Logic: Mutual = chats with messages/matches, Requests = chats from non-matches (placeholder logic)
+    var filtered = allChats;
+    if (_selectedTab.value == 'Chat requests') {
+      // Mock: show nothing or special requests
+      filtered = []; 
+    }
+    
+    if (query.isNotEmpty) {
+      filtered = filtered.where((c) => 
+          c.name.toLowerCase().contains(query) || 
+          c.lastMessage.toLowerCase().contains(query)).toList();
+    }
+    return filtered;
+  }
+
+  Widget _buildPremiumSearchBar(bool isDark) {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.inputFillDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.inputBorderDark : const Color(0xFFEEEEEE),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isDark ? AppColors.inputFillDark : const Color(0xFFF6F6F6),
+        borderRadius: BorderRadius.circular(100),
       ),
       child: TextField(
         controller: _searchController,
         onChanged: (val) => _searchQuery.value = val.toLowerCase().trim(),
-        style: AppTextStyles.bodySmall(isDark: isDark).copyWith(fontSize: 14),
-        textAlignVertical: TextAlignVertical.center,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
         decoration: InputDecoration(
-          hintText: 'Search conversations...',
-          hintStyle: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-            color: isDark ? AppColors.textHintDark : AppColors.textHint,
+          hintText: 'Search people or messages',
+          hintStyle: TextStyle(
+            color: isDark ? Colors.white24 : Colors.black26,
             fontSize: 14,
           ),
           prefixIcon: Icon(
             Icons.search_rounded,
-            color: isDark ? AppColors.textHintDark : AppColors.textHint,
+            color: isDark ? Colors.white24 : Colors.black26,
             size: 20,
           ),
-          suffixIcon: Obx(() => _searchQuery.value.isNotEmpty
-              ? GestureDetector(
-                  onTap: () {
-                    _searchController.clear();
-                    _searchQuery.value = '';
-                  },
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: isDark ? AppColors.textHintDark : AppColors.textHint,
-                    size: 18,
-                  ),
-                )
-              : const SizedBox.shrink()),
           border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
   }
 
-  Widget _buildMessagesSection(bool isDark) {
-    return Obx(() {
-      final query = _searchQuery.value;
-      final allChats = controller.activeChats;
+  Widget _buildMessagesList(List<ChatPreviewModel> chats, bool isDark) {
+    if (chats.isEmpty && _searchQuery.value.isNotEmpty) {
+      return _buildNoResults(_searchQuery.value);
+    }
 
-      final chats = query.isEmpty
-          ? allChats
-          : allChats
-              .where((c) =>
-                  c.name.toLowerCase().contains(query) ||
-                  c.lastMessage.toLowerCase().contains(query))
-              .toList();
-
-      if (allChats.isEmpty) {
-        return const EmptyChatView();
-      }
-
-      if (chats.isEmpty) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 60),
-          child: Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.search_off_rounded,
-                    size: 36,
-                    color: AppColors.primary.withOpacity(0.6),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No results for "$query"',
-                  style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Try a different name or keyword',
-                  style: AppTextStyles.bodySmall(isDark: isDark),
-                ),
-              ],
-            ),
-          ),
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: chats.length,
+      separatorBuilder: (_, __) => Divider(
+        height: 1,
+        thickness: 0.8,
+        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF5F5F5),
+        indent: 88,
+      ),
+      itemBuilder: (context, index) {
+        final chat = chats[index];
+        return ChatTile(
+          chat: chat,
+          onLongPress: () => _showChatActionsSheet(context: context, chat: chat),
         );
-      }
+      },
+    );
+  }
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 12),
-            child: Text(
-              query.isEmpty ? 'CONVERSATIONS' : 'RESULTS (${chats.length})',
-              style: AppTextStyles.label(isDark: isDark).copyWith(
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w800,
-                fontSize: 10,
-                color: isDark ? AppColors.textHintDark : AppColors.textHint,
-              ),
+  Widget _buildNoResults(String query) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          children: [
+            const Icon(Icons.search_off_rounded, size: 48, color: Colors.black12),
+            const SizedBox(height: 16),
+            Text(
+              'No results for "$query"',
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black45),
             ),
-          ),
-          // Use spacing instead of hard dividers
-          ...List.generate(chats.length, (index) {
-            final chat = chats[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ChatTile(
-                chat: chat,
-                onLongPress: () => _showChatActionsSheet(
-                  context: context,
-                  chat: chat,
-                ),
-              ),
-            );
-          }),
-        ],
-      );
-    });
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _showChatActionsSheet({

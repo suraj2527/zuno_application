@@ -7,4 +7,5 @@ abstract class Routes {
   static const CHAT_DETAIL = '/chat_detail';
   static const PERMISSION = '/permission';
   static const SIGNUP = '/signup';
+  static const EXPLORE_PLANS = '/explore_plans';
 }

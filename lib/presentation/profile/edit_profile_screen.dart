@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
-import 'package:Nearly/shared/widgets/common/gradient_button.dart';
 import 'package:Nearly/shared/widgets/common/Nearly_loader.dart';
+import 'package:country_state_city/country_state_city.dart' hide State;
 
 import 'profile_controller.dart';
 
@@ -19,20 +19,13 @@ class EditProfileScreen extends StatelessWidget {
 
   // ─── Design tokens ────────────────────────────────────────────────────────
   static const _indigo = AppColors.primary;
-  static const _roseGold = AppColors.roseGold;
-  static const _cardRadius = 16.0;
-  static const BoxShadow _cardShadow = BoxShadow(
-    color: Color(0x12000000), // rgba(0,0,0,0.07)
-    blurRadius: 12,
-    offset: Offset(0, 2),
-  );
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(isDark),
       body: Obx(
         () => Stack(
@@ -44,48 +37,54 @@ class EditProfileScreen extends StatelessWidget {
                     onRefresh: () async => controller.loadProfileData(),
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                      padding: const EdgeInsets.fromLTRB(0, 16, 0, 100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Completion progress bar
-                          _buildCompletionBar(isDark),
-                          const SizedBox(height: 20),
-
-                          // Pinterest-style photo grid
+                          _buildSectionTitle('Upload your photos'),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'Upload photos to show up in matches',
+                              style: TextStyle(color: Colors.black54, fontSize: 13),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // New style Photo Grid (exactly 3 allowed)
                           _buildPinterestPhotoGrid(isDark),
-                          const SizedBox(height: 20),
-
-                          _buildTextFieldCard(
-                            isDark: isDark,
-                            title: "Name",
-                            icon: Icons.person_outline_rounded,
-                            controller: controller.nameController,
-                            hint: "Enter your name",
+                          const SizedBox(height: 16),
+                          
+                          Center(
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: const Text(
+                                'Photo Guide',
+                                style: TextStyle(
+                                  color: Color(0xFF4285F4),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Color(0xFF4285F4),
+                                ),
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 12),
 
-                          _buildTextFieldCard(
-                            isDark: isDark,
-                            title: "Bio",
-                            icon: Icons.edit_note_rounded,
-                            controller: controller.bioController,
-                            hint: "Tell something about yourself",
-                            maxLines: 4,
-                          ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 32),
 
-                          _buildAgeSection(isDark),
-                          const SizedBox(height: 12),
+                          _buildSectionTitle('Basics about me'),
+                          _buildBasicsCard(context, isDark),
 
-                          _buildGenderSection(isDark),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 32),
 
-                          _buildLookingForSection(isDark),
-                          const SizedBox(height: 12),
+                          _buildSectionTitle('About me'),
+                          _buildAboutMeCard(context, isDark),
 
-                          _buildInterestsSection(isDark),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 32),
+
+                          _buildSectionTitle('Verification'),
+                          _buildVerificationCard(context, isDark),
                         ],
                       ),
                     ),
@@ -106,9 +105,9 @@ class EditProfileScreen extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      (isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB)).withOpacity(0.0),
-                      (isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB)).withOpacity(0.95),
-                      isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
+                      Colors.white.withOpacity(0.0),
+                      Colors.white.withOpacity(0.95),
+                      Colors.white,
                     ],
                     stops: const [0.0, 0.4, 1.0],
                   ),
@@ -124,59 +123,48 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── App Bar ──────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(bool isDark) {
     return AppBar(
-      backgroundColor: isDark ? AppColors.cardDark : Colors.white,
+      backgroundColor: Colors.white,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: GestureDetector(
         onTap: () => Get.back(),
-        child: Container(
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.inputFillDark : const Color(0xFFF3F2FD),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 16,
-            color: isDark ? Colors.white : AppColors.textPrimary,
-          ),
+        child: const Icon(
+          Icons.arrow_back,
+          color: Colors.black,
         ),
       ),
-      title: Text(
-        "Edit Profile",
-        style: AppTextStyles.headingLarge(isDark: isDark).copyWith(
+      title: const Text(
+        "Edit profile",
+        style: TextStyle(
+          color: Colors.black,
           fontSize: 20,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.2,
+          fontWeight: FontWeight.w400,
         ),
       ),
       titleSpacing: 0,
-      centerTitle: false,
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            decoration: BoxDecoration(
-              color: _indigo,
-              borderRadius: BorderRadius.circular(100),
-              boxShadow: [
-                BoxShadow(
-                  color: _indigo.withOpacity(0.30),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+          padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
+          child: GestureDetector(
+            onTap: () => controller.saveProfile(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5B89FF),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Center(
+                child: Text(
+                  'PREVIEW',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ],
-            ),
-            child: const Text(
-              'Preview',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
               ),
             ),
           ),
@@ -192,58 +180,172 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Completion bar ───────────────────────────────────────────────────────
-  Widget _buildCompletionBar(bool isDark) {
-    // Simple static example — replace with real computed value if available
-    const double completion = 0.60;
-    final int pct = (completion * 100).round();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(_cardRadius),
-        boxShadow: const [_cardShadow],
-      ),
+  // ─── Photo Grid (3 slots total as requested) ─────────────────────────────────
+  Widget _buildPinterestPhotoGrid(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Profile completion',
-                style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: isDark ? AppColors.textSecondaryDark : const Color(0xFF888888),
+              Expanded(child: _buildPhotoSlot(index: -1, isMain: true, height: 280)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildPhotoSlot(index: 0, height: 160)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildPhotoSlot(index: 1, height: 160)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoSlot({required int index, bool isMain = false, required double height}) {
+    String imagePath = '';
+    if (isMain) {
+      imagePath = controller.selectedProfileImage.value;
+    } else {
+      if (index < controller.selectedGalleryImages.length) {
+        imagePath = controller.selectedGalleryImages[index];
+      }
+    }
+
+    final bool hasImage = imagePath.isNotEmpty;
+
+    return GestureDetector(
+      onTap: () {
+        if (!hasImage) {
+          if (isMain) {
+            controller.pickProfileImage();
+          } else {
+            controller.pickGalleryImage();
+          }
+        }
+      },
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          border: hasImage
+              ? null
+              : Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+        ),
+        child: Stack(
+          children: [
+            if (hasImage)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _buildImage(imagePath),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _indigo.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  '$pct%',
-                  style: TextStyle(
-                    color: _indigo,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
+            if (isMain && hasImage)
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: const Text(
+                    'Main',
+                    style: TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
-            ],
+            if (!hasImage)
+              const Center(child: Icon(Icons.add, color: Color(0xFFBBBBBB), size: 32)),
+            if (hasImage && !isMain)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: GestureDetector(
+                  onTap: () => controller.removeGalleryImage(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, color: Colors.white, size: 14),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.w400),
+      ),
+    );
+  }
+
+  Widget _listCardContainer({required bool isDark, required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: child,
+    );
+  }
+
+  // ─── Cards ─────────────────────────────
+  Widget _buildBasicsCard(BuildContext context, bool isDark) {
+    return _listCardContainer(
+      isDark: isDark,
+      child: Column(
+        children: [
+          _buildListItem(
+            icon: Icons.badge_outlined,
+            label: controller.nameController.text.isNotEmpty ? controller.nameController.text : "Add Name",
+            hideLabel: true,
+            onTap: () => _showEditSheet(
+              context, isDark, "Name",
+              _buildTextFieldCard(
+                isDark: isDark,
+                controller: controller.nameController, 
+                hint: "Enter your name",
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: LinearProgressIndicator(
-              value: completion,
-              minHeight: 6,
-              backgroundColor: _indigo.withOpacity(0.12),
-              valueColor: const AlwaysStoppedAnimation<Color>(_indigo),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.cake_outlined,
+            label: controller.selectedAge.value > 0 ? controller.selectedAge.value.round().toString() : "Add Age",
+            hideLabel: true,
+            onTap: () => _showEditSheet(context, isDark, "Age", _buildAgeSection(isDark)),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.male_outlined,
+            label: controller.selectedGender.value.isNotEmpty ? controller.selectedGender.value : "Add Gender",
+            hideLabel: true,
+            onTap: () => _navigateToListSelection(
+              title: "Gender",
+              items: controller.genderOptions.map((e) => "${e['emoji']} ${e['label']}").toList(),
+              currentValue: controller.selectedGender,
+              onSelect: (val) {
+                // val is like "👩 Woman", we just want "Woman"
+                final realVal = val.toString().substring(2).trim();
+                controller.selectGender(realVal);
+              },
             ),
           ),
         ],
@@ -251,502 +353,411 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Pinterest-style photo grid ───────────────────────────────────────────
-  Widget _buildPinterestPhotoGrid(bool isDark) {
-    return _sectionCard(
+  Widget _buildAboutMeCard(BuildContext context, bool isDark) {
+    return _listCardContainer(
       isDark: isDark,
-      title: "Photos",
-      icon: Icons.photo_library_outlined,
-      child: Obx(() {
-        final profileImg = controller.selectedProfileImage.value;
-        final galleryImgs = controller.selectedGalleryImages;
-        final _ = galleryImgs.length;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Pinterest grid: large hero left + 2 stacked right
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Hero / Main photo ──────────────────────────────
-                Expanded(
-                  flex: 3,
-                  child: GestureDetector(
-                    onTap: controller.pickProfileImage,
-                    child: Container(
-                      height: 220,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: isDark ? AppColors.inputFillDark : const Color(0xFFF3F2FD),
-                        border: profileImg.isEmpty
-                            ? Border.all(
-                                color: _indigo.withOpacity(0.4),
-                                width: 1.5,
-                                strokeAlign: BorderSide.strokeAlignInside,
-                              )
-                            : null,
-                      ),
-                      child: Stack(
-                        children: [
-                          if (profileImg.isNotEmpty)
-                            Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: _buildImage(profileImg),
-                              ),
-                            ),
-                          // Gradient overlay on filled photo
-                          if (profileImg.isNotEmpty)
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.vertical(
-                                    bottom: Radius.circular(14),
-                                  ),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.45),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          // "Main" pill badge
-                          Positioned(
-                            bottom: 10,
-                            left: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _indigo,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: const Text(
-                                'Main',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Empty state "+"/icon
-                          if (profileImg.isEmpty)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_rounded, size: 32, color: _indigo),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Add Photo',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: _indigo,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // ── Two stacked gallery slots ──────────────────────
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    children: List.generate(2, (index) {
-                      final hasImage = index < galleryImgs.length;
-                      final image = hasImage ? galleryImgs[index] : null;
-
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: index == 0 ? 10 : 0),
-                        child: GestureDetector(
-                          onTap: hasImage ? null : controller.pickGalleryImage,
-                          child: Container(
-                            height: 105,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: isDark
-                                  ? AppColors.inputFillDark
-                                  : const Color(0xFFF3F2FD),
-                              border: !hasImage
-                                  ? Border.all(
-                                      color: _indigo.withOpacity(0.4),
-                                      width: 1.5,
-                                      strokeAlign: BorderSide.strokeAlignInside,
-                                    )
-                                  : null,
-                            ),
-                            child: hasImage
-                                ? Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(14),
-                                          child: _buildImage(image!),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 6,
-                                        right: 6,
-                                        child: GestureDetector(
-                                          onTap: () => controller.removeGalleryImage(index),
-                                          child: Container(
-                                            width: 24,
-                                            height: 24,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.6),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.close_rounded,
-                                              color: Colors.white,
-                                              size: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_rounded, size: 24, color: _indigo),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Add Photo',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: _indigo,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ],
+      child: Column(
+        children: [
+          _buildListItem(
+            icon: Icons.circle_outlined,
+            label: "My status",
+            value: "Never married",
+            showArrow: true,
+            onTap: () {},
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.visibility_outlined,
+            label: "Looking for",
+            value: controller.selectedLookingFor.value.isNotEmpty 
+                ? controller.selectedLookingFor.value 
+                : "Marriage (immediate)",
+            showArrow: true,
+            onTap: () => _navigateToListSelection(
+              title: "Looking for",
+              items: controller.lookingForOptions.map((e) => "${e['emoji']} ${e['title']}").toList(),
+              currentValue: controller.selectedLookingFor,
+              onSelect: (val) {
+                final realVal = val.toString().substring(2).trim();
+                controller.selectLookingFor(realVal);
+              },
             ),
-
-            const SizedBox(height: 12),
-
-            // Photo Guide link
-            GestureDetector(
-              onTap: () {},
-              child: Text(
-                'Photo Guide — tips for great profile photos',
-                style: TextStyle(
-                  color: _indigo,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                  decorationColor: _indigo,
-                ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.spa_outlined,
+            label: "Religion or faith",
+            value: controller.selectedReligion.value.isNotEmpty 
+                ? controller.selectedReligion.value 
+                : "Add Religion",
+            showArrow: true,
+            onTap: () => _navigateToListSelection(
+              title: "Religion or faith",
+              items: controller.religionOptions,
+              currentValue: controller.selectedReligion,
+              onSelect: (val) {
+                controller.selectedReligion.value = val;
+              },
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.location_on_outlined,
+            label: "City",
+            value: controller.locationController.text.isNotEmpty 
+                ? controller.locationController.text 
+                : "Delhi NCR",
+            showArrow: true,
+            onTap: () => _navigateToCitySelection(),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.edit_note_rounded,
+            label: "Bio",
+            value: controller.bioController.text.isNotEmpty 
+                ? controller.bioController.text 
+                : "Tap to edit",
+            showArrow: true,
+            onTap: () => _showEditSheet(
+              context, isDark, "Bio",
+              _buildTextFieldCard(
+                isDark: isDark,
+                controller: controller.bioController, 
+                hint: "Tell something about yourself", 
+                maxLines: 4,
               ),
             ),
-          ],
-        );
-      }),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.local_fire_department_outlined,
+            label: "Interests",
+            value: "${controller.selectedInterests.length} selected",
+            showArrow: true,
+            onTap: () => _navigateToListSelection(
+              title: "Interests",
+              items: controller.allInterests,
+              currentValue: null,
+              isMultiSelect: true,
+              selectedItems: controller.selectedInterests,
+              onSelect: (val) {
+                controller.toggleInterest(val);
+              },
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.height,
+            label: "Height",
+            showArrow: true,
+            onTap: () {},
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.wb_sunny_outlined,
+            label: "Zodiac sign",
+            showArrow: true,
+            onTap: () {},
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.add_location_alt_outlined,
+            label: "Relocation preference",
+            showArrow: true,
+            onTap: () {},
+          ),
+        ],
+      ),
     );
   }
 
-  // ─── Text field card ──────────────────────────────────────────────────────
-  Widget _buildTextFieldCard({
-    required bool isDark,
-    required String title,
-    required IconData icon,
-    required TextEditingController controller,
-    required String hint,
-    int maxLines = 1,
-  }) {
-    return _sectionCard(
+  Widget _buildVerificationCard(BuildContext context, bool isDark) {
+    return _listCardContainer(
       isDark: isDark,
-      title: title,
-      icon: icon,
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
-          fontSize: 14,
-          color: isDark ? AppColors.textPrimaryDark : const Color(0xFF1A1A2E),
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: AppTextStyles.bodySmall(isDark: isDark).copyWith(fontSize: 13),
-          filled: true,
-          fillColor: isDark ? AppColors.inputFillDark : const Color(0xFFF8F8FB),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+      child: Column(
+        children: [
+          _buildListItem(
+            icon: Icons.phone_android_outlined,
+            label: "Mobile number",
+            trailing: const Icon(Icons.check_circle, color: Color(0xFF4285F4), size: 22),
+            onTap: () {},
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: _indigo, width: 1.5),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          _buildListItem(
+            icon: Icons.verified_outlined,
+            label: "Photo verification (Get a blue tick)",
+            showArrow: true,
+            onTap: () {},
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListItem({
+    required IconData icon,
+    required String label,
+    String? value,
+    bool showArrow = false,
+    Widget? trailing,
+    bool hideLabel = false,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: Colors.black87),
+            const SizedBox(width: 16),
+            if (!hideLabel)
+              Text(label, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400)),
+            if (hideLabel)
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                ),
+              ),
+            if (!hideLabel) const Spacer(),
+            if (value != null)
+              Expanded(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w400),
+                ),
+              ),
+            if (value != null && showArrow) const SizedBox(width: 12),
+            if (showArrow) const Icon(Icons.arrow_forward, size: 20, color: Colors.black87),
+            if (trailing != null) trailing,
+          ],
         ),
       ),
     );
   }
 
-  // ─── Age section ──────────────────────────────────────────────────────────
-  Widget _buildAgeSection(bool isDark) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Age",
-      icon: Icons.cake_outlined,
-      child: Obx(() {
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Your age',
-                  style: AppTextStyles.bodySmall(isDark: isDark).copyWith(
-                    color: const Color(0xFF888888),
-                    fontSize: 12,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _indigo.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    '${controller.selectedAge.value.round()} yrs',
-                    style: TextStyle(
-                      color: _indigo,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: _indigo,
-                inactiveTrackColor: _indigo.withOpacity(0.15),
-                thumbColor: Colors.white,
-                overlayColor: _indigo.withOpacity(0.15),
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
-                trackHeight: 4,
-              ),
-              child: Slider(
-                value: controller.selectedAge.value,
-                min: 18,
-                max: 80,
-                divisions: 62,
-                onChanged: controller.updateAge,
-              ),
-            ),
-          ],
-        );
-      }),
-    );
+  // ─── Full Screen Navigations ────────────────────────────────────────────────
+
+  void _navigateToCitySelection() {
+    Get.to(() => CitySelectionScreen(controller: controller));
   }
 
-  // ─── Gender section ───────────────────────────────────────────────────────
-  Widget _buildGenderSection(bool isDark) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Gender",
-      icon: Icons.person_outline_rounded,
-      child: Obx(() {
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: controller.genderOptions.map((item) {
-            final label = item['label']!;
-            final emoji = item['emoji']!;
-            final isSelected = controller.selectedGender.value == label;
+  void _navigateToListSelection({
+    required String title,
+    required List<String> items,
+    required RxString? currentValue,
+    required Function(String) onSelect,
+    bool isMultiSelect = false,
+    RxList<String>? selectedItems,
+  }) {
+    Get.to(() => Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Get.back(),
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Obx(() {
+              // Read values synchronously so Obx tracks them properly instead of inside the lazy itemBuilder!
+              final currentSingleValue = currentValue?.value;
+              final currentMultiList = isMultiSelect && selectedItems != null ? selectedItems.toList() : [];
 
-            return GestureDetector(
-              onTap: () => controller.selectGender(label),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? _indigo : (isDark ? AppColors.inputFillDark : const Color(0xFFF3F2FD)),
-                  borderRadius: BorderRadius.circular(100),
-                  boxShadow: isSelected
-                      ? [BoxShadow(color: _indigo.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 3))]
-                      : null,
-                ),
-                child: Text(
-                  "$emoji $label",
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : (isDark ? AppColors.textPrimaryDark : const Color(0xFF1A1A2E)),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        );
-      }),
-    );
-  }
+              return ListView.separated(
+                itemCount: items.length,
+                separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  bool isSelected = false;
+                  
+                  if (isMultiSelect) {
+                    isSelected = currentMultiList.contains(item);
+                  } else {
+                    // For single select, match the stripped text
+                    final cleanedItem = item.startsWith(RegExp(r'^\S+\s')) ? item.substring(2).trim() : item;
+                    isSelected = currentSingleValue == cleanedItem;
+                  }
 
-  // ─── Looking for section ──────────────────────────────────────────────────
-  Widget _buildLookingForSection(bool isDark) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Looking For",
-      icon: Icons.favorite_border_rounded,
-      child: Obx(() {
-        return Column(
-          children: controller.lookingForOptions.map((item) {
-            final title = item['title']!;
-            final subtitle = item['subtitle']!;
-            final emoji = item['emoji']!;
-            final isSelected = controller.selectedLookingFor.value == title;
-
-            return GestureDetector(
-              onTap: () => controller.selectLookingFor(title),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isSelected ? _indigo : (isDark ? AppColors.inputFillDark : const Color(0xFFF8F8FB)),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: isSelected
-                      ? [BoxShadow(color: _indigo.withOpacity(0.22), blurRadius: 8, offset: const Offset(0, 3))]
-                      : null,
-                  border: isSelected
-                      ? null
-                      : Border.all(color: const Color(0xFFEEEEEE), width: 1),
-                ),
-                child: Row(
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 22)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  return InkWell(
+                    onTap: () {
+                      onSelect(item);
+                      if (!isMultiSelect) {
+                        Get.back();
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            title,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : (isDark ? AppColors.textPrimaryDark : const Color(0xFF1A1A2E)),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
+                            item,
+                            style: const TextStyle(fontSize: 15, color: Colors.black87),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white.withOpacity(0.85) : const Color(0xFF888888),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
+                          if (isSelected)
+                            const Icon(Icons.check, color: Color(0xFF4285F4), size: 20),
                         ],
                       ),
                     ),
-                    Icon(
-                      isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                      size: 18,
-                      color: isSelected ? Colors.white : const Color(0xFFCCCCCC),
-                    ),
-                  ],
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  // ─── Bottom sheet for remaining items (like Name/Age/Bio) ─────────────────────
+  void _showEditSheet(BuildContext context, bool isDark, String title, Widget content) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.scaffoldDark : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Edit $title",
+                style: AppTextStyles.headingMedium(isDark: isDark).copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 20),
+              content,
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: () => Get.back(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _indigo,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "Done",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                  ),
                 ),
               ),
-            );
-          }).toList(),
-        );
-      }),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 
-  // ─── Interests section ────────────────────────────────────────────────────
-  Widget _buildInterestsSection(bool isDark) {
-    return _sectionCard(
-      isDark: isDark,
-      title: "Interests",
-      icon: Icons.local_fire_department_outlined,
-      child: Obx(() {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Pick at least 3',
-              style: TextStyle(
-                color: const Color(0xFF888888),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+  // ─── Cleaned up Input Components (No Cards/Icons) ───────────────
+
+  Widget _buildTextFieldCard({
+    required bool isDark,
+    required TextEditingController controller,
+    required String hint,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      style: AppTextStyles.bodyMedium(isDark: isDark).copyWith(
+        fontSize: 15,
+        color: isDark ? AppColors.textPrimaryDark : const Color(0xFF1A1A2E),
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: AppTextStyles.bodySmall(isDark: isDark).copyWith(fontSize: 14),
+        filled: true,
+        fillColor: isDark ? AppColors.inputFillDark : const Color(0xFFF8F8FB),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEEEEEE), width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEEEEEE), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _indigo, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildAgeSection(bool isDark) {
+    return Obx(() {
+      return Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Your age',
+                style: AppTextStyles.bodySmall(isDark: isDark).copyWith(color: const Color(0xFF888888), fontSize: 14),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _indigo.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  '${controller.selectedAge.value.round()} yrs',
+                  style: const TextStyle(color: _indigo, fontWeight: FontWeight.w700, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: _indigo,
+              inactiveTrackColor: _indigo.withOpacity(0.15),
+              thumbColor: _indigo,
+              overlayColor: _indigo.withOpacity(0.15),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
+              trackHeight: 6,
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: controller.allInterests.map((interest) {
-                final isSelected = controller.selectedInterests.contains(interest);
-
-                return GestureDetector(
-                  onTap: () => controller.toggleInterest(interest),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                    decoration: BoxDecoration(
-                      color: isSelected ? _indigo : (isDark ? AppColors.inputFillDark : const Color(0xFFF3F2FD)),
-                      borderRadius: BorderRadius.circular(100),
-                      boxShadow: isSelected
-                          ? [BoxShadow(color: _indigo.withOpacity(0.22), blurRadius: 6, offset: const Offset(0, 2))]
-                          : null,
-                    ),
-                    child: Text(
-                      interest,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : (isDark ? AppColors.textPrimaryDark : const Color(0xFF1A1A2E)),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+            child: Slider(
+              value: controller.selectedAge.value,
+              min: 18,
+              max: 80,
+              divisions: 62,
+              onChanged: controller.updateAge,
             ),
-          ],
-        );
-      }),
-    );
+          ),
+        ],
+      );
+    });
   }
 
-  // ─── Save button ──────────────────────────────────────────────────────────
   Widget _buildSaveButton() {
     return GestureDetector(
       onTap: controller.saveProfile,
@@ -783,52 +794,6 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  // ─── Section card ─────────────────────────────────────────────────────────
-  Widget _sectionCard({
-    required bool isDark,
-    required String title,
-    required IconData icon,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(_cardRadius),
-        boxShadow: const [_cardShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: _indigo.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 16, color: _indigo),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: AppTextStyles.headingSmall(isDark: isDark).copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
   // ─── Image helper ─────────────────────────────────────────────────────────
   Widget _buildImage(String imagePath) {
     if (imagePath.startsWith("http")) {
@@ -840,6 +805,158 @@ class EditProfileScreen extends StatelessWidget {
     return Container(
       color: const Color(0xFFF3F2FD),
       child: const Center(child: Icon(Icons.person, size: 40)),
+    );
+  }
+}
+
+class CitySelectionScreen extends StatefulWidget {
+  final ProfileController controller;
+  const CitySelectionScreen({super.key, required this.controller});
+
+  @override
+  State<CitySelectionScreen> createState() => _CitySelectionScreenState();
+}
+
+class _CitySelectionScreenState extends State<CitySelectionScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _allCitiesRaw = [];
+  List<String> _filteredCities = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCities();
+    _searchController.addListener(_filterCities);
+  }
+
+  Future<void> _loadCities() async {
+    try {
+      final cities = await getCountryCities('IN');
+      final states = await getStatesOfCountry('IN');
+      
+      final stateCodeToName = <String, String>{};
+      for (var state in states) {
+        stateCodeToName[state.isoCode] = state.name;
+      }
+
+      final formattedCities = cities.map((c) {
+        final stateName = stateCodeToName[c.stateCode] ?? c.stateCode;
+        return "${c.name}, $stateName";
+      }).toList();
+
+      // Avoid duplicates and sort
+      final uniqueCities = formattedCities.toSet().toList();
+      uniqueCities.sort();
+
+      if (mounted) {
+        setState(() {
+          _allCitiesRaw = uniqueCities;
+          _filteredCities = uniqueCities;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _filterCities() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredCities = _allCitiesRaw;
+      } else {
+        _filteredCities = _allCitiesRaw
+            .where((city) => city.toLowerCase().contains(query))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Get.back(),
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              "Select city",
+              style: TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.w700),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search city",
+                hintStyle: const TextStyle(color: Colors.grey),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF4285F4)),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: _isLoading 
+                ? const NearlyLoader(isVisible: true)
+                : ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              itemCount: _filteredCities.length,
+              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: () {
+                    widget.controller.locationController.text = _filteredCities[index];
+                    Get.back();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Text(
+                      _filteredCities[index],
+                      style: const TextStyle(fontSize: 15, color: Colors.black87),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

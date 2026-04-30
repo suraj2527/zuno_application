@@ -7,6 +7,7 @@ import 'package:Nearly/presentation/profile/profile_tab.dart';
 import 'package:Nearly/presentation/activity/activity_tab.dart';
 import 'package:Nearly/presentation/activity/activity_controller.dart';
 import '../../shared/constants/app_colors.dart';
+import '../../shared/constants/app_gradients.dart';
 import 'dashboard_controller.dart';
 import '../home/home_tab.dart';
 
@@ -170,7 +171,7 @@ class _NavItem extends StatelessWidget {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              gradient: AppGradients.primary,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: isDark

@@ -15,6 +15,10 @@ class HomeApi {
     );
 
     if (res.statusCode == 200) {
+      print("========== DISCOVERY FEED RESPONSE ==========");
+      print("Status: ${res.statusCode}");
+      print("Body: ${res.body}");
+      print("=============================================");
       final data = jsonDecode(res.body);
       return List<dynamic>.from(data["data"] ?? []);
     }
