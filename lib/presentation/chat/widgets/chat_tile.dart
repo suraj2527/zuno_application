@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
+import 'package:Nearly/shared/widgets/common/nearly_image.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/model/chat/chat_preview_model.dart';
 import '../chat_controller.dart';
@@ -29,21 +30,28 @@ class ChatTile extends StatelessWidget {
           children: [
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: const Color(0xFFF2F4FF),
-                  backgroundImage: chat.imageUrl.isNotEmpty
-                      ? NetworkImage(chat.imageUrl)
-                      : null,
-                  child: chat.imageUrl.isEmpty
-                      ? Text(
-                          chatController.getInitials(chat.name),
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        )
-                      : null,
+                NearlyImage(
+                  imageUrl: chat.imageUrl,
+                  width: 56,
+                  height: 56,
+                  borderRadius: BorderRadius.circular(100),
+                  errorWidget: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF2F4FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        chatController.getInitials(chat.name),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 if (chat.isOnline)
                   Positioned(

@@ -68,30 +68,34 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
 
                   return AppRefreshWrapper(
+                    key: ValueKey('chats_${_selectedTab.value}_${_searchQuery.value}'),
                     onRefresh: controller.refreshChats,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    child: Column(
-                      children: [
-                        _buildPremiumSearchBar(isDark),
-                        const SizedBox(height: 24),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.cardDark : Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white10
-                                  : const Color(0xFFEEEEEE),
-                            ),
-                          ),
-                          child: _buildMessagesList(chats, isDark),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                        sliver: SliverToBoxAdapter(
+                          child: _buildPremiumSearchBar(isDark),
                         ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+                      ),
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        sliver: SliverToBoxAdapter(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.cardDark : Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white10
+                                    : const Color(0xFFEEEEEE),
+                              ),
+                            ),
+                            child: _buildMessagesList(chats, isDark),
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 40)),
+                    ],
                   );
                 }),
               ),
@@ -214,6 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return ListView.separated(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: chats.length,
       separatorBuilder: (_, __) => Divider(

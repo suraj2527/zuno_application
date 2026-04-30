@@ -12,6 +12,7 @@ import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/utils/app_notifications.dart';
+import 'package:Nearly/shared/widgets/common/nearly_image.dart';
 
 class ProfileDetailsScreen extends StatefulWidget {
   final dynamic profile;
@@ -591,16 +592,10 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
   Widget _buildImage(String imagePath) {
     if (imagePath.isEmpty) return _placeholderImage();
     if (imagePath.startsWith("http")) {
-      return Image.network(
-        imagePath,
+      return NearlyImage(
+        imageUrl: imagePath,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
-        },
-        errorBuilder: (_, __, ___) => _placeholderImage(),
+        errorWidget: _placeholderImage(),
       );
     }
 

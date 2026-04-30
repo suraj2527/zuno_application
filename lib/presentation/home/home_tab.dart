@@ -13,6 +13,7 @@ import 'package:Nearly/core/routes/app_routes.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../chat/widgets/profile_detail_screen.dart';
 import '../profile/explore_plans_screen.dart';
+import '../../shared/widgets/common/nearly_image.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -260,35 +261,37 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     double cardHeight,
     DatingProfile profile,
   ) {
-    return GestureDetector(
-      onTap: () {
-        Get.to(
-          () => ProfileDetailsScreen(
-            profile: profile,
-            heroTag: "profile_${profile.id}",
-          ),
-        );
-      },
-      child: Container(
-        height: cardHeight,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.cardDark : AppColors.cardLight,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.14),
-              blurRadius: 24,
-              offset: const Offset(0, 6),
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () {
+          Get.to(
+            () => ProfileDetailsScreen(
+              profile: profile,
+              heroTag: "profile_${profile.id}",
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Column(
-            children: [
-              Expanded(flex: 7, child: _buildSwipeImageSection(profile)),
-              Expanded(flex: 4, child: _buildSwipeDynamicInfo(isDark, profile)),
+          );
+        },
+        child: Container(
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.14),
+                blurRadius: 24,
+                offset: const Offset(0, 6),
+              ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Column(
+              children: [
+                Expanded(flex: 7, child: _buildSwipeImageSection(profile)),
+                Expanded(flex: 4, child: _buildSwipeDynamicInfo(isDark, profile)),
+              ],
+            ),
           ),
         ),
       ),
@@ -343,13 +346,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         Positioned.fill(
           child: Hero(
             tag: "profile_${profile.id}",
-            child: profile.profileImageUrl.isNotEmpty
-                ? Image.network(
-                    profile.profileImageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _profilePlaceholder(),
-                  )
-                : _profilePlaceholder(),
+            child: NearlyImage(
+              imageUrl: profile.profileImageUrl,
+              fit: BoxFit.cover,
+              errorWidget: _profilePlaceholder(),
+            ),
           ),
         ),
         _buildImageOverlay(profile),
@@ -363,13 +364,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         Positioned.fill(
           child: Hero(
             tag: "profile_${profile.id}",
-            child: profile.profileImageUrl.isNotEmpty
-                ? Image.network(
-                    profile.profileImageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _profilePlaceholder(),
-                  )
-                : _profilePlaceholder(),
+            child: NearlyImage(
+              imageUrl: profile.profileImageUrl,
+              fit: BoxFit.cover,
+              errorWidget: _profilePlaceholder(),
+            ),
           ),
         ),
         _buildImageOverlay(profile),

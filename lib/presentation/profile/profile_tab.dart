@@ -11,6 +11,7 @@ import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
+import 'package:Nearly/shared/widgets/common/nearly_image.dart';
 import 'package:Nearly/presentation/profile/settings_screen.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -638,7 +639,7 @@ class ProfileTab extends StatelessWidget {
 
   Widget _buildImage(String imagePath) {
     if (imagePath.startsWith("http")) {
-      return Image.network(imagePath, fit: BoxFit.cover);
+      return NearlyImage(imageUrl: imagePath, fit: BoxFit.cover);
     }
 
     if (imagePath.isNotEmpty && File(imagePath).existsSync()) {

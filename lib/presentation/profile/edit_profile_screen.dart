@@ -8,6 +8,7 @@ import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import 'package:Nearly/shared/widgets/common/Nearly_loader.dart';
 import 'package:country_state_city/country_state_city.dart' hide State;
 
+import 'package:Nearly/shared/widgets/common/nearly_image.dart';
 import 'profile_controller.dart';
 
 class EditProfileScreen extends StatelessWidget {
@@ -949,7 +950,7 @@ class EditProfileScreen extends StatelessWidget {
   // ─── Image helper ─────────────────────────────────────────────────────────
   Widget _buildImage(String imagePath) {
     if (imagePath.startsWith("http")) {
-      return Image.network(imagePath, fit: BoxFit.cover);
+      return NearlyImage(imageUrl: imagePath, fit: BoxFit.cover);
     }
     if (imagePath.isNotEmpty && File(imagePath).existsSync()) {
       return Image.file(File(imagePath), fit: BoxFit.cover);

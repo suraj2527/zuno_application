@@ -13,6 +13,7 @@ import 'package:Nearly/presentation/profile/profile_controller.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/utils/app_notifications.dart';
+import 'package:Nearly/shared/widgets/common/nearly_image.dart';
 
 class ActivityController extends GetxController {
   final isLoading = true.obs;
@@ -360,10 +361,10 @@ class ActivityController extends GetxController {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(100),
         child: url.isNotEmpty
-            ? Image.network(
-                url, 
+            ? NearlyImage(
+                imageUrl: url, 
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                errorWidget: _avatarPlaceholder(),
               )
             : _avatarPlaceholder(),
       ),

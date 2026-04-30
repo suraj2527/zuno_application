@@ -8,6 +8,7 @@ import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import '../../shared/widgets/shimmers/shimmer_box.dart';
 import '../chat/widgets/profile_detail_screen.dart';
+import '../../shared/widgets/common/nearly_image.dart';
 import 'activity_controller.dart';
 
 class ActivityTab extends StatefulWidget {
@@ -59,33 +60,7 @@ class _ActivityTabState extends State<ActivityTab> {
               ),
               _buildTabSelector(isDark),
               Expanded(
-                child: Obx(() {
-                  final isLikes = _selectedTab.value == 'Likes';
-                  final profiles = isLikes
-                      ? controller.likedProfiles
-                      : controller.matchedProfiles;
-
-                  if (controller.isLoading.value) {
-                    return AppRefreshWrapper(
-                      onRefresh: controller.refreshActivity,
-                      child: _buildGrid(isDark, isLoading: true, profiles: []),
-                    );
-                  }
-
-                  if (profiles.isEmpty) {
-                    return _buildElegantEmptyState(isDark, isLikes: isLikes);
-                  }
-
-                  return AppRefreshWrapper(
-                    onRefresh: controller.refreshActivity,
-                    child: _buildGrid(
-                      isDark,
-                      isLoading: false,
-                      profiles: profiles,
-                      type: isLikes ? 'like' : 'match',
-                    ),
-                  );
-                }),
+                child: Obx(() => _buildContentTab(isDark, isLikes: _selectedTab.value == 'Likes')),
               ),
             ],
           ),
@@ -189,23 +164,34 @@ class _ActivityTabState extends State<ActivityTab> {
 
       if (controller.isLoading.value) {
         return AppRefreshWrapper(
+          key: const ValueKey('activity_loading'),
           onRefresh: controller.refreshActivity,
-          child: _buildGrid(isDark, isLoading: true, profiles: []),
+          slivers: [
+            _buildGrid(isDark, isLoading: true, profiles: []),
+          ],
         );
       }
 
       if (profiles.isEmpty) {
-        return _buildElegantEmptyState(isDark, isLikes: isLikes);
+        return AppRefreshWrapper(
+          key: ValueKey('activity_empty_${isLikes}'),
+          onRefresh: controller.refreshActivity,
+          child: _buildElegantEmptyState(isDark, isLikes: isLikes),
+        );
       }
 
       return AppRefreshWrapper(
+        key: ValueKey('activity_content_${isLikes}'),
         onRefresh: controller.refreshActivity,
-        child: _buildGrid(
-          isDark,
-          isLoading: false,
-          profiles: profiles,
-          type: isLikes ? 'like' : 'match',
-        ),
+        slivers: [
+          _buildGrid(
+            isDark,
+            isLoading: false,
+            profiles: profiles,
+            type: isLikes ? 'like' : 'match',
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
       );
     });
   }
@@ -216,21 +202,23 @@ class _ActivityTabState extends State<ActivityTab> {
     required List<DatingProfile> profiles,
     String type = 'like',
   }) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(20),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.68,
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.68,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            if (isLoading) return _buildGridSkeletonCard(isDark);
+            return _buildElegantGridCard(isDark, profiles[index], type);
+          },
+          childCount: isLoading ? 6 : profiles.length,
+        ),
       ),
-      itemCount: isLoading ? 6 : profiles.length,
-      itemBuilder: (context, index) {
-        if (isLoading) return _buildGridSkeletonCard(isDark);
-        return _buildElegantGridCard(isDark, profiles[index], type);
-      },
     );
   }
 
@@ -239,147 +227,148 @@ class _ActivityTabState extends State<ActivityTab> {
     DatingProfile profile,
     String type,
   ) {
-    return GestureDetector(
-      onTap: () {
-        controller.markActivitySeen(type, profile);
-        Get.to(
-          () => ProfileDetailsScreen(
-            profile: profile,
-            heroTag: "${type}_${profile.id}",
-            isFromMatches: type == 'match',
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () {
+          controller.markActivitySeen(type, profile);
+          Get.to(
+            () => ProfileDetailsScreen(
+              profile: profile,
+              heroTag: "${type}_${profile.id}",
+              isFromMatches: type == 'match',
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            children: [
-              // Image
-              Positioned.fill(
-                child: Hero(
-                  tag: "${type}_${profile.id}",
-                  child: profile.profileImageUrl.isNotEmpty
-                      ? Image.network(
-                          profile.profileImageUrl,
-                          fit: BoxFit.cover,
-                        )
-                      : _profilePlaceholder(),
-                ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-
-              // Gradient Overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.7),
-                      ],
-                      stops: const [0.5, 0.7, 1.0],
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                // Image
+                Positioned.fill(
+                  child: Hero(
+                    tag: "${type}_${profile.id}",
+                    child: NearlyImage(
+                      imageUrl: profile.profileImageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: _profilePlaceholder(),
                     ),
                   ),
                 ),
-              ),
 
-              // Info
-              Positioned(
-                bottom: 12,
-                left: 12,
-                right: type == 'like' ? 48 : 12, // Leave space for like button
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${profile.userName}, ${profile.age}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                // Gradient Overlay
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.1),
+                          Colors.black.withOpacity(0.7),
+                        ],
+                        stops: const [0.5, 0.7, 1.0],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_rounded,
-                          size: 10,
-                          color: Colors.white70,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            profile.location.isNotEmpty
-                                ? profile.location
-                                : "Nearby",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              if (type == 'like')
-                Positioned(
-                  right: 12,
-                  bottom: 12,
-                  child: Obx(() {
-                    final isLiked = controller.likedProfileIds.contains(
-                      profile.id,
-                    );
-                    return _LikeButton(
-                      isLiked: isLiked,
-                      onTap: isLiked
-                          ? null
-                          : () => controller.likeProfile(profile),
-                    );
-                  }),
-                ),
-
-              if (!controller.isActivitySeen(type, profile))
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      gradient: AppGradients.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
-            ],
+
+                // Info
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  right: type == 'like' ? 48 : 12, // Leave space for like button
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${profile.userName}, ${profile.age}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_rounded,
+                            size: 10,
+                            color: Colors.white70,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              profile.location.isNotEmpty
+                                  ? profile.location
+                                  : "Nearby",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (type == 'like')
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: Obx(() {
+                      final isLiked = controller.likedProfileIds.contains(
+                        profile.id,
+                      );
+                      return _LikeButton(
+                        isLiked: isLiked,
+                        onTap: isLiked
+                            ? null
+                            : () => controller.likeProfile(profile),
+                      );
+                    }),
+                  ),
+
+                if (!controller.isActivitySeen(type, profile))
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
