@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppGradients {
-  /// Main brand gradient  #6C3BFF → #9B59FF → #C084FC
+  /// Main brand gradient  #5B4CDB → #7B6EE8 → #A49DF0
   static const LinearGradient primary = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF6C3BFF), Color(0xFF9B59FF), Color(0xFFC084FC)],
+    colors: [Color(0xFF5B4CDB), Color(0xFF7B6EE8), Color(0xFFA49DF0)],
     stops: [0.0, 0.5, 1.0],
   );
 

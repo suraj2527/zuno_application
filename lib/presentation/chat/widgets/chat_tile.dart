@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
-import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/model/chat/chat_preview_model.dart';
@@ -55,37 +54,29 @@ class _ChatTileState extends State<ChatTile>
     final isUnread = widget.chat.unreadCount > 0;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
         Get.toNamed(Routes.CHAT_DETAIL, arguments: widget.chat);
       },
       onLongPress: widget.onLongPress,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+        constraints: const BoxConstraints(minHeight: 56),
         decoration: BoxDecoration(
-          // Unread tiles get a subtle brand tint, read tiles are plain
           color: isUnread
               ? (isDark
-                  ? const Color(0xFF1E1B30) // warm dark violet tint
-                  : AppColors.primary5)     // soft lavender tint
-              : (isDark ? AppColors.inputFillDark : AppColors.cardLight),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isUnread
-                ? AppColors.primary.withOpacity(isDark ? 0.35 : 0.20)
-                : (isDark
-                    ? AppColors.inputBorderDark
-                    : AppColors.inputBorderLight),
-            width: isUnread ? 1.2 : 1.0,
-          ),
+                  ? const Color(0xFF1E1B30)
+                  : const Color(0xFFF0EEFF))
+              : (isDark ? AppColors.inputFillDark : Colors.white),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: isUnread
-                  ? AppColors.primary.withOpacity(0.10)
-                  : Colors.black.withOpacity(isDark ? 0.12 : 0.04),
+                  ? AppColors.primary.withOpacity(0.12)
+                  : Colors.black.withOpacity(isDark ? 0.12 : 0.07),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -95,12 +86,12 @@ class _ChatTileState extends State<ChatTile>
               // Left accent bar for unread
               if (isUnread)
                 Container(
-                  width: 4,
+                  width: 3,
                   decoration: BoxDecoration(
-                    gradient: AppGradients.primary,
+                    color: AppColors.primary,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      bottomLeft: Radius.circular(20),
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
                     ),
                   ),
                 ),
@@ -225,7 +216,7 @@ class _ChatTileState extends State<ChatTile>
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                // Pulsing unread badge
+                                 // Pulsing unread badge
                                 if (isUnread)
                                   ScaleTransition(
                                     scale: _pulseAnim,
@@ -234,7 +225,7 @@ class _ChatTileState extends State<ChatTile>
                                       width: 22,
                                       alignment: Alignment.center,
                                       decoration: const BoxDecoration(
-                                        gradient: AppGradients.primary,
+                                        color: AppColors.primary,
                                         shape: BoxShape.circle,
                                       ),
                                       child: Text(

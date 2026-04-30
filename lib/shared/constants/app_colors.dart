@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // ── Primary brand ──────────────────────────────
-  static const Color primary = Color(0xFF6C3BFF); // Deep Violet
-  static const Color primary2 = Color(0xFF8B5CF6);
-  static const Color primary3 = Color(0xFFA78BFA);
-  static const Color primary4 = Color(0xFFEDE9FE); // Soft Lavender
-  static const Color primary5 = Color(0xFFF5F3FF);
+  static const Color primary = Color(0xFF5B4CDB); // Deep Indigo (redesign)
+  static const Color primary2 = Color(0xFF7B6EE8);
+  static const Color primary3 = Color(0xFFA49DF0);
+  static const Color primary4 = Color(0xFFECEAFB); // Soft Lavender
+  static const Color primary5 = Color(0xFFF3F2FD);
+
+  // ── Secondary accent ───────────────────────────
+  static const Color roseGold = Color(0xFFE8857A); // Warm rose gold (CTAs / highlights)
 
   // For CHAT
 
@@ -35,7 +38,7 @@ class AppColors {
   static const Color error = Color(0xFFE74C3C);
 
   // ── Light theme ────────────────────────────────
-  static const Color scaffoldLight = Color(0xFFF0EDFF);
+  static const Color scaffoldLight = Color(0xFFF8F8FB); // Clean off-white (redesign)
   static const Color cardLight = Colors.white;
   static const Color textPrimary = Color(0xFF0F0A1E);
   static const Color textSecondary = Color(0xFF5B4C8A);

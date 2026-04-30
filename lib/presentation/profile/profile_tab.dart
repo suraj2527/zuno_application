@@ -24,7 +24,7 @@ class ProfileTab extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.scaffoldDark : AppColors.primary5,
+        backgroundColor: isDark ? AppColors.scaffoldDark : const Color(0xFFF8F8FB),
         body: Obx(() {
           final profile = controller.profile.value;
 
@@ -74,13 +74,13 @@ class ProfileTab extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
+        color: isDark ? AppColors.cardDark : Colors.white,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -89,17 +89,13 @@ class ProfileTab extends StatelessWidget {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              // Header Background Pattern/Gradient
+              // Header Background
               Container(
                 height: 160,
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: AppGradients.primary,
-                  image: DecorationImage(
-                    image: NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'),
-                    opacity: 0.1,
-                    repeat: ImageRepeat.repeat,
-                  ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1A1730) : const Color(0xFFEEEBFB),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
                 ),
               ),
               
@@ -195,12 +191,12 @@ class ProfileTab extends StatelessWidget {
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        gradient: AppGradients.primary,
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(100),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 12,
+                            color: AppColors.primary.withOpacity(0.28),
+                            blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -208,14 +204,14 @@ class ProfileTab extends StatelessWidget {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit_outlined, size: 18, color: Colors.white),
+                          Icon(Icons.edit_outlined, size: 16, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
                             "Edit Profile",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
-                              fontSize: 15,
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -588,17 +584,13 @@ class ProfileTab extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
-          width: 1,
-        ),
+        color: isDark ? AppColors.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -608,10 +600,10 @@ class ProfileTab extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 4,
+                width: 3,
                 height: 18,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.primary,
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
