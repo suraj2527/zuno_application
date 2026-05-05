@@ -6,35 +6,67 @@ import '../../../core/routes/app_routes.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class SignInController extends GetxController {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
 
   final isLoading = false.obs;
-  final isPasswordVisible = false.obs;
+  final isOtpSent = false.obs;
+  final verificationId = ''.obs;
 
   final AuthService _authService = AuthService();
   final AuthRepository _authRepository = AuthRepository();
 
-  void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
-  }
+  /// ================= Phone Login =================
+  Future<void> sendOtp() async {
+    final phone = phoneController.text.trim();
 
-  /// ================= Email Login =================
-  Future<void> loginWithEmail() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      Get.snackbar('Error', 'Please enter email and password');
+    if (phone.isEmpty || phone.length < 10) {
+      Get.snackbar('Error', 'Please enter a valid phone number');
       return;
     }
 
     isLoading.value = true;
 
     try {
-      final userCredential = await _authService.signInWithEmail(
-        email,
-        password,
+      // Adding +91 if not present (Assuming India based on previous context, or general +)
+      String formattedPhone = phone;
+      if (!phone.startsWith('+')) {
+        formattedPhone = '+91$phone'; 
+      }
+
+      await _authService.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        onCodeSent: (id) {
+          verificationId.value = id;
+          isOtpSent.value = true;
+          isLoading.value = false;
+          Get.snackbar('Success', 'OTP sent to $formattedPhone');
+        },
+        onError: (error) {
+          isLoading.value = false;
+          Get.snackbar('Error', error);
+        },
+      );
+    } catch (e) {
+      isLoading.value = false;
+      Get.snackbar('Error', e.toString());
+    }
+  }
+
+  Future<void> verifyOtp() async {
+    final otp = otpController.text.trim();
+
+    if (otp.isEmpty || otp.length < 6) {
+      Get.snackbar('Error', 'Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      final userCredential = await _authService.signInWithOtp(
+        verificationId.value,
+        otp,
       );
 
       final token = await userCredential.user?.getIdToken(true);
@@ -62,14 +94,6 @@ class SignInController extends GetxController {
 
       bool isProfileCompleted = response["isProfileCompleted"] == true;
 
-      /// 🔥 SAFE FALLBACK (IMPORTANT FIX)
-      if (!isProfileCompleted) {
-        try {
-          final profileRes = await _authRepository.login(token);
-          isProfileCompleted = profileRes["isProfileCompleted"] == true;
-        } catch (_) {}
-      }
-
       /// ✅ NAVIGATION
       if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
@@ -77,7 +101,7 @@ class SignInController extends GetxController {
         Get.offAllNamed(Routes.ONBOARDING);
       }
     } catch (e) {
-      Get.snackbar('Login Failed', e.toString());
+      Get.snackbar('Verification Failed', e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -114,13 +138,6 @@ class SignInController extends GetxController {
 
       bool isProfileCompleted = response["isProfileCompleted"] == true;
 
-      if (!isProfileCompleted) {
-        try {
-          final profileRes = await _authRepository.login(token);
-          isProfileCompleted = profileRes["isProfileCompleted"] == true;
-        } catch (_) {}
-      }
-
       /// ✅ NAVIGATION
       if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
@@ -136,8 +153,8 @@ class SignInController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
+    phoneController.dispose();
+    otpController.dispose();
     super.onClose();
   }
 }

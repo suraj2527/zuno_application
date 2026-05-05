@@ -34,6 +34,8 @@ class ProfileController extends GetxController {
   final RxDouble selectedAge = 24.0.obs;
   final RxString selectedLookingFor = ''.obs;
   final RxString selectedReligion = ''.obs; // ✅ ADD
+  final RxString selectedHeight = ''.obs;
+  final RxString selectedZodiac = ''.obs;
   final RxList<String> selectedInterests = <String>[].obs;
 
   final RxString selectedProfileImage = ''.obs;
@@ -99,6 +101,25 @@ class ProfileController extends GetxController {
     'Jain',
     'Atheist',
     'Other',
+  ];
+  final List<String> heightOptions = List.generate(
+    81,
+    (index) => "${140 + index} cm",
+  );
+
+  final List<String> zodiacOptions = [
+    '♈ Aries',
+    '♉ Taurus',
+    '♊ Gemini',
+    '♋ Cancer',
+    '♌ Leo',
+    '♍ Virgo',
+    '♎ Libra',
+    '♏ Scorpio',
+    '♐ Sagittarius',
+    '♑ Capricorn',
+    '♒ Aquarius',
+    '♓ Pisces',
   ];
 
   DatingProfile? get myProfile => homeController.allProfiles.isNotEmpty
@@ -193,6 +214,8 @@ class ProfileController extends GetxController {
         gender: data["gender"],
         lookingFor: data["lookingFor"],
         religion: data["religion"],
+        height: data["height"],
+        zodiac: data["zodiac"],
       );
 
       nameController.text = data["name"] ?? "";
@@ -203,6 +226,8 @@ class ProfileController extends GetxController {
       selectedAge.value = (data["age"] ?? 24).toDouble();
       selectedLookingFor.value = data["lookingFor"] ?? "";
       selectedReligion.value = data["religion"] ?? "";
+      selectedHeight.value = data["height"] ?? "";
+      selectedZodiac.value = data["zodiac"] ?? "";
 
       selectedInterests.assignAll(List<String>.from(data["interests"] ?? []));
       selectedGalleryImages.assignAll(galleryUrls);
@@ -229,6 +254,8 @@ class ProfileController extends GetxController {
     selectedAge.value = double.tryParse(p.age) ?? 24.0;
     selectedLookingFor.value = p.lookingFor ?? "";
     selectedReligion.value = p.religion ?? "";
+    selectedHeight.value = p.height ?? "";
+    selectedZodiac.value = p.zodiac ?? "";
 
     selectedInterests.assignAll(p.interests);
     selectedGalleryImages.assignAll(p.imageUrls);
@@ -345,6 +372,18 @@ class ProfileController extends GetxController {
     selectedLookingFor.value = value;
   }
 
+  void selectHeight(String value) {
+    selectedHeight.value = value;
+  }
+
+  void selectZodiac(String value) {
+    selectedZodiac.value = value;
+  }
+
+  void selectReligion(String value) {
+    selectedReligion.value = value;
+  }
+
   void toggleInterest(String value) {
     if (selectedInterests.contains(value)) {
       selectedInterests.remove(value);
@@ -360,6 +399,8 @@ class ProfileController extends GetxController {
         locationController.text.trim().isNotEmpty &&
         selectedGender.value.isNotEmpty &&
         selectedLookingFor.value.isNotEmpty &&
+        selectedHeight.value.isNotEmpty &&
+        selectedZodiac.value.isNotEmpty &&
         selectedInterests.length >= 3 &&
         selectedProfileImage.value.isNotEmpty;
   }
@@ -427,6 +468,12 @@ class ProfileController extends GetxController {
       }
       if (selectedReligion.value.isNotEmpty) {
         body["religion"] = selectedReligion.value;
+      }
+      if (selectedHeight.value.isNotEmpty) {
+        body["height"] = selectedHeight.value;
+      }
+      if (selectedZodiac.value.isNotEmpty) {
+        body["zodiac"] = selectedZodiac.value;
       }
       if (selectedInterests.isNotEmpty) {
         body["interests"] = selectedInterests.toList();

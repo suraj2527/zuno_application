@@ -157,10 +157,6 @@ class SignInScreen extends GetView<SignInController> {
   }
 }
 
-// ─────────────────────────────────────────────────
-// HEADER
-// ─────────────────────────────────────────────────
-
 class _Header extends StatelessWidget {
   const _Header();
 
@@ -225,10 +221,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────
-// LOGIN SELECTION (Updated - Removed Phone & OTP)
-// ─────────────────────────────────────────────────
-
 class _LoginSelection extends StatelessWidget {
   final SignInController controller;
   const _LoginSelection({required this.controller});
@@ -243,8 +235,7 @@ class _LoginSelection extends StatelessWidget {
           label: 'Continue with Google',
           onTap: controller.googleLogin,
         ),
-        const SizedBox(height: 16),
-
+        const SizedBox(height: 24),
         Row(
           children: [
             const Expanded(
@@ -265,76 +256,85 @@ class _LoginSelection extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 24),
-
-        // Only Email Step (No tabs, no phone)
-        _EmailStep(controller: controller),
+        _PhoneStep(controller: controller),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────
-// EMAIL STEP
-// ─────────────────────────────────────────────────
-
-class _EmailStep extends StatelessWidget {
+class _PhoneStep extends StatelessWidget {
   final SignInController controller;
-  const _EmailStep({required this.controller});
+  const _PhoneStep({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('EMAIL', style: AppTextStyles.label()),
-        const SizedBox(height: 8),
-        _InputField(
-          controller: controller.emailController,
-          hint: 'Enter your email',
-          keyboardType: TextInputType.emailAddress,
-        ),
-
-        const SizedBox(height: 18),
-
-        Text('PASSWORD', style: AppTextStyles.label()),
-        const SizedBox(height: 8),
-        Obx(
-          () => _InputField(
-            controller: controller.passwordController,
-            hint: 'Enter your password',
-            obscureText: !controller.isPasswordVisible.value,
-            suffix: GestureDetector(
-              onTap: controller.togglePasswordVisibility,
-              child: Icon(
-                controller.isPasswordVisible.value
-                    ? Icons.visibility_off_rounded
-                    : Icons.visibility_rounded,
-                color: AppColors.textHint,
-                size: 20,
+    return Obx(
+      () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!controller.isOtpSent.value) ...[
+            Text('PHONE NUMBER', style: AppTextStyles.label()),
+            const SizedBox(height: 8),
+            _InputField(
+              controller: controller.phoneController,
+              hint: 'Enter mobile number',
+              keyboardType: TextInputType.phone,
+              prefix: const Padding(
+                padding: EdgeInsets.only(left: 14, right: 8),
+                child: Text(
+                  '+91',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-
-        const SizedBox(height: 28),
-
-        Obx(
-          () => GradientButton(
-            label: 'Login →',
-            isLoading: controller.isLoading.value,
-            onTap: controller.loginWithEmail,
-          ),
-        ),
-      ],
+            const SizedBox(height: 28),
+            GradientButton(
+              label: 'Get OTP →',
+              isLoading: controller.isLoading.value,
+              onTap: controller.sendOtp,
+            ),
+          ] else ...[
+            Text('VERIFICATION CODE', style: AppTextStyles.label()),
+            const SizedBox(height: 8),
+            _InputField(
+              controller: controller.otpController,
+              hint: 'Enter 6-digit OTP',
+              keyboardType: TextInputType.number,
+              suffix: TextButton(
+                onPressed: controller.sendOtp,
+                child: const Text(
+                  'Resend',
+                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            GradientButton(
+              label: 'Verify & Login →',
+              isLoading: controller.isLoading.value,
+              onTap: controller.verifyOtp,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton(
+                onPressed: () => controller.isOtpSent.value = false,
+                child: const Text(
+                  'Change Phone Number',
+                  style: TextStyle(color: AppColors.textHint),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
-
-// ─────────────────────────────────────────────────
-// REUSABLES (Unchanged)
-// ─────────────────────────────────────────────────
 
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
@@ -342,6 +342,7 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? suffix;
+  final Widget? prefix;
 
   const _InputField({
     required this.controller,
@@ -349,6 +350,7 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.suffix,
+    this.prefix,
   });
 
   @override
@@ -372,6 +374,8 @@ class _InputField extends StatelessWidget {
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           suffixIcon: suffix,
+          prefixIcon: prefix,
+          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 16,

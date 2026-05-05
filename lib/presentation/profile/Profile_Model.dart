@@ -14,6 +14,10 @@ class DatingProfile {
 
   final String? gender;
   final String? lookingFor;
+  final String? religion;
+  final String? height;
+  final String? zodiac;
+  final String? matchId;
 
   DatingProfile({
     required this.id,
@@ -28,6 +32,10 @@ class DatingProfile {
     required this.imageUrls,
     this.gender,
     this.lookingFor,
+    this.religion,
+    this.height,
+    this.zodiac,
+    this.matchId,
   });
 
   /// ✅ Helpful for future profile updates
@@ -44,6 +52,10 @@ class DatingProfile {
     List<String>? imageUrls,
     String? gender,
     String? lookingFor,
+    String? religion,
+    String? height,
+    String? zodiac,
+    String? matchId,
   }) {
     return DatingProfile(
       id: id ?? this.id,
@@ -58,6 +70,10 @@ class DatingProfile {
       imageUrls: imageUrls ?? this.imageUrls,
       gender: gender ?? this.gender,
       lookingFor: lookingFor ?? this.lookingFor,
+      religion: religion ?? this.religion,
+      height: height ?? this.height,
+      zodiac: zodiac ?? this.zodiac,
+      matchId: matchId ?? this.matchId,
     );
   }
 }

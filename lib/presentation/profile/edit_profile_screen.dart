@@ -534,15 +534,31 @@ class EditProfileScreen extends StatelessWidget {
           _buildListItem(
             icon: Icons.height,
             label: "Height",
+            value: controller.selectedHeight.value.isNotEmpty
+                ? controller.selectedHeight.value
+                : "Add Height",
             showArrow: true,
-            onTap: () {},
+            onTap: () => _navigateToListSelection(
+              title: "Height",
+              items: controller.heightOptions,
+              currentValue: controller.selectedHeight,
+              onSelect: (val) => controller.selectHeight(val),
+            ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           _buildListItem(
             icon: Icons.wb_sunny_outlined,
             label: "Zodiac sign",
+            value: controller.selectedZodiac.value.isNotEmpty
+                ? controller.selectedZodiac.value
+                : "Add Zodiac",
             showArrow: true,
-            onTap: () {},
+            onTap: () => _navigateToListSelection(
+              title: "Zodiac sign",
+              items: controller.zodiacOptions,
+              currentValue: controller.selectedZodiac,
+              onSelect: (val) => controller.selectZodiac(val),
+            ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           _buildListItem(

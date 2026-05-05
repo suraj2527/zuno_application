@@ -19,6 +19,8 @@ class DatingProfile {
   final String? gender;
   final String? lookingFor;
   final String? religion;
+  final String? height;
+  final String? zodiac;
   final String? matchId;
 
   DatingProfile({
@@ -35,6 +37,8 @@ class DatingProfile {
     this.gender,
     this.lookingFor,
     this.religion,
+    this.height,
+    this.zodiac,
     this.matchId,
   });
 
@@ -52,6 +56,8 @@ class DatingProfile {
     String? gender,
     String? lookingFor,
     String? religion,
+    String? height,
+    String? zodiac,
     String? matchId,
   }) {
     return DatingProfile(
@@ -68,6 +74,8 @@ class DatingProfile {
       gender: gender ?? this.gender,
       lookingFor: lookingFor ?? this.lookingFor,
       religion: religion ?? this.religion,
+      height: height ?? this.height,
+      zodiac: zodiac ?? this.zodiac,
       matchId: matchId ?? this.matchId,
     );
   }
@@ -224,6 +232,8 @@ class HomeController extends GetxController {
           gender: item["gender"]?.toString(),
           lookingFor: item["lookingFor"]?.toString(),
           religion: item["religion"]?.toString(),
+          height: item["height"]?.toString(),
+          zodiac: item["zodiac"]?.toString(),
           matchId: item["matchId"]?.toString(),
         );
       }).toList();
