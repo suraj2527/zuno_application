@@ -8,4 +8,5 @@ abstract class Routes {
   static const PERMISSION = '/permission';
   static const SIGNUP = '/signup';
   static const EXPLORE_PLANS = '/explore_plans';
+  static const PRIVACY_POLICY = '/privacy_policy';
 }

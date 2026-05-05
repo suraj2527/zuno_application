@@ -12,6 +12,7 @@ import '../../presentation/auth/signup/signup_binding.dart';
 import '../../presentation/chat/chat_detail_screen.dart';
 import 'package:Nearly/presentation/profile/explore_plans_screen.dart';
 import '../services/permission_service.dart';
+import '../../presentation/auth/privacy_policy/privacy_policy_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -55,6 +56,11 @@ class AppPages {
       name: Routes.EXPLORE_PLANS,
       page: () => const ExplorePlansScreen(),
       transition: Transition.downToUp,
+    ),
+    GetPage(
+      name: Routes.PRIVACY_POLICY,
+      page: () => const PrivacyPolicyScreen(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

@@ -21,4 +21,11 @@ class LocalStorage {
   static String? get name => _box.read('name');
   static String? get email => _box.read('email');
   static String? get photo => _box.read('photo');
+
+  static void setPrivacyPolicyAccepted(bool accepted) {
+    _box.write('privacyPolicyAccepted', accepted);
+  }
+
+  static bool get isPrivacyPolicyAccepted =>
+      _box.read('privacyPolicyAccepted') ?? false;
 }

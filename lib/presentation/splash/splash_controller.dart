@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/routes/app_routes.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/sources/local/local_storage.dart';
 import '../../data/sources/remote/user_api.dart';
 
 class SplashController extends GetxController {
@@ -23,7 +24,11 @@ class SplashController extends GetxController {
 
       if (user == null) {
         await minimumWait;
-        Get.offAllNamed(Routes.SIGNIN);
+        if (!LocalStorage.isPrivacyPolicyAccepted) {
+          Get.offAllNamed(Routes.PRIVACY_POLICY);
+        } else {
+          Get.offAllNamed(Routes.SIGNIN);
+        }
         return;
       }
 
@@ -56,7 +61,11 @@ class SplashController extends GetxController {
       }
     } catch (e) {
       await minimumWait;
-      Get.offAllNamed(Routes.SIGNIN);
+      if (!LocalStorage.isPrivacyPolicyAccepted) {
+        Get.offAllNamed(Routes.PRIVACY_POLICY);
+      } else {
+        Get.offAllNamed(Routes.SIGNIN);
+      }
     }
   }
 }
