@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +9,7 @@ import 'package:Nearly/core/services/auth_service.dart';
 import 'package:Nearly/presentation/home/home_controller.dart';
 import 'package:Nearly/data/sources/remote/user_api.dart';
 import 'package:Nearly/shared/utils/app_notifications.dart';
+import 'package:Nearly/shared/constants/app_colors.dart';
 
 class ProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
@@ -353,20 +353,6 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> logout() async {
-    try {
-      await AuthService().signOut();
-
-      final box = GetStorage();
-      await box.erase();
-
-      Get.deleteAll(force: true);
-
-      Get.offAllNamed(Routes.SIGNIN);
-    } catch (e) {
-      AppNotifications.showError(e.toString());
-    }
-  }
 
   bool canSave() {
     return nameController.text.trim().isNotEmpty &&
@@ -470,6 +456,116 @@ class ProfileController extends GetxController {
     } finally {
       isSaving.value = false;
     }
+  }
+
+  void showLogoutConfirmation() {
+    final isDark = Get.isDarkMode;
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFEAEA),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFFFF4D4D),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Sign Out?",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Are you sure you want to sign out of your account?",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white10 : const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        Get.back();
+                        try {
+                          await _authService.signOut();
+                          final box = GetStorage();
+                          await box.erase();
+                          Get.deleteAll(force: true);
+                          Get.offAllNamed(Routes.SIGNIN);
+                        } catch (e) {
+                          AppNotifications.showError(e.toString());
+                        }
+                      },
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF4D4D),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: const Text(
+                          "Logout",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

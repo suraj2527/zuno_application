@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Nearly/presentation/profile/profile_controller.dart';
-import 'package:Nearly/shared/constants/app_colors.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -64,7 +63,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _buildSectionTitle("About"),
           _buildCard([
-            _buildListItem("About Rebounce"),
+            _buildListItem("About Nearly"),
             _buildDivider(),
             _buildListItem("Terms of use"),
             _buildDivider(),
@@ -89,7 +88,7 @@ class SettingsScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ElevatedButton(
-              onPressed: () => Get.find<ProfileController>().logout(),
+              onPressed: () => Get.find<ProfileController>().showLogoutConfirmation(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFF0F0),
                 elevation: 0,

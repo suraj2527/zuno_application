@@ -6,11 +6,8 @@ import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
 import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
-
 import '../../shared/widgets/common/app_refresh_wrapper.dart';
 import '../../shared/widgets/common/Nearly_base_screen.dart';
-import 'package:Nearly/core/routes/app_routes.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import '../chat/widgets/profile_detail_screen.dart';
 import '../profile/explore_plans_screen.dart';
 import '../../shared/widgets/common/nearly_image.dart';

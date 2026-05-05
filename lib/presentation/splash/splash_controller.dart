@@ -40,8 +40,8 @@ class SplashController extends GetxController {
         _userApi.getProfile(token).catchError((_) => <String, dynamic>{}),
       ]);
 
-      final loginRes = results[0] as Map<String, dynamic>;
-      final profileData = results[1] as Map<String, dynamic>;
+      final loginRes = results[0];
+      final profileData = results[1];
 
       final bool isProfileCompleted = (loginRes["isProfileCompleted"] == true) || 
                                      (profileData.isNotEmpty);

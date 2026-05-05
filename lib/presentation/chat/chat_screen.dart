@@ -7,7 +7,6 @@ import 'package:Nearly/presentation/chat/widgets/chat_skeleton.dart';
 import 'package:Nearly/presentation/chat/widgets/chat_tile.dart';
 import 'package:Nearly/presentation/chat/widgets/empty_chat_view.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
-import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 
 class ChatScreen extends StatefulWidget {

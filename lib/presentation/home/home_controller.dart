@@ -1,6 +1,5 @@
 // ignore_for_file: unused_local_variable
 
-import 'dart:developer';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:get/get.dart';
 import 'package:Nearly/core/services/auth_service.dart';

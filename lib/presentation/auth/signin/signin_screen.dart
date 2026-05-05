@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../core/routes/app_routes.dart';
 import '../../../shared/constants/app_colors.dart';
 import '../../../shared/constants/app_gradients.dart';
 import '../../../shared/constants/app_text_styles.dart';
@@ -13,33 +13,147 @@ class SignInScreen extends GetView<SignInController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Obx(
-        () => Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(gradient: AppGradients.scaffold),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const _Header(),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
-                        child: _LoginSelection(controller: controller),
-                      ),
-                    ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _showExitConfirmationDialog(context, isDark);
+        if (shouldPop) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Obx(
+          () => Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(gradient: AppGradients.scaffold),
+                child: SafeArea(
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        const _Header(),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 28, 24, 36),
+                          child: _LoginSelection(controller: controller),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            NearlyLoader(isVisible: controller.isLoading.value),
-          ],
+              NearlyLoader(isVisible: controller.isLoading.value),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<bool> _showExitConfirmationDialog(
+      BuildContext context, bool isDark) async {
+    return await Get.dialog<bool>(
+          Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.cardDark : Colors.white,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.exit_to_app_rounded,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Exit App?",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Are you sure you want to close the application?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Get.back(result: false),
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white10
+                                  : const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              "Stay",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Get.back(result: true),
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.primary,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Text(
+                              "Exit",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ) ??
+        false;
   }
 }
 
@@ -212,30 +326,6 @@ class _EmailStep extends StatelessWidget {
             isLoading: controller.isLoading.value,
             onTap: controller.loginWithEmail,
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Don't have an account? ",
-              style: AppTextStyles.bodySmall().copyWith(
-                color: AppColors.textHint,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Get.toNamed(Routes.SIGNUP); // Navigate to SignUpScreen
-              },
-              child: Text(
-                'Sign Up',
-                style: AppTextStyles.bodySmall().copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
         ),
       ],
     );

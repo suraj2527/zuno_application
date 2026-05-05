@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:Nearly/presentation/home/home_controller.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
 import 'package:Nearly/shared/constants/app_gradients.dart';
-import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import '../../shared/widgets/shimmers/shimmer_box.dart';
 import '../chat/widgets/profile_detail_screen.dart';

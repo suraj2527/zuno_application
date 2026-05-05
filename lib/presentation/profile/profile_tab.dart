@@ -7,8 +7,6 @@ import 'package:get/get.dart';
 import 'package:Nearly/presentation/profile/edit_profile_screen.dart';
 import 'package:Nearly/presentation/profile/profile_controller.dart';
 import 'package:Nearly/shared/constants/app_colors.dart';
-import 'package:Nearly/shared/constants/app_gradients.dart';
-import 'package:Nearly/shared/constants/app_text_styles.dart';
 import 'package:Nearly/shared/widgets/common/app_refresh_wrapper.dart';
 import 'package:Nearly/shared/widgets/shimmers/shimmer_box.dart';
 import 'package:Nearly/shared/widgets/common/nearly_image.dart';
@@ -266,106 +264,6 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(bool isDark) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.cardDark : Colors.white,
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEAEA),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.logout_rounded,
-                  color: Color(0xFFFF4D4D),
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Sign Out?",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Are you sure you want to sign out of your account?",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F5F5),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Get.back();
-                        controller.logout();
-                      },
-                      child: Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF4D4D),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildElegantSectionTitle(String title) {
     return Padding(
@@ -616,26 +514,6 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _shimmerCard(bool isDark) {
-    return ShimmerWrapper(
-      isLoading: true,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.cardDark : AppColors.cardLight,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            ShimmerBox(width: 120, height: 14),
-            SizedBox(height: 14),
-            ShimmerBox(width: double.infinity, height: 50, radius: 14),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildImage(String imagePath) {
     if (imagePath.startsWith("http")) {
