@@ -137,7 +137,7 @@ class ChatController extends GetxController {
     );
   }
 
-  Future<void> loadConversationMessages(String conversationId) async {
+  Future<void> loadConversationMessages(String conversationId, {String? otherUserId}) async {
     isMessagesLoading.value = true;
     try {
       setActiveConversation(conversationId);
@@ -149,8 +149,9 @@ class ChatController extends GetxController {
       _myUserId = user?.uid;
       _registerMyId(_myUserId);
 
+      final effectiveOtherUserId = otherUserId ?? chatList.firstWhereOrNull((c) => c.id == conversationId)?.otherUserId;
       final data = await _chatApi.getMessages(token, conversationId);
-      final mapped = data.map(_mapMessage).toList();
+      final mapped = data.map((m) => _mapMessage(m, otherUserId: effectiveOtherUserId)).toList();
       getConversationMessages(conversationId).assignAll(mapped);
       _joinConversation(conversationId);
     } catch (e) {
@@ -198,7 +199,8 @@ class ChatController extends GetxController {
         text: trimmed,
       );
 
-      final mapped = _mapMessage(sent);
+      final otherUserId = chatList.firstWhereOrNull((c) => c.id == conversationId)?.otherUserId;
+      final mapped = _mapMessage(sent, otherUserId: otherUserId);
       final message = mapped.isMe
           ? mapped
           : ChatMessageModel(
@@ -245,9 +247,16 @@ class ChatController extends GetxController {
     _socket?.onConnect((_) {});
     _socket?.on("new_message", (payload) {
       if (payload is! Map) return;
-      final message = _mapMessage(Map<String, dynamic>.from(payload));
-      final conversationId = message.conversationId;
+      final item = Map<String, dynamic>.from(payload);
+      final conversationId =
+          item["conversationId"]?.toString() ??
+          item["chatId"]?.toString() ??
+          "";
       if (conversationId.isEmpty) return;
+
+      final otherUserId =
+          chatList.firstWhereOrNull((c) => c.id == conversationId)?.otherUserId;
+      final message = _mapMessage(item, otherUserId: otherUserId);
 
       final list = getConversationMessages(conversationId);
       final exists = list.any((m) => m.id.isNotEmpty && m.id == message.id);
@@ -361,6 +370,10 @@ class ChatController extends GetxController {
         (_readBool(item, const ["isActive", "active"]) == false &&
             _hasKey(item, const ["isActive", "active"]));
 
+    final otherUserId = user?["_id"]?.toString() ??
+        user?["id"]?.toString() ??
+        (otherUser is String ? otherUser : "");
+
     return ChatPreviewModel(
       id: id,
       matchId: item["matchId"]?.toString() ?? "",
@@ -374,11 +387,12 @@ class ChatController extends GetxController {
       isSeen: unread > 0 ? false : isSeen,
       isDelivered: isDelivered,
       isArchived: isArchived,
+      otherUserId: otherUserId,
       rawProfileData: otherUser,
     );
   }
 
-  ChatMessageModel _mapMessage(dynamic raw) {
+  ChatMessageModel _mapMessage(dynamic raw, {String? otherUserId}) {
     if (raw is! Map) {
       return ChatMessageModel(
         id: "",
@@ -404,25 +418,35 @@ class ChatController extends GetxController {
         : null;
     final senderId =
         item["senderId"]?.toString() ??
+        item["sender_id"]?.toString() ??
+        item["userId"]?.toString() ??
+        item["user_id"]?.toString() ??
         senderMap?["_id"]?.toString() ??
+        senderMap?["id"]?.toString() ??
         item["sender"]?.toString() ??
         "";
     final explicitIsMe = _readBool(item, const [
       "isMe",
+      "is_me",
       "isMine",
+      "is_mine",
       "fromMe",
+      "from_me",
       "isSender",
-    ]);
+      "is_sender",
+    ]) || _isStringMe(item, const ["senderType", "from", "type"]);
     final senderCandidates = <String>{
       senderId.trim(),
       senderMap?["_id"]?.toString().trim() ?? "",
       senderMap?["id"]?.toString().trim() ?? "",
       senderMap?["userId"]?.toString().trim() ?? "",
+      senderMap?["user_id"]?.toString().trim() ?? "",
       senderMap?["uid"]?.toString().trim() ?? "",
-      senderMap?["firebaseUid"]?.toString().trim() ?? "",
       item["senderUid"]?.toString().trim() ?? "",
+      item["sender_uid"]?.toString().trim() ?? "",
       item["senderFirebaseUid"]?.toString().trim() ?? "",
       item["createdBy"]?.toString().trim() ?? "",
+      item["created_by"]?.toString().trim() ?? "",
     }..removeWhere((e) => e.isEmpty);
     // Ensure we always have the current user ID for proper comparison
     final currentUserId = _myUserId ?? _authService.currentUser?.uid ?? "";
@@ -430,6 +454,10 @@ class ChatController extends GetxController {
       ..removeWhere((e) => e.isEmpty);
     final isMe =
         explicitIsMe ||
+        (otherUserId != null &&
+            otherUserId.isNotEmpty &&
+            senderId.isNotEmpty &&
+            senderId != otherUserId) ||
         senderCandidates.any((sender) => myCandidates.contains(sender));
     // Debug logging to verify the comparison
     if (senderId.isNotEmpty) {
@@ -587,6 +615,15 @@ class ChatController extends GetxController {
       final s = v?.toString().toLowerCase();
       if (s == "true" || s == "1") return true;
       if (s == "false" || s == "0") return false;
+    }
+    return false;
+  }
+
+  bool _isStringMe(Map<String, dynamic> map, List<String> keys) {
+    for (final k in keys) {
+      if (!map.containsKey(k)) continue;
+      final s = map[k]?.toString().toLowerCase();
+      if (s == "me" || s == "self" || s == "mine" || s == "sender") return true;
     }
     return false;
   }

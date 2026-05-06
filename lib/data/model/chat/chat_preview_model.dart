@@ -14,6 +14,7 @@ class ChatPreviewModel {
 
   /// True when the conversation is archived/inactive and should not appear in Active tab.
   final bool isArchived;
+  final String otherUserId;
   final dynamic rawProfileData;
 
   ChatPreviewModel({
@@ -29,6 +30,7 @@ class ChatPreviewModel {
     required this.isSeen,
     required this.isDelivered,
     required this.isArchived,
+    this.otherUserId = '',
     this.rawProfileData,
   });
 
@@ -46,6 +48,7 @@ class ChatPreviewModel {
       isSeen: json['isSeen'] ?? false,
       isDelivered: json['isDelivered'] ?? false,
       isArchived: json['isArchived'] ?? false,
+      otherUserId: json['otherUserId'] ?? '',
       rawProfileData: json['rawProfileData'],
     );
   }
@@ -64,6 +67,7 @@ class ChatPreviewModel {
       'isSeen': isSeen,
       'isDelivered': isDelivered,
       'isArchived': isArchived,
+      'otherUserId': otherUserId,
       'rawProfileData': rawProfileData,
     };
   }

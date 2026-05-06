@@ -32,7 +32,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   void initState() {
     super.initState();
-    controller.loadConversationMessages(chat.id);
+    controller.loadConversationMessages(chat.id, otherUserId: chat.otherUserId);
     _scrollController.addListener(() {
       final show = _scrollController.offset > 200;
       if (show != _showScrollButton) {
