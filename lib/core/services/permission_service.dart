@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../shared/widgets/common/Nearly_loader.dart';
 import '../routes/app_routes.dart';
+import 'notification_service.dart';
 
 class PermissionServiceScreen extends StatefulWidget {
   const PermissionServiceScreen({super.key});
@@ -24,6 +25,7 @@ class _PermissionServiceScreenState extends State<PermissionServiceScreen> {
     final status = await Permission.location.status;
 
     if (status.isGranted) {
+      await _handleNotificationPermission();
       _goToSplash();
       return;
     }
@@ -31,9 +33,20 @@ class _PermissionServiceScreenState extends State<PermissionServiceScreen> {
     // If not granted, request it (this will show the native system dialog)
     final requestedStatus = await Permission.location.request();
 
-    if (requestedStatus.isGranted) {
-      _goToSplash();
-    } else {}
+    // After location, ask for notification regardless of location outcome
+    await _handleNotificationPermission();
+    _goToSplash();
+  }
+
+  Future<void> _handleNotificationPermission() async {
+    try {
+      if (Get.isRegistered<NotificationService>()) {
+        final notificationService = Get.find<NotificationService>();
+        await notificationService.requestPermission();
+      }
+    } catch (e) {
+      // Ignore if service not registered
+    }
   }
 
   void _goToSplash() {

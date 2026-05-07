@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:Nearly/data/sources/local/local_storage.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/repositories/auth_repository.dart';
 
@@ -94,6 +95,9 @@ class SignInController extends GetxController {
 
       bool isProfileCompleted = response["isProfileCompleted"] == true;
 
+      /// ✅ FCM — request permission & subscribe to topic
+      await _setupFcmSubscription();
+
       /// ✅ NAVIGATION
       if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
@@ -138,6 +142,9 @@ class SignInController extends GetxController {
 
       bool isProfileCompleted = response["isProfileCompleted"] == true;
 
+      /// ✅ FCM — request permission & subscribe to topic
+      await _setupFcmSubscription();
+
       /// ✅ NAVIGATION
       if (isProfileCompleted) {
         Get.offAllNamed(Routes.DASHBOARD);
@@ -148,6 +155,20 @@ class SignInController extends GetxController {
       Get.snackbar('Google Login Failed', e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // ─── FCM Helper ────────────────────────────────────────────────────────────
+
+  /// Requests notification permission and subscribes to the [all_users] topic.
+  Future<void> _setupFcmSubscription() async {
+    try {
+      final notificationService = Get.find<NotificationService>();
+      await notificationService.requestPermission();
+      await notificationService.subscribeToTopic('all_users');
+    } catch (e) {
+      // Non-fatal: log but don't block login flow
+      print('[FCM] Could not complete post-login FCM setup: $e');
     }
   }
 
