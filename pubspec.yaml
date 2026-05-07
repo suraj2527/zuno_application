@@ -52,6 +52,7 @@ dependencies:
   country_state_city: ^0.1.6
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:

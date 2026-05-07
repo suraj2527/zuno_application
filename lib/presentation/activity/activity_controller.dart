@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart';
@@ -142,244 +144,87 @@ class ActivityController extends GetxController {
     final profileId = profile.id;
     if (likedProfileIds.contains(profileId)) return;
 
+    likedProfileIds.add(profileId);
+    // Optimistically remove from likes so it instantly updates UI
+    likedProfiles.removeWhere((p) => p.id == profileId);
+    
+    // Any 'like' from the Activity Tab (Likes Section) is guaranteed to be a Match
+    // Optimistically show the Match Dialog immediately.
+    _showMatchDialog(profile);
+
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
       if (token == null) throw "Token not found";
 
-      // 1. Perform the like action
+      // Perform the like action
       final response = await _homeApi.sendDiscoveryAction(
         token: token,
         targetUserId: profileId,
         action: 'like',
       );
 
+      // Extract matchId if present
+      String? newMatchId;
       if (response != null) {
-        likedProfileIds.add(profileId);
-        
-        // 2. Instant Match Detection from response
         final dynamic matchObj = response['match'] ?? response['data']?['match'];
-        final bool isMatch = response['isMatch'] == true || 
-                             response['data']?['isMatch'] == true ||
-                             response['matchSuccess'] == true ||
-                             response['data']?['matchSuccess'] == true ||
-                             matchObj != null || 
-                             response['status']?.toString().toLowerCase() == 'match' ||
-                             response['message']?.toString().toLowerCase().contains('match') == true;
-
-        if (isMatch) {
-          // Extract matchId if present, otherwise fallback to profile's existing or empty
-          final matchData = matchObj ?? response;
-          final matchId = matchData['matchId'] ?? matchData['_id'] ?? matchData['conversationId'] ?? matchData['id'];
-          
-          final updatedProfile = profile.copyWith(matchId: matchId?.toString());
-          
-          // Show popup INSTANTLY
-          _showMatchDialog(updatedProfile);
-          
-          // Refresh background data to move from Likes to Matches tab
-          loadActivityData(); 
-        } else {
-          // Refresh activity tab as requested
-          loadActivityData();
-          
-          AppNotifications.showSuccess("Profile liked!");
-        }
+        final matchData = matchObj ?? response;
+        newMatchId = matchData['matchId'] ?? matchData['_id'] ?? matchData['conversationId'] ?? matchData['id'];
       }
+
+      // Add to matches optimistically with the new matchId (if any) before refreshing
+      final updatedProfile = profile.copyWith(matchId: newMatchId?.toString());
+      if (!matchedProfiles.any((m) => m.id == profileId)) {
+        matchedProfiles.insert(0, updatedProfile);
+      }
+
+      // Refresh background data to synchronize everything
+      loadActivityData();
+      
     } catch (e) {
-      AppNotifications.showError(e.toString());
+      AppNotifications.showError("Failed to match. Please try again.");
+      likedProfileIds.remove(profileId);
+      loadActivityData(); // Refresh to restore state
     }
   }
 
   void _showMatchDialog(DatingProfile matchedUser) {
     final profileController = Get.find<ProfileController>();
     final myProfile = profileController.profile.value;
-    final isDark = Get.isDarkMode;
 
     Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.cardDark : Colors.white,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 40),
-              // Match Title
-              ShaderMask(
-                shaderCallback: (bounds) => AppGradients.primary.createShader(bounds),
-                child: const Text(
-                  "Match Found! 🎉",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                "You and ${matchedUser.userName} liked each other",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 40),
-              
-              // Avatars
-              SizedBox(
-                height: 160,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // My Avatar (Left)
-                    Transform.translate(
-                      offset: const Offset(-50, 0),
-                      child: _buildMatchAvatar(myProfile?.profileImageUrl ?? ""),
-                    ),
-                    // Matched User Avatar (Right)
-                    Transform.translate(
-                      offset: const Offset(50, 0),
-                      child: _buildMatchAvatar(matchedUser.profileImageUrl),
-                    ),
-                    // Heart Icon in middle
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.2),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.favorite_rounded,
-                        color: AppColors.primary,
-                        size: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 50),
-              
-              // Action Buttons
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Get.back();
-                        _navigateToChat(matchedUser);
-                      },
-                      child: Container(
-                        height: 56,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: AppGradients.primary,
-                          borderRadius: BorderRadius.circular(100),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text(
-                            "Start Chat",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: Text(
-                        "Keep Exploring",
-                        style: TextStyle(
-                          color: isDark ? Colors.white54 : Colors.black54,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
-        ),
+      _MatchDialogWidget(
+        myProfile: myProfile,
+        matchedUser: matchedUser,
+        onStartChat: () {
+          Get.back();
+          _navigateToChat(matchedUser);
+        },
       ),
-      transitionDuration: const Duration(milliseconds: 300),
+      transitionDuration: const Duration(milliseconds: 400),
       transitionCurve: Curves.easeOutBack,
     );
   }
 
-  Widget _buildMatchAvatar(String url) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: url.isNotEmpty
-            ? NearlyImage(
-                imageUrl: url, 
-                fit: BoxFit.cover,
-                errorWidget: _avatarPlaceholder(),
-              )
-            : _avatarPlaceholder(),
-      ),
-    );
-  }
+  void _navigateToChat(DatingProfile p) async {
+    String matchId = p.matchId ?? '';
 
-  Widget _avatarPlaceholder() {
-    return Container(
-      color: AppColors.primary.withOpacity(0.1),
-      child: const Icon(Icons.person, color: AppColors.primary, size: 40),
-    );
-  }
+    if (matchId.isEmpty) {
+      final found = matchedProfiles.firstWhereOrNull((m) => m.id == p.id);
+      matchId = found?.matchId ?? '';
+    }
 
-  void _navigateToChat(DatingProfile p) {
-    final String matchId = p.matchId ?? '';
+    if (matchId.isEmpty) {
+      AppNotifications.showSuccess('Preparing chat...');
+      for (int i = 0; i < 15; i++) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        final found = matchedProfiles.firstWhereOrNull((m) => m.id == p.id);
+        if (found != null && found.matchId != null && found.matchId!.isNotEmpty) {
+          matchId = found.matchId!;
+          break;
+        }
+      }
+    }
 
     if (matchId.isEmpty) {
       AppNotifications.showError('No chat found for this match');
@@ -550,5 +395,274 @@ class ActivityController extends GetxController {
       }
     }
     return null;
+  }
+}
+
+class _MatchDialogWidget extends StatefulWidget {
+  final DatingProfile? myProfile;
+  final DatingProfile matchedUser;
+  final VoidCallback onStartChat;
+
+  const _MatchDialogWidget({
+    required this.myProfile,
+    required this.matchedUser,
+    required this.onStartChat,
+  });
+
+  @override
+  State<_MatchDialogWidget> createState() => _MatchDialogWidgetState();
+}
+
+class _MatchDialogWidgetState extends State<_MatchDialogWidget> {
+  late ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController.play();
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.cardDark : Colors.white,
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 32),
+                // Match Title
+                ShaderMask(
+                  shaderCallback: (bounds) => AppGradients.primary.createShader(bounds),
+                  child: const Text(
+                    "Match Found! 🎉",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "You and ${widget.matchedUser.userName} liked each other",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Avatars
+                SizedBox(
+                  height: 110,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // My Avatar (Left)
+                      Transform.translate(
+                        offset: const Offset(-40, 0),
+                        child: _buildMatchAvatar(widget.myProfile?.profileImageUrl ?? ""),
+                      ),
+                      // Matched User Avatar (Right)
+                      Transform.translate(
+                        offset: const Offset(40, 0),
+                        child: _buildMatchAvatar(widget.matchedUser.profileImageUrl),
+                      ),
+                      // Heart Icon in middle
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.favorite_rounded,
+                          color: AppColors.primary,
+                          size: 28,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 36),
+                
+                // Action Buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: widget.onStartChat,
+                        child: Container(
+                          height: 48,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.primary,
+                            borderRadius: BorderRadius.circular(100),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "Start Chat",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                        ),
+                        child: Text(
+                          "Keep Exploring",
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : Colors.black54,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        
+        // Confetti Overlay
+        Positioned(
+          top: 0,
+          child: ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            colors: const [
+              AppColors.primary,
+              Color(0xFF8B5CF6), // primaryDark replacement / purple
+              Colors.pink,
+              Colors.orange,
+              Colors.lightBlue,
+            ],
+            createParticlePath: drawStar,
+            numberOfParticles: 25,
+            gravity: 0.1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Path drawStar(Size size) {
+    // Method to convert degree to radians
+    double degToRad(double deg) => deg * (pi / 180.0);
+
+    const numberOfPoints = 5;
+    final halfWidth = size.width / 2;
+    final externalRadius = halfWidth;
+    final internalRadius = halfWidth / 2.5;
+    final degreesPerStep = degToRad(360 / numberOfPoints);
+    final halfDegreesPerStep = degreesPerStep / 2;
+    final path = Path();
+    final fullAngle = degToRad(360);
+    path.moveTo(size.width, halfWidth);
+
+    for (double step = 0; step < fullAngle; step += degreesPerStep) {
+      path.lineTo(
+        halfWidth + externalRadius * cos(step),
+        halfWidth + externalRadius * sin(step),
+      );
+      path.lineTo(
+        halfWidth + internalRadius * cos(step + halfDegreesPerStep),
+        halfWidth + internalRadius * sin(step + halfDegreesPerStep),
+      );
+    }
+    path.close();
+    return path;
+  }
+
+  Widget _buildMatchAvatar(String url) {
+    return Container(
+      width: 90,
+      height: 90,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 3.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(100),
+        child: url.isNotEmpty
+            ? NearlyImage(
+                imageUrl: url, 
+                fit: BoxFit.cover,
+                errorWidget: _avatarPlaceholder(),
+              )
+            : _avatarPlaceholder(),
+      ),
+    );
+  }
+
+  Widget _avatarPlaceholder() {
+    return Container(
+      color: AppColors.primary.withOpacity(0.1),
+      child: const Icon(Icons.person, color: AppColors.primary, size: 40),
+    );
   }
 }
