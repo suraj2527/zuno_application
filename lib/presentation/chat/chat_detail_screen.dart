@@ -32,6 +32,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   void initState() {
     super.initState();
+    print("DEBUG: ChatDetailScreen initState called for ${chat.id}");
     controller.loadConversationMessages(chat.id, otherUserId: chat.otherUserId);
     _scrollController.addListener(() {
       final show = _scrollController.offset > 200;
@@ -709,7 +710,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       }
 
       return DatingProfile(
-        id: pMap["_id"]?.toString() ?? pMap["userId"]?.toString() ?? chat.id,
+        id: pMap["userId"]?.toString() ?? pMap["_id"]?.toString() ?? chat.id,
         userName:
             pMap["name"]?.toString() ??
             controller.normalizeDisplayName(chat.name),

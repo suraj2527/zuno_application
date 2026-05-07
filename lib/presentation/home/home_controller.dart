@@ -100,6 +100,7 @@ class HomeController extends GetxController {
   final isLikePressed = false.obs;
   final isBoostPressed = false.obs;
   final isGoldenChatPressed = false.obs;
+  final isSendingDirectMessage = false.obs;
 
   /// Subscription/Limit logic
   final directMessageLimit = 3.obs;
@@ -120,18 +121,23 @@ class HomeController extends GetxController {
     DatingProfile profile,
     Function(DatingProfile) onShowDialog,
   ) {
+    if (isGoldenChatPressed.value) return; // Prevent double clicks
+    
     isGoldenChatPressed.value = true;
-    Future.delayed(const Duration(milliseconds: 150), () {
+    onShowDialog(profile);
+    
+    // Reset after a short delay so it can be pressed again later (e.g. after dialog close)
+    Future.delayed(const Duration(seconds: 1), () {
       isGoldenChatPressed.value = false;
-      onShowDialog(profile);
     });
   }
 
   Future<bool> sendDirectMessage(String targetUserId, String message) async {
-    if (messagesSentCount.value >= directMessageLimit.value) {
-      return false; // Limit exceeded
+    if (isSendingDirectMessage.value || messagesSentCount.value >= directMessageLimit.value) {
+      return false; // Limit exceeded or already sending
     }
 
+    isSendingDirectMessage.value = true;
     try {
       final user = _authService.currentUser;
       final token = await user?.getIdToken(true);
@@ -152,6 +158,8 @@ class HomeController extends GetxController {
       return false;
     } catch (e) {
       return false;
+    } finally {
+      isSendingDirectMessage.value = false;
     }
   }
 

@@ -1006,16 +1006,28 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(100),
                               ),
                               child: Center(
-                                child: Text(
-                                  isOutOfLimit
-                                      ? "Upgrade to Nearly Premium"
-                                      : "Send Premium Message",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ),
+                                child: Obx(() {
+                                  if (controller.isSendingDirectMessage.value) {
+                                    return const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    );
+                                  }
+                                  return Text(
+                                    isOutOfLimit
+                                        ? "Upgrade to Nearly Premium"
+                                        : "Send Premium Message",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                }),
                               ),
                             ),
                           ),

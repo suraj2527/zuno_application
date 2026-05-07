@@ -11,9 +11,12 @@ class ChatApi {
     );
 
     if (res.statusCode == 200) {
+      print("RAW_CONVERSATIONS_RESPONSE: ${res.body}");
       final data = jsonDecode(res.body);
       return List<dynamic>.from(data["data"] ?? []);
     }
+
+    print("DEBUG: getConversations FAILED with status ${res.statusCode}: ${res.body}");
 
     throw "Failed to fetch conversations: ${res.body}";
   }
@@ -25,10 +28,12 @@ class ChatApi {
     );
 
     if (res.statusCode == 200) {
+      print("RAW_CHAT_MESSAGES_RESPONSE: ${res.body}");
       final data = jsonDecode(res.body);
       return List<dynamic>.from(data["data"] ?? []);
     }
 
+    print("DEBUG: getMessages FAILED with status ${res.statusCode}: ${res.body}");
     throw "Failed to fetch messages: ${res.body}";
   }
 

@@ -3,6 +3,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:Nearly/core/services/auth_service.dart';
 import 'package:Nearly/data/model/chat/chat_message_model.dart';
 import 'package:Nearly/data/sources/remote/chat_api.dart';
+import 'package:Nearly/data/sources/remote/user_api.dart';
 import '../../data/model/chat/chat_preview_model.dart';
 import '../../data/model/chat/chat_user_model.dart';
 
@@ -17,6 +18,7 @@ class ChatController extends GetxController {
 
   final AuthService _authService = AuthService();
   final ChatApi _chatApi = ChatApi();
+  final UserApi _userApi = UserApi();
   io.Socket? _socket;
   String? _myUserId;
   final Set<String> _myKnownIds = <String>{};
@@ -41,10 +43,24 @@ class ChatController extends GetxController {
       if (token == null) throw "Token not found";
 
       _myUserId = user?.uid;
+      
+      // Fetch profile to get the backend userId (which matches senderId in messages)
+      try {
+        final profileData = await _userApi.getProfile(token);
+        final backendId = profileData["userId"]?.toString() ?? profileData["_id"]?.toString();
+        if (backendId != null && backendId.isNotEmpty) {
+          print("DEBUG: Using backend User ID for alignment: $backendId");
+          _myUserId = backendId;
+        }
+      } catch (e) {
+        print("DEBUG: Failed to fetch profile for ID mapping: $e");
+      }
+
       _registerMyId(_myUserId);
       await _connectSocket(token);
 
       final conversations = await _chatApi.getConversations(token);
+      print("CHAT_API_RESPONSE: getConversations: $conversations");
       for (final raw in conversations) {
         _extractAndRegisterMyIdsFromConversation(raw);
       }
@@ -65,6 +81,7 @@ class ChatController extends GetxController {
             .toList(),
       );
     } catch (e) {
+      print("DEBUG: loadChatData ERROR: $e");
     } finally {
       isLoading.value = false;
     }
@@ -138,6 +155,7 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadConversationMessages(String conversationId, {String? otherUserId}) async {
+    print("DEBUG: loadConversationMessages called for $conversationId");
     isMessagesLoading.value = true;
     try {
       setActiveConversation(conversationId);
@@ -146,16 +164,30 @@ class ChatController extends GetxController {
       if (token == null) throw "Token not found";
 
       // Ensure current user ID is available for message mapping
-      _myUserId = user?.uid;
+      if (_myUserId == null || _myUserId == user?.uid) {
+        try {
+          final profileData = await _userApi.getProfile(token);
+          final backendId = profileData["userId"]?.toString() ?? profileData["_id"]?.toString();
+          if (backendId != null && backendId.isNotEmpty) {
+            _myUserId = backendId;
+          }
+        } catch (e) {
+          _myUserId ??= user?.uid;
+        }
+      }
       _registerMyId(_myUserId);
 
       final effectiveOtherUserId = otherUserId ?? chatList.firstWhereOrNull((c) => c.id == conversationId)?.otherUserId;
+      print("DEBUG: loadConversationMessages: effectiveOtherUserId=$effectiveOtherUserId");
       final data = await _chatApi.getMessages(token, conversationId);
+      print("CHAT_API_RESPONSE: getMessages: $data");
       final mapped = data.map((m) => _mapMessage(m, otherUserId: effectiveOtherUserId)).toList();
       getConversationMessages(conversationId).assignAll(mapped);
       _joinConversation(conversationId);
     } catch (e) {
+      print("DEBUG: loadConversationMessages ERROR: $e");
     } finally {
+      print("DEBUG: loadConversationMessages FINISHED");
       isMessagesLoading.value = false;
     }
   }
@@ -370,7 +402,8 @@ class ChatController extends GetxController {
         (_readBool(item, const ["isActive", "active"]) == false &&
             _hasKey(item, const ["isActive", "active"]));
 
-    final otherUserId = user?["_id"]?.toString() ??
+    final otherUserId = user?["userId"]?.toString() ??
+        user?["_id"]?.toString() ??
         user?["id"]?.toString() ??
         (otherUser is String ? otherUser : "");
 
@@ -452,15 +485,17 @@ class ChatController extends GetxController {
     final currentUserId = _myUserId ?? _authService.currentUser?.uid ?? "";
     final myCandidates = <String>{currentUserId.trim(), ..._myKnownIds}
       ..removeWhere((e) => e.isEmpty);
-    final isMe =
-        explicitIsMe ||
-        (otherUserId != null &&
-            otherUserId.isNotEmpty &&
-            senderId.isNotEmpty &&
-            senderId != otherUserId) ||
-        senderCandidates.any((sender) => myCandidates.contains(sender));
+    final isMe = (otherUserId != null && otherUserId.isNotEmpty && senderId.isNotEmpty)
+        ? senderId != otherUserId
+        : (explicitIsMe ||
+            (senderId.isNotEmpty && currentUserId.isNotEmpty && senderId == currentUserId) ||
+            senderCandidates.any((sender) => myCandidates.contains(sender)));
     // Debug logging to verify the comparison
     if (senderId.isNotEmpty) {
+      print("DEBUG: _mapMessage: senderId=$senderId, currentUserId=$currentUserId, isMe=$isMe");
+      if (!isMe) {
+        print("DEBUG: _mapMessage RAW ITEM (isMe=false): $item");
+      }
     }
     if (isMe) {
       _registerMyId(senderId);
@@ -502,6 +537,9 @@ class ChatController extends GetxController {
   void _registerMyId(String? id) {
     final value = (id ?? "").trim();
     if (value.isNotEmpty) {
+      if (!_myKnownIds.contains(value)) {
+        print("DEBUG: Registering My ID: $value");
+      }
       _myKnownIds.add(value);
     }
   }
